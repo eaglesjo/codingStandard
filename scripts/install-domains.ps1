@@ -37,18 +37,18 @@ function Conflict($path){
 }
 function AddFiles([System.Collections.Generic.List[string]]$list,[string]$domain){
   if($domain -eq 'common'){
-    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.github/instructions/llm.instructions.md','.cursor/rules/coding-standard.mdc','.windsurf/rules/coding-standard.md','.clinerules/01-coding-standard.md','.continue/rules/01-coding-standard.md','.junie/AGENTS.md','.amazonq/rules/coding-standard.md','CONVENTIONS.md','.aider.conf.yml','COMMON/AGENT.md','COMMON/SKILL.md','COMMON/ENVIRONMENT.md'))
+    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.github/instructions/llm.instructions.md','.github/instructions/vision.instructions.md','.cursor/rules/coding-standard.mdc','.windsurf/rules/coding-standard.md','.clinerules/01-coding-standard.md','.continue/rules/01-coding-standard.md','.junie/AGENTS.md','.amazonq/rules/coding-standard.md','CONVENTIONS.md','.aider.conf.yml','COMMON/AGENT.md','COMMON/SKILL.md','COMMON/ENVIRONMENT.md'))
   } elseif($domain -eq 'llm'){
-    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.github/instructions/llm.instructions.md','LLM/AGENT.md','LLM/SKILL.md','LLM/ENVIRONMENT.md','LLM/environment.py','LLM/experiment.py','LLM/memory_smoke_test.py','LLM/README.md','LLM/config/training.yaml','LLM/config/ablation.yaml'))
+    $list.AddRange([string[]]@('LLM/AGENT.md','LLM/SKILL.md','LLM/ENVIRONMENT.md','LLM/environment.py','LLM/experiment.py','LLM/memory_smoke_test.py','LLM/README.md','LLM/config/training.yaml','LLM/config/ablation.yaml'))
     Get-ChildItem "$SrcRoot/LLM/skills" -Recurse -Filter SKILL.md | ForEach-Object {$list.Add($_.FullName.Substring($SrcRoot.Length+1))}
   } elseif($domain -eq 'vision'){
-    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.github/instructions/llm.instructions.md','VISION/AGENT.md','VISION/SKILL.md','VISION/ENVIRONMENT.md','VISION/memory_smoke_test.py','VISION/README.md','VISION/config/training.yaml','VISION/config/ablation.yaml'))
+    $list.AddRange([string[]]@('VISION/AGENT.md','VISION/SKILL.md','VISION/ENVIRONMENT.md','VISION/memory_smoke_test.py','VISION/README.md','VISION/config/training.yaml','VISION/config/ablation.yaml'))
     Get-ChildItem "$SrcRoot/VISION/skills" -Recurse -Filter SKILL.md | ForEach-Object {$list.Add($_.FullName.Substring($SrcRoot.Length+1))}
   }
 }
 $files=[System.Collections.Generic.List[string]]::new()
 AddFiles $files 'common'
-if($Domain -in @('llm','vision','all')){ if($Domain -eq 'llm'){AddFiles $files 'llm'}elseif($Domain -eq 'vision'){AddFiles $files 'vision'}else{AddFiles $files 'llm';AddFiles $files 'vision'} }
+if($Domain -eq 'llm'){AddFiles $files 'llm'}elseif($Domain -eq 'vision'){AddFiles $files 'vision'}elseif($Domain -eq 'all'){AddFiles $files 'llm';AddFiles $files 'vision'}
 foreach($rel in $files){
   $src=Join-Path $SrcRoot $rel;$dst=Join-Path $Target $rel
   if(!(Test-Path $src)){throw "Missing template: $rel"}
