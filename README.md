@@ -2,90 +2,77 @@
 
 > **Language:** English (default) · [한국어 README](README.ko.md)
 
-An AI-oriented coding standard repository for consistent software development across projects, with a focus on Python, LLM, ML, Jupyter, and Google Colab workflows.
-
-It standardizes environment detection, capability/resource profiling, runtime configuration, memory-safe execution, training reproducibility, Early Stopping, checkpoint/resume, ablation studies, and AI-tool project instructions.
+An AI-oriented development standard for projects that use AI coding agents, LLM/ML workflows, and computer-vision workloads.
 
 ## Installation
 
-Clone the repository, then run the installer from the root of the project where you want to apply the standard.
+Clone the repository, then run the domain installer from the project you want to configure.
 
 ### Windows / PowerShell
 
-Interactive language selection:
+Interactive selection of language and domain:
 
 ```powershell
 git clone https://github.com/eaglesjo/codingStandard.git
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target .
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target .
 ```
 
-Explicit language:
+Explicit installation:
 
 ```powershell
-... -Language en
-... -Language ko
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target . -Language en -Domain all
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target . -Language ko -Domain vision
 ```
 
-Preview without changing files:
-
-```powershell
-... -Language en -DryRun
-```
-
-Choose existing-file policy:
-
-```powershell
-... -ConflictAction Ask
-... -ConflictAction Merge
-... -ConflictAction Overwrite
-... -ConflictAction Skip
-```
+Use `-DryRun` to preview changes and `-ConflictAction Ask|Merge|Overwrite|Skip` to control existing-file handling.
 
 ### Linux / macOS
 
-Interactive language selection:
+Interactive selection:
 
 ```bash
 git clone https://github.com/eaglesjo/codingStandard.git
-bash ./codingStandard/scripts/install-coding-standard.sh .
+bash ./codingStandard/scripts/install-domains.sh .
 ```
 
-Explicit language:
+Explicit installation:
 
 ```bash
-bash ./codingStandard/scripts/install-coding-standard.sh . en
-bash ./codingStandard/scripts/install-coding-standard.sh . ko
+bash ./codingStandard/scripts/install-domains.sh . en all ask false
+bash ./codingStandard/scripts/install-domains.sh . ko vision overwrite false
 ```
 
-Conflict policy is the third argument and dry-run is the fourth:
+Arguments are: `target language domain conflict-policy dry-run`.
 
-```bash
-bash ./codingStandard/scripts/install-coding-standard.sh . ko merge
-bash ./codingStandard/scripts/install-coding-standard.sh . ko overwrite
-bash ./codingStandard/scripts/install-coding-standard.sh . ko skip
-bash ./codingStandard/scripts/install-coding-standard.sh . ko ask true
+## Installation Domains
+
+```text
+Common
+LLM
+Vision
+All = Common + LLM + Vision
 ```
+
+Common provides the project/AI-agent baseline. LLM and Vision add domain-specific rules, Skills, configuration, and validation tools.
 
 ## Existing File Handling
 
-The installer never needs to overwrite an existing file silently. With `Ask`, each conflict can be handled as:
+When a file already exists, choose:
 
 ```text
-M = Merge
-O = Overwrite
-S = Skip
-A = Merge all remaining
-W = Overwrite all remaining
-K = Skip all remaining
+Merge      keep existing content and replace only the codingStandard-managed block
+Overwrite  replace the complete file
+Skip       leave the existing file unchanged
+Ask        decide per file
 ```
 
-`Merge` preserves existing content and replaces only the clearly marked codingStandard-managed block on subsequent runs. Structured Aider configuration is merged conservatively rather than treated as arbitrary Markdown.
-
-Use `DryRun` / `true` to preview the installation plan before making changes.
+Use dry-run before a large installation when integrating into an existing project.
 
 ## Supported AI Development Tools
 
-| Tool | Installed project entrypoint |
+The installer provisions project-level adapters for:
+
+| Tool | Project entrypoint |
 | --- | --- |
 | OpenAI Codex / compatible agents | `AGENTS.md` |
 | Claude Code | `CLAUDE.md` |
@@ -99,166 +86,195 @@ Use `DryRun` / `true` to preview the installation plan before making changes.
 | Amazon Q Developer | `.amazonq/rules/coding-standard.md` |
 | Aider | `CONVENTIONS.md` + `.aider.conf.yml` |
 
-Tool-specific files are thin adapters. The shared behavior remains defined by the common project standard.
+## AI Development Workflow
 
-## Usage
+```text
+Load project instructions
+        ↓
+Detect installed domains
+        ↓
+Inspect repository and workload
+        ↓
+Measure runtime capabilities/resources
+        ↓
+Resolve runtime configuration
+        ↓
+Run domain-appropriate Memory Smoke Test
+        ↓
+Lock validated environment
+        ↓
+Apply task-specific Skills
+        ↓
+Implement / Train / Infer
+        ↓
+Validate / Early Stop / Checkpoint
+        ↓
+Ablation / Experiment Metadata
+        ↓
+Final clean run
+```
 
-After installation, run the environment profiler from the target project root:
+Core rule: **measure first, validate second, implement third, record everything needed for reproducibility**.
+
+## Common Layer
+
+`COMMON/` contains rules shared by all project types:
+
+- environment inspection
+- resource safety
+- configuration and reproducibility
+- security and secret handling
+- testing and validation
+- environment-specific cleanup
+- training/experiment lifecycle principles
+
+## LLM Layer
+
+`LLM/` covers language-model, NLP, RAG, fine-tuning, Jupyter, and Colab workflows.
+
+It includes environment profiling, memory-safe execution, Early Stopping, best Checkpoint, Resume, Ablation Study configuration, experiment metadata, and task-specific Skills.
+
+Run the profiler:
 
 ```bash
 python LLM/environment.py
 ```
 
-To save the detected profile:
-
-```bash
-python LLM/environment.py .codingstandard/environment-profile.json
-```
-
-The profiler measures the actual Python/runtime environment, OS, CPU, RAM, disk, GPU/accelerator, VRAM, CUDA/MPS/ROCm/DirectML capabilities, and IDE/Jupyter/Colab state. It then resolves a conservative starting runtime configuration.
-
-No specific GPU, RAM size, OS, or IDE is treated as a mandatory machine-specific prerequisite.
-
-## Memory Smoke Test
-
-Before a long training run, execute the standardized synthetic smoke test:
+Run the LLM memory smoke test:
 
 ```bash
 python LLM/memory_smoke_test.py --cpu --steps 2
 ```
 
-On an accelerator-enabled machine, omit `--cpu` and use a conservative workload. The runner validates a minimal `load → forward → backward → optimizer step → checkpoint save/reload` path and records runtime, RAM, and GPU memory information. Use the same pattern with the real model before starting a full training job.
+## Vision Layer
 
-## AI Development Workflow
-
-```text
-Load AI instructions
-        ↓
-Inspect repository / project
-        ↓
-Detect Python / kernel / IDE / runtime
-        ↓
-Measure CPU / RAM / disk / accelerator / VRAM / capabilities
-        ↓
-Generate Environment Profile
-        ↓
-Resolve Runtime Configuration
-        ↓
-Run Memory Smoke Test
-        ↓
-Lock the validated environment
-        ↓
-Remove unused OS / device branches
-        ↓
-Implement / train / infer
-        ↓
-Evaluate with Early Stopping / Checkpoint
-        ↓
-Run Ablation / record reproducibility + resources
-        ↓
-Final clean run
-```
-
-Core principle: **measure first, resolve second, validate third, then implement and run**.
-
-## Skills
-
-Task-specific skills are available under `LLM/skills/`:
+`VISION/` covers computer-vision workloads:
 
 ```text
-LLM/skills/
-├── environment/SKILL.md
-├── training/SKILL.md
-├── ablation/SKILL.md
-├── notebook/SKILL.md
-├── debugging/SKILL.md
-└── release/SKILL.md
+classification
+object detection
+segmentation
+OCR
+pose estimation
+image generation
+vision-language models
 ```
 
-Agents should use the relevant skill for the current task instead of applying unrelated rules indiscriminately.
+Vision-specific optimization considers image resolution, batch size, channels, activation/feature-map memory, augmentation workers, cache, and prefetching.
 
-## Training and Ablation Configuration
-
-Reusable starting configurations are provided:
-
-```text
-LLM/config/training.yaml
-LLM/config/ablation.yaml
-```
-
-Training defaults include validation, Early Stopping, best checkpoint, Resume, environment-driven resource settings, and reproducibility metadata.
-
-Ablation defaults include a baseline, explicit variants, seed matrix, primary metric, controlled evaluation conditions, and resource tracking.
-
-## Experiment Metadata
-
-Use `LLM/experiment.py` to create reproducible experiment metadata including coding-standard version, config hash, Git commit/branch/dirty state, seed, model/dataset revision, and timestamp.
-
-Example:
+Run the Vision smoke test:
 
 ```bash
-python LLM/experiment.py baseline baseline --seed 42 --config '{"feature_a":true}' --output experiments/baseline.json
-```
-
-## Automatic AI Instruction Loading
-
-The main project entrypoints are:
-
-```text
-AGENTS.md
-CLAUDE.md
-GEMINI.md
-.github/copilot-instructions.md
-```
-
-The installer also provisions tool-specific adapters for Cursor, Windsurf, Cline, Continue, Junie, Amazon Q Developer, and Aider.
-
-The common LLM rules are maintained in:
-
-```text
-LLM/AGENT.md
-LLM/SKILL.md
-LLM/ENVIRONMENT.md
+python VISION/memory_smoke_test.py --device auto --image-size 224 --batch-size 1 --steps 2
 ```
 
 ## Environment Optimization
 
-The standard is environment-agnostic. `LLM/environment.py` measures capabilities instead of assuming a particular machine.
+The environment policy is machine-agnostic. Runtime decisions come from measured capabilities instead of a named hardware profile.
 
-Recommended settings are starting points only. A workload-specific Memory Smoke Test is the final gate before long training.
+The profiler may consider:
 
-The optimization policy may use, where supported and justified:
+```text
+OS / architecture
+Python / framework
+CPU / thread capacity
+system RAM
+free disk space
+accelerator vendor / model
+VRAM
+CUDA / ROCm / MPS / DirectML
+FP16 / BF16 support
+IDE / Jupyter / Colab
+```
 
-- small batches with gradient accumulation
-- mixed precision
-- gradient checkpointing
-- quantization
-- CPU offload
-- controlled DataLoader workers/prefetching
-- streaming/chunking/memory mapping
-- CPU thread limits
-- inference mode
+Resource-sensitive settings are conservative starting points. A workload-specific smoke test is the final gate before long execution.
 
-VRAM, RAM, and disk headroom are preserved instead of targeting 100% utilization.
+## Training and Experiment Rules
 
-## Validation and CI
+Long-running training should normally use:
 
-Run local repository validation:
+```text
+validation
+Early Stopping
+best checkpoint
+Resume
+baseline + ablation matrix
+seed control
+resource tracking
+Git/environment/config metadata
+```
+
+Shared configurations:
+
+```text
+LLM/config/training.yaml
+LLM/config/ablation.yaml
+VISION/config/training.yaml
+VISION/config/ablation.yaml
+```
+
+## Skills
+
+Task-specific Skills live under both domains.
+
+```text
+LLM/skills/
+├── environment/
+├── training/
+├── ablation/
+├── notebook/
+├── debugging/
+└── release/
+
+VISION/skills/
+├── classification/
+├── detection/
+├── segmentation/
+├── ocr/
+├── pose-estimation/
+├── image-generation/
+└── vlm/
+```
+
+Use only Skills relevant to the current task.
+
+## Reproducibility
+
+Experiment metadata should capture at least:
+
+```text
+coding-standard version
+experiment_id
+Git commit / branch / dirty state
+configuration hash
+seed
+model revision
+dataset revision
+environment profile
+runtime configuration
+metrics
+runtime
+peak RAM / VRAM
+checkpoint path
+```
+
+## Validation
+
+Run repository validation locally:
 
 ```bash
 python scripts/validate.py
 python scripts/check_i18n.py
 python scripts/test_installers.py
-python LLM/memory_smoke_test.py --cpu --steps 2
 ```
 
-GitHub Actions runs repository validation, installer integration tests, and a CPU memory smoke test on pushes to `main` and pull requests.
+For an ML/LLM project also run the relevant Memory Smoke Test before a long training job.
+
+GitHub Actions validates the repository and installer behavior on pushes to `main` and pull requests.
 
 ## Versioning
 
-The current coding standard version is stored in `VERSION`.
-
-Runtime profiles and experiment metadata should record the coding-standard version so results remain traceable after the standard evolves.
+The current standard version is stored in `VERSION`. Installed experiment metadata should record it so results remain traceable as the standard evolves.
 
 ## Repository Structure
 
@@ -270,41 +286,38 @@ codingStandard/
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── GEMINI.md
-├── CONVENTIONS.md
-├── .aider.conf.yml
-├── .amazonq/rules/
-├── .cursor/rules/
-├── .windsurf/rules/
-├── .clinerules/
-├── .continue/rules/
-├── .junie/
-├── .github/
-├── i18n/ko/
+├── COMMON/
 ├── LLM/
-│   ├── AGENT.md
-│   ├── SKILL.md
-│   ├── ENVIRONMENT.md
-│   ├── environment.py
-│   ├── memory_smoke_test.py
-│   ├── experiment.py
-│   ├── config/
-│   └── skills/
-├── scripts/
-│   ├── install-coding-standard.ps1
-│   ├── install-coding-standard.sh
-│   ├── validate.py
-│   ├── check_i18n.py
-│   └── test_installers.py
-└── .github/workflows/validate-coding-standard.yml
+├── VISION/
+├── i18n/
+├── .github/
+├── .amazonq/
+├── .cursor/
+├── .windsurf/
+├── .clinerules/
+├── .continue/
+├── .junie/
+├── .aider.conf.yml
+├── CONVENTIONS.md
+└── scripts/
+    ├── install-domains.ps1
+    ├── install-domains.sh
+    ├── validate.py
+    ├── check_i18n.py
+    └── test_installers.py
 ```
 
 ## Documentation
 
+- [Installation Guide](INSTALL.md)
+- [Common Agent Rules](COMMON/AGENT.md)
 - [LLM Agent Rules](LLM/AGENT.md)
 - [LLM Skill](LLM/SKILL.md)
-- [Environment Optimization](LLM/ENVIRONMENT.md)
-- [LLM/Jupyter Guide](LLM/README.md)
-- [Environment Profiler](LLM/environment.py)
-- [Memory Smoke Test](LLM/memory_smoke_test.py)
+- [LLM Environment](LLM/ENVIRONMENT.md)
+- [Vision Agent Rules](VISION/AGENT.md)
+- [Vision Skill](VISION/SKILL.md)
+- [Vision Environment](VISION/ENVIRONMENT.md)
+- [LLM Memory Smoke Test](LLM/memory_smoke_test.py)
+- [Vision Memory Smoke Test](VISION/memory_smoke_test.py)
 - [Experiment Metadata Helper](LLM/experiment.py)
 - [Korean README](README.ko.md)
