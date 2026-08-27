@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import re
 import sys
 from pathlib import Path
@@ -23,6 +24,9 @@ REQUIRED_FILES = [
     "VISION/memory_smoke_test.py",
     "scripts/install-domains.ps1", "scripts/install-domains.sh",
     "scripts/check_i18n.py", "scripts/test_installers.py",
+    "scripts/test_installers_windows.ps1",
+    ".github/workflows/windows-install-test.yml",
+    "tests/colab/README.md", "tests/colab/codingstandard_colab_test.ipynb",
 ]
 
 
@@ -45,6 +49,18 @@ def check_python() -> None:
             ast.parse(path.read_text(encoding="utf-8"))
         except SyntaxError as exc:
             fail(f"Python syntax error in {path}: {exc}")
+
+
+def check_notebook() -> None:
+    path = ROOT / "tests" / "colab" / "codingstandard_colab_test.ipynb"
+    try:
+        notebook = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        fail(f"Invalid Colab notebook JSON: {exc}")
+    if notebook.get("nbformat") != 4:
+        fail("Colab notebook must use nbformat 4")
+    if not notebook.get("cells"):
+        fail("Colab notebook has no cells")
 
 
 def check_hardware_neutrality() -> None:
@@ -70,11 +86,22 @@ def check_no_legacy_installer() -> None:
         fail(f"Legacy installer must not exist before release: {path.name}")
 
 
+def check_windows_workflow() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "windows-install-test.yml").read_text(encoding="utf-8")
+    if "runs-on: windows-latest" not in workflow:
+        fail("Windows workflow must use the windows-latest runner")
+    for required in ("powershell", "pwsh", "DryRun", "Merge"):
+        if required not in workflow:
+            fail(f"Windows workflow missing validation for: {required}")
+
+
 def main() -> None:
     check_required_files()
     check_python()
+    check_notebook()
     check_hardware_neutrality()
     check_no_legacy_installer()
+    check_windows_workflow()
     run_i18n_check()
     print("codingStandard validation passed")
 
