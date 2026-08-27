@@ -28,6 +28,7 @@ description: Manus 프로젝트에 codingStandard의 Common, LLM, Vision 개발 
 - batch size, worker 수, cache, prefetch, image/token 크기는 보수적으로 시작합니다.
 - free RAM, free VRAM, free disk를 동적인 제약으로 취급합니다.
 - OOM 및 자원 실패는 단계적으로 설정을 완화하여 복구합니다.
+- 실제 실행 환경을 확인하고 메모리 여유를 확보한 뒤 장시간 작업을 수행합니다.
 
 ## Manus 안전
 
