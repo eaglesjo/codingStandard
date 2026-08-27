@@ -9,7 +9,7 @@
 - 측정 결과와 workload를 기준으로 runtime configuration을 확정합니다.
 - 환경 확정 후 사용하지 않는 OS/device 분기, dead code, 구식 구현, 불필요한 import를 제거합니다.
 - 공식적으로 여러 환경을 지원하는 reusable library는 필요한 분기를 유지합니다.
-- 제한된 VRAM/RAM에서는 보수적인 memory budget을 사용합니다.
+- 제한된 VRAM/RAM에서는 보수적인 memory budget을 사용하여 메모리 사용량을 관리합니다.
 - 장시간 학습에는 validation metric, Early Stopping, best checkpoint, Resume을 적용합니다.
 - 실험에는 명시적인 configuration과 Ablation Study matrix를 사용합니다.
 - OOM 발생 시 동일 설정을 반복하지 않고 단계별 memory recovery를 적용합니다.
