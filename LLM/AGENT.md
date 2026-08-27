@@ -2,35 +2,35 @@
 
 # Cross-Platform Python LLM / Jupyter / Google Colab Development
 
-이 문서는 Python 기반 LLM/ML 프로젝트를 Jupyter Notebook, JupyterLab, VS Code Jupyter, Google Colab 및 Colab Local Runtime에서 개발하는 AI Agent를 위한 공통 개발 규칙이다.
+This document defines common rules for AI coding agents working on Python LLM/ML projects in Jupyter Notebook, JupyterLab, VS Code Jupyter, Google Colab, and Colab Local Runtime.
 
-## 1. 지원 범위
+## 1. Supported Scope
 
 - Windows / Linux / macOS
 - venv / virtualenv / conda / uv
 - Jupyter / JupyterLab / VS Code Jupyter
 - Google Colab / Colab Local Runtime
-- CPU / CUDA / MPS 환경
-- 로컬 GPU 및 제한된 시스템 메모리 환경
+- CPU / CUDA / MPS environments
+- local GPUs and constrained system memory
 
-## 2. 핵심 원칙
+## 2. Core Principles
 
-1. 실제 실행 환경을 먼저 확인한다.
-2. GPU, CPU, RAM, OS, Python, IDE/runtime을 하드코딩하지 않는다.
-3. 재사용 가능한 로직은 `src/` 등에 분리하고 Notebook은 orchestration에 집중한다.
-4. OS별 경로는 `pathlib.Path`를 사용한다.
-5. 파일 입출력 encoding을 명시한다.
-6. API key, token, password를 코드에 넣지 않는다.
-7. 가용 VRAM/RAM을 먼저 확인하고 workload에 맞는 자원 사용량을 결정한다.
-8. GPU/RAM을 100%까지 채우는 것을 목표로 하지 않는다.
-9. 같은 설정으로 OOM을 무한 재시도하지 않는다.
-10. 실험 코드는 명시적인 configuration object/section을 사용한다.
-11. 장시간 학습에는 validation metric, Early Stopping, Checkpoint/Resume를 기본 적용한다.
-12. 실험에는 reproducibility metadata와 resource usage를 기록한다.
+1. Inspect the actual execution environment first.
+2. Do not hard-code GPU, CPU, RAM, OS, Python, or IDE/runtime assumptions.
+3. Keep reusable logic in `src/` or equivalent modules; keep notebooks focused on orchestration.
+4. Use `pathlib.Path` for paths.
+5. Specify file encodings explicitly.
+6. Never place API keys, tokens, or passwords in source code.
+7. Measure available VRAM/RAM before deciding resource usage.
+8. Do not target 100% GPU/RAM utilization.
+9. Do not retry OOM failures indefinitely with the same configuration.
+10. Keep experiments in explicit configuration objects/sections.
+11. Long-running training uses validation metrics, Early Stopping, and Checkpoint/Resume by default.
+12. Record reproducibility metadata and resource usage.
 
-## 3. 환경 탐지 → 측정 → 확정
+## 3. Detect → Measure → Resolve → Smoke Test → Lock
 
-모든 환경 의존적 작업은 다음 흐름을 따른다.
+All environment-dependent work follows this sequence:
 
 ```text
 Detect
@@ -48,13 +48,13 @@ Optimize
 Implement / Execute
 ```
 
-가능하면 먼저 공통 프로파일러를 실행한다.
+Run the shared profiler when available:
 
 ```bash
 python LLM/environment.py
 ```
 
-프로파일 저장:
+Save a profile:
 
 ```bash
 python LLM/environment.py .codingstandard/environment-profile.json
@@ -62,44 +62,33 @@ python LLM/environment.py .codingstandard/environment-profile.json
 
 ## 4. Environment Profile
 
-`LLM/environment.py`의 `inspect_environment()`는 다음을 측정한다.
+`LLM/environment.py` measures:
 
 - OS / architecture
 - Python version / executable
-- IDE / Jupyter / Colab 상태
+- IDE / Jupyter / Colab state
 - CPU core count
 - System RAM total / available
 - NVIDIA GPU / VRAM total / free
 - CUDA / MPS availability
 - resolved device
 
-그리고 측정값을 바탕으로 시작 runtime configuration을 계산한다.
+It also derives a conservative starting runtime configuration:
 
 - device
 - batch size
 - gradient accumulation steps
 - DataLoader workers
 - pin memory
-- FP16 / BF16 후보
+- FP16 / BF16 candidates
 - gradient checkpointing
 - maximum sequence length
 
-프로파일러 값은 시작점일 뿐이며 실제 모델/데이터의 Memory Smoke Test 결과가 최종 결정권을 가진다.
+Profiler output is a starting point. Workload-specific Memory Smoke Tests decide the final settings.
 
-## 5. 환경 중립성
+## 5. Environment Neutrality
 
-특정 장비, 메모리 용량, 운영체제 또는 IDE를 현재 실행 환경의 전제조건으로 문서화하지 않는다.
-
-예를 들어 다음과 같은 고정 프로파일을 실행 규칙에 넣지 않는다.
-
-```text
-OS: <specific OS>
-GPU: <specific GPU>
-VRAM: <fixed VRAM>
-RAM: <fixed RAM>
-```
-
-특정 장비의 과거 또는 개발용 참고 정보가 필요하면 별도의 backup/reference 문서에만 보존한다. 이러한 문서는 runtime decision에 사용하지 않는다.
+Do not document a specific machine as the required runtime environment. Runtime decisions must be based on measured resources and workload requirements.
 
 ## 6. Environment Lock
 
@@ -110,31 +99,29 @@ PROFILE = inspect_environment()
 RUNTIME_CONFIG = to_runtime_config(PROFILE)
 ```
 
-프로파일이 확정되면 학습/추론 전체에서 해당 configuration을 재사용한다.
+Reuse the locked configuration across training/inference. Do not independently re-detect device, worker count, or precision in every cell or function.
 
-매 cell 또는 함수에서 device, worker 수, precision 등을 임의로 다시 결정하지 않는다.
+Reusable libraries that officially support multiple platforms may keep the required branches, but detection and execution should remain separated.
 
-재사용 가능한 library가 여러 플랫폼을 공식 지원해야 하는 경우에는 detection과 execution을 분리하고 필요한 분기를 유지한다.
+## 7. Final Code Cleanup
 
-## 7. 최종 실행 코드 정리
+After the environment is validated and the target execution path is known, remove unused alternatives from application/notebook execution code.
 
-환경이 확정되면 불필요한 OS/device branch를 제거한다.
+Remove when no longer needed:
 
-삭제 권장:
+- unused CPU/CUDA/MPS paths
+- duplicate environment detection
+- commented-out old implementations
+- failed temporary experiments
+- unused imports
 
-- 사용하지 않는 CPU/CUDA/MPS 대체 경로
-- 중복 environment detection
-- 주석 처리된 이전 구현
-- 실패한 임시 코드
-- 사용하지 않는 import
+Keep branches only when they are required by an officially supported reusable or multi-platform component.
 
-단, 여러 플랫폼을 공식 지원하는 reusable library에서는 필요한 분기를 유지한다.
+## 8. Notebook Structure
 
-## 8. Notebook 표준 구조
+Recommended order:
 
-권장 순서:
-
-1. 목적 Markdown
+1. Purpose Markdown
 2. Environment Detection
 3. Hardware / Memory Detection
 4. Environment Profile Resolution
@@ -153,11 +140,11 @@ RUNTIME_CONFIG = to_runtime_config(PROFILE)
 17. Export
 18. Reproducibility Metadata
 
-새 Notebook은 fresh kernel/runtime에서 top-to-bottom 실행 가능해야 한다.
+A new notebook must run top-to-bottom from a fresh kernel/runtime.
 
 ## 9. Dependency
 
-Notebook에서는 가능하면 활성 kernel 기준으로 설치한다.
+In notebooks, install into the active kernel when required:
 
 ```python
 import importlib
@@ -176,9 +163,11 @@ def ensure_package(import_name: str, package_name: str | None = None):
         return importlib.import_module(import_name)
 ```
 
-정식 dependency source는 `pyproject.toml`, `requirements.txt`, lock file을 기준으로 한다.
+The project dependency source of truth is `pyproject.toml`, `requirements.txt`, or the lock file.
 
 ## 10. Path / UTF-8
+
+Use `pathlib.Path` and explicit UTF-8 encoding.
 
 ```python
 from pathlib import Path
@@ -188,11 +177,9 @@ OUTPUT_DIR = ROOT / "outputs"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 ```
 
-Windows 전용 사용자 경로나 Unix 전용 shell command를 기본 경로로 사용하지 않는다.
-
 ## 11. Device Detection
 
-기본 우선순위는 CUDA → MPS → CPU이다.
+Default priority is CUDA → MPS → CPU.
 
 ```python
 def detect_device():
@@ -207,11 +194,11 @@ def detect_device():
     return "cpu"
 ```
 
-모델 코드에서 특정 device를 무조건 가정하지 않는다. Profile Resolution 이후에는 확정된 `PROFILE.device`를 사용한다.
+After Profile Resolution, reuse the resolved device.
 
-## 12. GPU / RAM 최적화
+## 12. GPU / RAM Optimization
 
-실제 측정값과 workload를 기준으로 다음을 조정한다.
+Tune from measured resources and workload:
 
 ```text
 batch size ↓
@@ -219,31 +206,31 @@ sequence/input size ↓
 gradient accumulation
 AMP / mixed precision
 gradient checkpointing
-quantization 검토
-offload 검토
+quantization when appropriate
+offload when appropriate
+remove unnecessary tensors/references
 ```
 
-CPU/RAM은 다음 원칙을 따른다.
+CPU/RAM principles:
 
 ```text
-전체 dataset RAM 적재 금지
-streaming / chunking / memory mapping 검토
-worker 수 최소값부터 시작
-persistent workers 남용 금지
-prefetch 과다 설정 금지
-불필요한 DataFrame/list/tensor 복제 금지
-CPU thread 무제한 증가 금지
+Do not load an oversized dataset into RAM unnecessarily.
+Prefer streaming / chunking / memory mapping.
+Start DataLoader workers conservatively.
+Avoid excessive persistent workers or prefetching.
+Avoid duplicate DataFrame/list/tensor copies.
+Do not increase CPU thread counts without measurement.
 ```
 
 ## 13. Mixed Precision
 
-CUDA에서 지원되는 경우 FP16 AMP를 기본 후보로 검토한다.
+When supported by the actual accelerator, evaluate mixed precision.
 
 ```python
 USE_AMP = PROFILE.recommended_fp16
 ```
 
-BF16은 실제 GPU와 PyTorch 지원 여부를 확인한 후 사용한다.
+Use BF16 only after verifying hardware and framework support.
 
 ## 14. Gradient Accumulation
 
@@ -261,11 +248,11 @@ if (step + 1) % GRADIENT_ACCUMULATION_STEPS == 0:
     optimizer.zero_grad(set_to_none=True)
 ```
 
-effective batch size는 `batch_size × accumulation_steps × device_count`로 기록한다.
+Record effective batch size.
 
 ## 15. Memory Smoke Test
 
-본 학습 전에 최소 workload를 실행한다.
+Before long training, run:
 
 ```text
 model load
@@ -276,35 +263,27 @@ model load
 → checkpoint save
 ```
 
-다음 정보를 기록한다.
-
-- peak VRAM
-- peak RAM
-- loss / validation metric
-- runtime
-- resolved environment profile
-
-실패하면 configuration을 낮춘 후 다시 smoke test한다.
+Record peak VRAM, peak RAM, metrics, runtime, and resolved environment profile. If it fails, lower the configuration before starting the main run.
 
 ## 16. OOM / Memory Recovery
 
 ```text
-VRAM/RAM 기록
-→ batch 감소
-→ sequence/input 감소
-→ workers 감소
-→ AMP 확인
-→ checkpointing 검토
-→ quantization/offload 검토
-→ 낮춘 설정으로 smoke test
-→ 성공한 설정으로 실행
+Record VRAM/RAM
+→ reduce batch
+→ reduce sequence/input
+→ reduce workers
+→ verify AMP
+→ consider checkpointing
+→ consider quantization/offload
+→ repeat smoke test
+→ run with the validated configuration
 ```
 
-동일 configuration을 무한 retry하지 않는다.
+Do not retry the same failing configuration indefinitely.
 
 ## 17. Training / Early Stopping
 
-장시간 학습에는 validation 기반 Early Stopping을 기본 적용한다.
+Long-running training uses validation-based Early Stopping by default.
 
 ```python
 EARLY_STOPPING = {
@@ -317,20 +296,18 @@ EARLY_STOPPING = {
 }
 ```
 
-필수 원칙:
+Required:
 
-- validation split 또는 eval dataset
-- metric과 방향 명시
-- patience 명시
-- best checkpoint 저장
-- best checkpoint 복원
-- early stop 시점 기록
-
-Hugging Face Trainer를 사용하는 경우 `EarlyStoppingCallback`, `metric_for_best_model`, `greater_is_better`, `load_best_model_at_end`를 일관되게 설정한다.
+- validation split or evaluation dataset
+- explicit metric and direction
+- patience
+- best checkpoint saving
+- best checkpoint restoration
+- early-stop event logging
 
 ## 18. Checkpoint / Resume
 
-가능한 경우 checkpoint에 다음을 포함한다.
+Store, when applicable:
 
 ```text
 model
@@ -347,11 +324,9 @@ dataset revision
 resolved environment profile
 ```
 
-중단 후 resume이 가능해야 한다.
-
 ## 19. Ablation Study
 
-baseline을 먼저 정의하고 구성 요소의 효과를 분리한다.
+Define the baseline first and isolate individual components.
 
 ```python
 ABLATION_CONFIG = {
@@ -370,85 +345,50 @@ ABLATION_CONFIG = {
 }
 ```
 
-가능하면 다음 조건을 variant 간 동일하게 유지한다.
-
-```text
-train/validation split
-test set
-metric
-Early Stopping policy
-maximum budget
-checkpoint rule
-seed set
-resolved environment profile
-```
+Keep controlled variables consistent across variants whenever possible.
 
 ## 20. Experiment Tracking
 
-결과에는 다음을 기록한다.
-
-```text
-experiment_id
-variant
-changed_parameters
-seed
-model_revision
-dataset_revision
-best_metric
-best_epoch/step
-early_stopped
-peak_vram
-peak_ram
-runtime
-checkpoint_path
-resolved environment profile
-```
+Record experiment ID, variant, changed parameters, seed, model/dataset revisions, best metrics, early-stopped status, peak VRAM/RAM, runtime, checkpoint path, and resolved environment profile.
 
 ## 21. Notebook Idempotency
 
-cell을 여러 번 실행해도 결과가 무한 누적되지 않아야 한다.
+Repeated execution must not cause uncontrolled accumulation. Reset state when appropriate, use deterministic output paths, clean temporary files, and define overwrite behavior.
 
-- state 초기화
-- deterministic output path
-- 임시 파일 정리
-- overwrite 정책 명시
-
-## 22. 검증 흐름
+## 22. Validation Workflow
 
 ```text
-1. Kernel/Runtime restart
-2. Environment profiler 실행
-3. Hardware / Memory 확인
-4. Runtime configuration 생성
-5. Environment Lock
-6. Memory Smoke Test
-7. Baseline 학습/추론
-8. Early Stopping 확인
-9. Checkpoint save/resume 확인
-10. Ablation 실행
-11. metrics + resource 기록
-12. dead code 제거
-13. 최종 Run All
+1. Restart kernel/runtime
+2. Run environment profiler
+3. Measure hardware/memory
+4. Generate runtime configuration
+5. Lock environment
+6. Run Memory Smoke Test
+7. Run baseline training/inference
+8. Verify Early Stopping
+9. Verify checkpoint save/resume
+10. Run ablations
+11. Record metrics + resources
+12. Remove dead code
+13. Final clean Run All
 ```
 
-## 23. 완료 조건
+## 23. Completion Criteria
 
 ```text
-[ ] 실제 OS / Python / runtime 확인
-[ ] CPU / RAM 확인
-[ ] GPU / VRAM / CUDA/MPS 확인
-[ ] environment.py 실행
-[ ] environment profile 생성
-[ ] resolved runtime configuration 생성
-[ ] environment lock
-[ ] 미사용 environment branch 삭제
-[ ] Memory Smoke Test 통과
-[ ] OOM recovery 전략 확인
-[ ] validation metric
-[ ] Early Stopping
-[ ] best checkpoint / Resume
-[ ] Ablation matrix
-[ ] 동일 조건 비교
-[ ] metric / VRAM / RAM / runtime 기록
-[ ] clean kernel Run All
+[ ] actual environment checked
+[ ] resource profile generated
+[ ] runtime configuration resolved
+[ ] smoke test passed
+[ ] environment locked
+[ ] unused environment branches removed
+[ ] OOM recovery verified
+[ ] validation metric defined
+[ ] Early Stopping enabled
+[ ] best checkpoint / Resume available
+[ ] ablation matrix defined
+[ ] controlled comparison completed
+[ ] reproducibility metadata recorded
+[ ] resource usage recorded
+[ ] clean kernel Run All succeeds
 ```
