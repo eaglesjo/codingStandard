@@ -12,7 +12,6 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-
 $SourceRoot = Split-Path -Parent $PSScriptRoot
 $TargetRoot = (Resolve-Path $Target).Path
 $script:GlobalConflictAction = $ConflictAction
@@ -34,43 +33,54 @@ if (-not $Language) {
 function Get-SourcePath([string]$RelativePath) {
     if ($Language -eq "ko") {
         $KoreanPath = Join-Path $SourceRoot (Join-Path "i18n/ko" $RelativePath)
-        if (Test-Path -LiteralPath $KoreanPath) {
-            return $KoreanPath
-        }
+        if (Test-Path -LiteralPath $KoreanPath) { return $KoreanPath }
     }
-
     $EnglishPath = Join-Path $SourceRoot $RelativePath
-    if (-not (Test-Path -LiteralPath $EnglishPath)) {
-        throw "Template not found: $RelativePath"
-    }
+    if (-not (Test-Path -LiteralPath $EnglishPath)) { throw "Template not found: $RelativePath" }
     return $EnglishPath
 }
 
 function Get-Markers([string]$Path) {
-    if ($Path -match "\.ya?ml$") {
-        return @("# BEGIN CODINGSTANDARD MANAGED BLOCK", "# END CODINGSTANDARD MANAGED BLOCK")
-    }
+    if ($Path -match "\.ya?ml$") { return @("# BEGIN CODINGSTANDARD MANAGED BLOCK", "# END CODINGSTANDARD MANAGED BLOCK") }
     return @("<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->", "<!-- END CODINGSTANDARD MANAGED BLOCK -->")
 }
 
+function Merge-AiderConfig([string]$Existing) {
+    if ($Existing -match "(?m)^read:\s*\[([^\]]*)\]\s*$") {
+        if ($Existing -match "CONVENTIONS\.md") { return $Existing }
+        return [regex]::Replace($Existing, "(?m)^read:\s*\[([^\]]*)\]\s*$", {
+            param($m)
+            $items = $m.Groups[1].Value.Trim()
+            if ($items) { "read: [$items, CONVENTIONS.md]" } else { "read: [CONVENTIONS.md]" }
+        })
+    }
+
+    if ($Existing -match "(?ms)^read:\s*\r?\n((?:[ \t]+-.*\r?\n)*)") {
+        if ($Existing -match "CONVENTIONS\.md") { return $Existing }
+        return [regex]::Replace($Existing, "(?ms)^read:\s*\r?\n((?:[ \t]+-.*\r?\n)*)", {
+            param($m)
+            "read:`r`n$($m.Groups[1].Value)  - CONVENTIONS.md`r`n"
+        }, 1)
+    }
+
+    $Markers = Get-Markers ".aider.conf.yml"
+    return "$($Existing.TrimEnd())`r`n`r`n$($Markers[0])`r`nread:`r`n  - CONVENTIONS.md`r`n$($Markers[1])`r`n"
+}
+
 function Merge-Text([string]$Existing, [string]$Incoming, [string]$DestinationPath) {
+    if ($DestinationPath -eq ".aider.conf.yml") { return Merge-AiderConfig $Existing }
     $Markers = Get-Markers $DestinationPath
     $Start = [regex]::Escape($Markers[0])
     $End = [regex]::Escape($Markers[1])
     $Pattern = "(?ms)^$Start.*?$End\s*"
-
     if ($Existing -match $Pattern) {
         return [regex]::Replace($Existing, $Pattern, "$($Markers[0])`r`n$Incoming`r`n$($Markers[1])`r`n")
     }
-
     return "$($Existing.TrimEnd())`r`n`r`n$($Markers[0])`r`n$Incoming`r`n$($Markers[1])`r`n"
 }
 
 function Resolve-Conflict([string]$DestinationRelativePath) {
-    if ($script:GlobalConflictAction -ne "Ask") {
-        return $script:GlobalConflictAction
-    }
-
+    if ($script:GlobalConflictAction -ne "Ask") { return $script:GlobalConflictAction }
     Write-Host ""
     Write-Host "File already exists: $DestinationRelativePath" -ForegroundColor Yellow
     Write-Host "  M = Merge"
@@ -79,11 +89,9 @@ function Resolve-Conflict([string]$DestinationRelativePath) {
     Write-Host "  A = Merge all remaining files"
     Write-Host "  W = Overwrite all remaining files"
     Write-Host "  K = Skip all remaining files"
-
     do {
         $Choice = (Read-Host "Action [M/O/S]").Trim().ToUpperInvariant()
     } while ($Choice -notin @("M", "O", "S", "A", "W", "K"))
-
     switch ($Choice) {
         "A" { $script:GlobalConflictAction = "Merge"; return "Merge" }
         "W" { $script:GlobalConflictAction = "Overwrite"; return "Overwrite" }
@@ -98,7 +106,6 @@ function Install-File([string]$SourceRelativePath, [string]$DestinationRelativeP
     $Source = Get-SourcePath $SourceRelativePath
     $Destination = Join-Path $TargetRoot $DestinationRelativePath
     New-Item -ItemType Directory -Path (Split-Path -Parent $Destination) -Force | Out-Null
-
     $SourceText = [System.IO.File]::ReadAllText($Source, [System.Text.UTF8Encoding]::new($false))
 
     if (-not (Test-Path -LiteralPath $Destination)) {
@@ -109,9 +116,7 @@ function Install-File([string]$SourceRelativePath, [string]$DestinationRelativeP
 
     $Action = Resolve-Conflict $DestinationRelativePath
     switch ($Action) {
-        "Skip" {
-            Write-Host "Skipped $DestinationRelativePath"
-        }
+        "Skip" { Write-Host "Skipped $DestinationRelativePath" }
         "Overwrite" {
             [System.IO.File]::WriteAllText($Destination, $SourceText, [System.Text.UTF8Encoding]::new($false))
             Write-Host "Overwritten $DestinationRelativePath [$Language]"
@@ -145,9 +150,7 @@ $InstallMap = @(
     @{ Source = "LLM/README.md"; Destination = "LLM/README.md" }
 )
 
-foreach ($Item in $InstallMap) {
-    Install-File $Item.Source $Item.Destination
-}
+foreach ($Item in $InstallMap) { Install-File $Item.Source $Item.Destination }
 
 Write-Host ""
 Write-Host "AI coding standard installed into: $TargetRoot"
