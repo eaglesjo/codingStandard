@@ -14,6 +14,7 @@ COMMON = [
     "AGENTS.md", "CLAUDE.md", "GEMINI.md",
     ".github/copilot-instructions.md", ".github/instructions/llm.instructions.md", ".github/instructions/vision.instructions.md",
     "COMMON/AGENT.md", "COMMON/SKILL.md", "COMMON/ENVIRONMENT.md", "COMMON/environment.py", "COMMON/experiment.py",
+    "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md", "MANUS/README.md",
 ]
 LLM = ["LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md", "LLM/environment.py", "LLM/experiment.py", "LLM/memory_smoke_test.py"]
 VISION = ["VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md", "VISION/memory_smoke_test.py"]
