@@ -116,6 +116,7 @@ $InstallMap = @(
     @{Source="LLM/SKILL.md"; Destination="LLM/SKILL.md"},
     @{Source="LLM/ENVIRONMENT.md"; Destination="LLM/ENVIRONMENT.md"},
     @{Source="LLM/environment.py"; Destination="LLM/environment.py"},
+    @{Source="LLM/memory_smoke_test.py"; Destination="LLM/memory_smoke_test.py"},
     @{Source="LLM/experiment.py"; Destination="LLM/experiment.py"},
     @{Source="LLM/README.md"; Destination="LLM/README.md"},
     @{Source="LLM/config/training.yaml"; Destination="LLM/config/training.yaml"},
