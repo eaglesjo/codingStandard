@@ -11,13 +11,17 @@ ROOT = Path(__file__).resolve().parents[1]
 PS1 = ROOT / "scripts" / "install-domains.ps1"
 SH = ROOT / "scripts" / "install-domains.sh"
 COMMON = [
-    "AGENTS.md", "CLAUDE.md", "GEMINI.md",
-    ".github/copilot-instructions.md", ".github/instructions/llm.instructions.md", ".github/instructions/vision.instructions.md",
-    "COMMON/AGENT.md", "COMMON/SKILL.md", "COMMON/ENVIRONMENT.md", "COMMON/environment.py", "COMMON/experiment.py",
+    "AGENTS.md", "CLAUDE.md", "GEMINI.md", ".github/copilot-instructions.md",
+    ".cursor/rules/coding-standard.mdc", ".windsurf/rules/coding-standard.md",
+    ".clinerules/01-coding-standard.md", ".continue/rules/coding-standard.md",
+    ".junie/AGENTS.md", ".amazonq/rules/coding-standard.md",
+    "CONVENTIONS.md", ".aider.conf.yml",
+    "COMMON/AGENT.md", "COMMON/SKILL.md", "COMMON/ENVIRONMENT.md",
+    "COMMON/environment.py", "COMMON/experiment.py",
     "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md", "MANUS/README.md",
 ]
-LLM = ["LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md", "LLM/environment.py", "LLM/experiment.py", "LLM/memory_smoke_test.py"]
-VISION = ["VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md", "VISION/memory_smoke_test.py"]
+LLM = [".github/instructions/llm.instructions.md", "LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md", "LLM/environment.py", "LLM/experiment.py", "LLM/memory_smoke_test.py"]
+VISION = [".github/instructions/vision.instructions.md", "VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md", "VISION/memory_smoke_test.py"]
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
