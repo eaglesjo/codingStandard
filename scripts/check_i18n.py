@@ -46,12 +46,31 @@ SEMANTIC_DOCUMENTS = {
     "VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md",
     "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md",
 }
+
+# Check translation parity for concepts that actually occur in each English
+# document. Do not require every document to mention every concept: adapter
+# files and domain-specific rules legitimately have different scopes.
 CONCEPT_ALTERNATIVES = {
-    "environment": ("environment", "환경", "실행환경"),
-    "memory": ("memory", "메모리"),
-    "early stopping": ("early stopping", "얼리 스토핑", "조기 종료"),
-    "checkpoint": ("checkpoint", "체크포인트"),
-    "ablation": ("ablation", "어브레이션", "ablation study", "어브레이션 스터디"),
+    "environment": {
+        "en": ("environment", "runtime"),
+        "ko": ("환경", "실행환경", "런타임"),
+    },
+    "memory": {
+        "en": ("memory", "ram", "vram"),
+        "ko": ("메모리", "램", "브이램"),
+    },
+    "early stopping": {
+        "en": ("early stopping",),
+        "ko": ("early stopping", "얼리 스토핑", "조기 종료"),
+    },
+    "checkpoint": {
+        "en": ("checkpoint",),
+        "ko": ("checkpoint", "체크포인트"),
+    },
+    "ablation": {
+        "en": ("ablation", "ablation study"),
+        "ko": ("ablation", "ablation study", "어브레이션", "어브레이션 스터디"),
+    },
 }
 
 
@@ -78,13 +97,16 @@ def main() -> int:
         en_text = (ROOT / rel).read_text(encoding="utf-8").lower()
         ko_text = (KO / rel).read_text(encoding="utf-8").lower()
         for concept, alternatives in CONCEPT_ALTERNATIVES.items():
-            if not contains_any(en_text, alternatives) or not contains_any(ko_text, alternatives):
+            # The English document defines the concepts that its Korean
+            # counterpart must preserve. This avoids false failures caused by
+            # demanding unrelated concepts in every adapter document.
+            if contains_any(en_text, alternatives["en"]) and not contains_any(ko_text, alternatives["ko"]):
                 print(f"Missing localized core concept '{concept}' in {rel}")
                 errors += 1
 
     if errors:
         return 1
-    print("i18n parity OK: English/Korean file presence and rule-document anchors verified")
+    print("i18n parity OK: English/Korean file presence and document-specific rule anchors verified")
     return 0
 
 
