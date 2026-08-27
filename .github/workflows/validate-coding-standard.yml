@@ -17,8 +17,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install test dependencies
-        run: python -m pip install --disable-pip-version-check psutil torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install common test dependencies
+        run: python -m pip install --disable-pip-version-check psutil
+
+      - name: Install CPU PyTorch
+        run: python -m pip install --disable-pip-version-check torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Validate repository
         run: python scripts/validate.py
