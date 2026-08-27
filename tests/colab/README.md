@@ -4,13 +4,27 @@ This directory contains a Colab-runnable validation set for the coding standard.
 
 ## Open in Colab
 
-Open `codingstandard_colab_test.ipynb` from GitHub in Google Colab, or use the notebook link from the repository README.
+Use the direct Colab URL from the repository README, or open the notebook manually:
+
+`https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb`
+
+For a fork or moved copy, open that copy's notebook in Colab and enter the fork URL when prompted, or set `CODINGSTANDARD_REPO_URL` before running the first cell.
+
+## Repository selection
+
+The notebook does not require the repository URL to stay fixed. It uses this precedence:
+
+1. `CODINGSTANDARD_REPO_URL` environment variable.
+2. Interactive repository URL prompt.
+3. The original `eaglesjo/codingStandard` URL as the default value.
+
+This allows the same notebook to validate the original repository, a fork, or a relocated copy.
 
 ## Private repository authentication
 
-The current repository may be private. The notebook supports both public and private repositories.
+The repository may be private. The notebook supports both public and private repositories.
 
-For a private repository, create a GitHub token with read access to this repository and either:
+For a private repository, create a GitHub token with read access to that repository and either:
 
 1. store it in Google Colab Secrets as `GITHUB_TOKEN`, or
 2. let the notebook prompt for it securely with `getpass`.
@@ -21,7 +35,7 @@ If the repository is public, leave the token prompt blank.
 
 ## What it checks
 
-1. Clones the current repository into the Colab runtime.
+1. Clones the selected repository into the Colab runtime.
 2. Detects Python, PyTorch, CPU, RAM, accelerator, VRAM, CUDA/MPS capability, and runtime information.
 3. Runs the shared LLM environment profiler.
 4. Runs a small LLM training smoke test with checkpoint save/reload.
