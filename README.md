@@ -258,6 +258,16 @@ peak RAM / VRAM
 checkpoint path
 ```
 
+## Platform Validation
+
+The repository validates the installer on a real GitHub-hosted Windows runner using both Windows PowerShell and PowerShell 7. The workflow covers English/Korean installation, Common/LLM/Vision/All domains, dry-run behavior, merge preservation, Unicode/space paths, and legacy-installer removal.
+
+Google Colab validation is provided as a runnable notebook:
+
+[Open the Colab validation notebook](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb)
+
+The notebook clones the repository into a clean Colab runtime, measures the runtime environment, runs the LLM and Vision memory smoke tests, runs repository validation, and writes a JSON result bundle.
+
 ## Validation
 
 Run repository validation locally:
@@ -299,12 +309,15 @@ codingStandard/
 ├── .junie/
 ├── .aider.conf.yml
 ├── CONVENTIONS.md
+├── tests/
+│   └── colab/
 └── scripts/
     ├── install-domains.ps1
     ├── install-domains.sh
     ├── validate.py
     ├── check_i18n.py
-    └── test_installers.py
+    ├── test_installers.py
+    └── test_installers_windows.ps1
 ```
 
 ## Documentation
@@ -320,4 +333,6 @@ codingStandard/
 - [LLM Memory Smoke Test](LLM/memory_smoke_test.py)
 - [Vision Memory Smoke Test](VISION/memory_smoke_test.py)
 - [Experiment Metadata Helper](LLM/experiment.py)
+- [Windows Installer Test](scripts/test_installers_windows.ps1)
+- [Colab Validation](tests/colab/README.md)
 - [Korean README](README.ko.md)
