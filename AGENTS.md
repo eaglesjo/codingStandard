@@ -2,58 +2,55 @@
 
 # Project Agent Instructions
 
-This file is the top-level entrypoint for AI coding agents working in this repository.
+This file is the top-level entrypoint for AI coding agents.
 
-## Instruction Sources
+## Instruction Order
 
-The canonical LLM development standards are:
+1. Apply `COMMON/AGENT.md`, `COMMON/SKILL.md`, and `COMMON/ENVIRONMENT.md`.
+2. Detect which domain resources are installed and relevant:
+   - `LLM/` for language-model, NLP, RAG, fine-tuning, and text-model work.
+   - `VISION/` for image, video, OCR, detection, segmentation, generation, and VLM work.
+3. Apply the matching domain `AGENT.md`, `SKILL.md`, and `ENVIRONMENT.md`.
+4. Apply task-specific Skills under the selected domain.
+5. Read the project's existing README, dependency files, lock files, tests, and security constraints.
 
-- `LLM/AGENT.md` — general AI coding-agent rules
-- `LLM/SKILL.md` — LLM/Jupyter/ML execution workflow
-- `LLM/ENVIRONMENT.md` — environment detection and optimization
-- `LLM/environment.py` — runtime environment profiler
+## Environment Contract
 
-When starting work, apply these in order:
+- Inspect the real OS, Python/runtime, CPU, GPU/accelerator, VRAM, RAM, disk, and framework capabilities before resource-sensitive work.
+- Use the installed environment profiler as the source of truth when available.
+- Resolve a conservative runtime configuration, run a workload-appropriate Memory Smoke Test, then lock the validated configuration.
+- Do not hard-code a named machine as a prerequisite.
+- After environment validation, remove unused execution branches and obsolete code from application/notebook paths unless multi-platform support is intentional.
 
-1. This `AGENTS.md`
-2. `LLM/AGENT.md`
-3. `LLM/SKILL.md`
-4. `LLM/ENVIRONMENT.md`
-5. `LLM/environment.py`
-6. More specific instructions in the target directory
-7. Existing project README, dependency files, lock files, and tests
+## Training Contract
 
-## Mandatory Behavior
+- Long-running training uses validation, Early Stopping where meaningful, best Checkpoint, and Resume.
+- Experiments define a baseline, controlled variants, seeds, metrics, and resource tracking.
+- Record reproducibility metadata including coding-standard version, Git state, environment profile, configuration, model/dataset revisions, and resource usage.
+- Use staged recovery for OOM or resource failures; do not repeat the same failing configuration indefinitely.
 
-- Inspect the real OS, Python, IDE/runtime, CPU, GPU, VRAM, RAM, and accelerator state before environment-dependent implementation.
-- Run `python LLM/environment.py` when available and use its measurements as the source of truth.
-- Resolve and record the runtime configuration before long-running execution.
-- Never hard-code a specific machine's GPU, RAM, OS, or IDE as the required runtime.
-- After the environment is validated, remove unused OS/device branches, duplicate detection, dead code, obsolete commented implementations, and unused imports from application/notebook execution code.
-- Keep multi-platform branches only when they are required by an officially supported reusable component.
-- Use conservative VRAM/RAM budgets and validate them with a Memory Smoke Test.
-- Long-running training uses validation metrics, Early Stopping, best checkpoint, and Resume by default.
-- Ablation studies use explicit configuration matrices and controlled evaluation conditions.
-- Record seed, model/dataset revision, metrics, runtime, peak VRAM/RAM, and resolved environment profile.
-- Use staged OOM recovery instead of repeating the same failing configuration indefinitely.
-- New notebooks must run top-to-bottom from a clean kernel/runtime.
-
-## Environment Optimization Contract
+## Clean Execution Contract
 
 ```text
-Detect
+Discover
   ↓
-Measure
+Detect installed domains
   ↓
-Resolve
+Measure environment
+  ↓
+Resolve runtime
   ↓
 Smoke Test
   ↓
 Lock
   ↓
-Clean unused branches
+Apply domain/task Skills
   ↓
-Run optimized configuration
+Implement / Train / Infer
+  ↓
+Validate
+  ↓
+Record
 ```
 
-The final execution code should keep only the minimum diagnostics, locked runtime configuration, actual execution path, and reproducibility metadata needed for the project.
+The final project should keep only the rules and execution paths that are relevant to the installed domains and actual workload.
