@@ -7,7 +7,6 @@ param(
 )
 $ErrorActionPreference='Stop'
 $Root=Split-Path -Parent $PSScriptRoot
-$Target=(Resolve-Path $Target).Path
 
 if(-not $Language){
   Write-Host 'Language: 1) English  2) Korean'
@@ -19,6 +18,9 @@ if(-not $Domain){
   $choice=Read-Host 'Domain [4]'
   $Domain=switch($choice){'1'{'common'}'2'{'llm'}'3'{'vision'}'4'{'all'}default{'all'}}
 }
+$resolvedTarget=[System.IO.Path]::GetFullPath($Target)
+if(-not (Test-Path -LiteralPath $resolvedTarget)){ New-Item -ItemType Directory -Force -Path $resolvedTarget | Out-Null }
+$Target=$resolvedTarget
 $SrcRoot=$Root
 if($Language -eq 'ko' -and (Test-Path "$Root/i18n/ko")){ $SrcRoot="$Root/i18n/ko" }
 $script:Policy=$ConflictAction
@@ -37,7 +39,7 @@ function Conflict($path){
 }
 function AddFiles([System.Collections.Generic.List[string]]$list,[string]$domain){
   if($domain -eq 'common'){
-    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.github/instructions/llm.instructions.md','.github/instructions/vision.instructions.md','.cursor/rules/coding-standard.mdc','.windsurf/rules/coding-standard.md','.clinerules/01-coding-standard.md','.continue/rules/01-coding-standard.md','.junie/AGENTS.md','.amazonq/rules/coding-standard.md','CONVENTIONS.md','.aider.conf.yml','COMMON/AGENT.md','COMMON/SKILL.md','COMMON/ENVIRONMENT.md'))
+    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.github/instructions/llm.instructions.md','.github/instructions/vision.instructions.md','.cursor/rules/coding-standard.mdc','.windsurf/rules/coding-standard.md','.clinerules/01-coding-standard.md','.continue/rules/coding-standard.md','.junie/AGENTS.md','.amazonq/rules/coding-standard.md','CONVENTIONS.md','.aider.conf.yml','COMMON/AGENT.md','COMMON/SKILL.md','COMMON/ENVIRONMENT.md','COMMON/environment.py','COMMON/experiment.py'))
   } elseif($domain -eq 'llm'){
     $list.AddRange([string[]]@('LLM/AGENT.md','LLM/SKILL.md','LLM/ENVIRONMENT.md','LLM/environment.py','LLM/experiment.py','LLM/memory_smoke_test.py','LLM/README.md','LLM/config/training.yaml','LLM/config/ablation.yaml'))
     Get-ChildItem "$SrcRoot/LLM/skills" -Recurse -Filter SKILL.md | ForEach-Object {$list.Add($_.FullName.Substring($SrcRoot.Length+1))}
