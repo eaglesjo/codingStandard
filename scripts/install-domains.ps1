@@ -39,7 +39,7 @@ function Conflict($path){
 }
 function AddFiles([System.Collections.Generic.List[string]]$list,[string]$domain){
   if($domain -eq 'common'){
-    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.github/instructions/llm.instructions.md','.github/instructions/vision.instructions.md','.cursor/rules/coding-standard.mdc','.windsurf/rules/coding-standard.md','.clinerules/01-coding-standard.md','.continue/rules/coding-standard.md','.junie/AGENTS.md','.amazonq/rules/coding-standard.md','CONVENTIONS.md','.aider.conf.yml','COMMON/AGENT.md','COMMON/SKILL.md','COMMON/ENVIRONMENT.md','COMMON/environment.py','COMMON/experiment.py'))
+    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.github/instructions/llm.instructions.md','.github/instructions/vision.instructions.md','.cursor/rules/coding-standard.mdc','.windsurf/rules/coding-standard.md','.clinerules/01-coding-standard.md','.continue/rules/coding-standard.md','.junie/AGENTS.md','.amazonq/rules/coding-standard.md','CONVENTIONS.md','.aider.conf.yml','COMMON/AGENT.md','COMMON/SKILL.md','COMMON/ENVIRONMENT.md','COMMON/environment.py','COMMON/experiment.py','MANUS/PROJECT_INSTRUCTIONS.md','MANUS/SKILL.md','MANUS/README.md'))
   } elseif($domain -eq 'llm'){
     $list.AddRange([string[]]@('LLM/AGENT.md','LLM/SKILL.md','LLM/ENVIRONMENT.md','LLM/environment.py','LLM/experiment.py','LLM/memory_smoke_test.py','LLM/README.md','LLM/config/training.yaml','LLM/config/ablation.yaml'))
     Get-ChildItem "$SrcRoot/LLM/skills" -Recurse -Filter SKILL.md | ForEach-Object {$list.Add($_.FullName.Substring($SrcRoot.Length+1))}
