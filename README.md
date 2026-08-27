@@ -1,6 +1,6 @@
 # codingStandard
 
-> **Language:** English (default) · [한국어 README](README.ko.md)
+> **Language:** English (default) · [한국어 README](README.ko.md) · [한국어 설치 가이드](i18n/ko/INSTALL.md)
 
 An AI-oriented development standard for projects that use AI coding agents, LLM/ML workflows, and computer-vision workloads.
 
@@ -41,6 +41,8 @@ bash ./codingStandard/scripts/install-domains.sh . ko vision overwrite false
 ```
 
 Arguments are: `target language domain conflict-policy dry-run`.
+
+For the full Korean installation instructions, see [`i18n/ko/INSTALL.md`](i18n/ko/INSTALL.md).
 
 ## Installation Domains
 
@@ -153,6 +155,7 @@ This project is released under the MIT License. See `LICENSE`.
 ## Documentation
 
 - [Installation Guide](INSTALL.md)
+- [Korean Installation Guide](i18n/ko/INSTALL.md)
 - [Common Agent Rules](COMMON/AGENT.md)
 - [LLM Agent Rules](LLM/AGENT.md)
 - [LLM Skill](LLM/SKILL.md)
