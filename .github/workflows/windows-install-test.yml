@@ -72,7 +72,7 @@ jobs:
           & "$PWD/scripts/install-domains.ps1" -Target $target -Language en -Domain common -ConflictAction Merge
           $text = Get-Content -Raw (Join-Path $target "AGENTS.md")
           if ($text -notmatch "# Local rule") { throw "Local content was not preserved" }
-          if ($text -match "`bold`b") { throw "Managed block was not replaced" }
+          if ($text -match "(?m)^old$") { throw "Managed block was not replaced" }
 
       - name: Check for forbidden legacy installer
         run: |
