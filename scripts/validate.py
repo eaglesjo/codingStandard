@@ -78,8 +78,10 @@ def check_notebook() -> None:
     for required_symbol in ("DEFAULT_REPO_URL", "_normalize_repository", "GITHUB_TOKEN", "GIT_ASKPASS"):
         if required_symbol not in code:
             fail(f"Colab notebook missing required repository handling: {required_symbol}")
-    if "capture_output=True" not in code or "validation_run.stderr" not in code:
-        fail("Colab notebook must expose repository validation stderr")
+    if "capture_output=True" not in code:
+        fail("Colab notebook must capture subprocess output so failures are diagnosable")
+    if "proc.stderr" not in code or "sys.stderr" not in code:
+        fail("Colab notebook must expose subprocess stderr")
 
 
 def check_hardware_neutrality() -> None:
