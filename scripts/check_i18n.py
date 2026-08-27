@@ -26,6 +26,10 @@ REQUIRED_LOCALIZED = {
     "VISION/config/training.yaml", "VISION/config/ablation.yaml",
     "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md", "MANUS/README.md",
 }
+
+# These are human-authored prose documents. Structured config files and executable
+# adapters are language-neutral and therefore do not require bilingual keyword parity.
+PROSE_DOCUMENTS = {p for p in REQUIRED_LOCALIZED if p.endswith(".md")}
 CORE_CONCEPTS = ("environment", "memory", "early stopping", "checkpoint", "ablation")
 
 
@@ -38,18 +42,18 @@ def main() -> int:
     missing_ko = [p for p in sorted(REQUIRED_LOCALIZED) if not (KO / p).is_file()]
     if missing_en or missing_ko:
         if missing_en:
-            print("Missing English source files:", *missing_en, sep="\n  ")
+            print("Missing English source files:", *missing_en, sep="\n  ", file=sys.stderr)
         if missing_ko:
-            print("Missing Korean files:", *missing_ko, sep="\n  ")
+            print("Missing Korean files:", *missing_ko, sep="\n  ", file=sys.stderr)
         return 1
 
+    # Markdown files must preserve the important workflow concepts in both languages.
+    # This deliberately does not apply to YAML, config, or adapter files.
     errors = 0
-    for rel in sorted(REQUIRED_LOCALIZED):
+    for rel in sorted(PROSE_DOCUMENTS):
         en_text = (ROOT / rel).read_text(encoding="utf-8").lower()
         ko_text = (KO / rel).read_text(encoding="utf-8").lower()
         for concept in CORE_CONCEPTS:
-            if rel in {"INSTALL.md", "MANUS/README.md", "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md"}:
-                continue
             if concept not in en_text or concept not in ko_text:
                 print(f"Missing core concept '{concept}' in {rel}")
                 errors += 1
