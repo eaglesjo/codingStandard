@@ -7,6 +7,10 @@
 @AGENTS.md
 @LLM/AGENT.md
 @LLM/SKILL.md
+@LLM/ENVIRONMENT.md
 
-Claude Code가 작업을 시작하면 환경 확인 → 환경 확정 → 실행 코드 정리 → 테스트 순서를 따른다.
-학습/파인튜닝 작업에는 Early Stopping, best checkpoint, Resume, Ablation Study, GPU/RAM budget 규칙을 적용한다.
+작업 시작 시 `python LLM/environment.py`로 실제 실행환경을 확인할 수 있으면 먼저 확인한다.
+
+환경 확인 → 자원 측정 → runtime configuration 확정 → Memory Smoke Test → 실행 → 사용하지 않는 branch/dead code 정리 → 테스트 순서를 따른다.
+
+학습/파인튜닝에는 Early Stopping, best checkpoint, Resume, Ablation Study, GPU/RAM budget 및 resolved environment profile 기록을 적용한다.
