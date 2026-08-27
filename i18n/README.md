@@ -1,10 +1,10 @@
 # Language Resources
 
-This directory stores localized Markdown documentation used by the installer.
+Localized resources used by the coding-standard installer.
 
-- English is maintained in the repository root and `LLM/` directories.
-- `ko/` contains the Korean document set.
+- `en/` — English Agent / Skill / Environment resources
+- `ko/` — Korean Agent / Skill / Environment resources
 
-The installer selects `en` or `ko` and copies the selected language into the standard project entrypoint filenames such as `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and the `LLM/` documentation files.
+The English repository-root files remain the default public entrypoints. The installer places the selected language into the standard filenames expected by the supported AI coding tools.
 
-The executable environment profiler (`LLM/environment.py`) is language-neutral and is shared by both installations.
+The language-neutral runtime profiler `LLM/environment.py` is shared by both languages.
