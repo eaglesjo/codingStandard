@@ -38,11 +38,22 @@ Write-Host "Installed .github/instructions/llm.instructions.md"
 
 $LlmDestination = Join-Path $TargetRoot "LLM"
 New-Item -ItemType Directory -Path $LlmDestination -Force | Out-Null
-Copy-Item -LiteralPath (Join-Path $SourceRoot "LLM/AGENT.md") -Destination (Join-Path $LlmDestination "AGENT.md") -Force
-Copy-Item -LiteralPath (Join-Path $SourceRoot "LLM/SKILL.md") -Destination (Join-Path $LlmDestination "SKILL.md") -Force
-Copy-Item -LiteralPath (Join-Path $SourceRoot "LLM/README.md") -Destination (Join-Path $LlmDestination "README.md") -Force
-Write-Host "Installed LLM rules"
+$LlmFiles = @(
+    "AGENT.md",
+    "SKILL.md",
+    "ENVIRONMENT.md",
+    "environment.py",
+    "README.md"
+)
+
+foreach ($RelativePath in $LlmFiles) {
+    $Source = Join-Path $SourceRoot (Join-Path "LLM" $RelativePath)
+    $Destination = Join-Path $LlmDestination $RelativePath
+    Copy-Item -LiteralPath $Source -Destination $Destination -Force
+    Write-Host "Installed LLM/$RelativePath"
+}
 
 Write-Host ""
 Write-Host "AI coding instructions installed into: $TargetRoot"
+Write-Host "Environment profiler: python LLM/environment.py"
 Write-Host "Supported entrypoints: AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md"
