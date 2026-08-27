@@ -83,7 +83,7 @@ Ask        파일별로 결정
 | Amazon Q Developer | `.amazonq/rules/coding-standard.md` |
 | Aider | `CONVENTIONS.md` + `.aider.conf.yml` |
 
-## 공통 / LLM / Vision 구조
+## Common / LLM / Vision 구조
 
 ```text
 COMMON/
@@ -120,8 +120,6 @@ python LLM/environment.py
 python LLM/memory_smoke_test.py --cpu --steps 2
 ```
 
-장시간 학습에는 validation, Early Stopping, best Checkpoint, Resume, Ablation Study, 재현성 metadata를 기본 적용합니다.
-
 ## Vision 사용법
 
 Vision에서는 이미지 해상도, batch, channels, activation/feature-map memory, augmentation worker, cache, prefetch를 주요 자원 변수로 관리합니다.
@@ -130,34 +128,9 @@ Vision에서는 이미지 해상도, batch, channels, activation/feature-map mem
 python VISION/memory_smoke_test.py --device auto --image-size 224 --batch-size 1 --steps 2
 ```
 
-## Skills
+## 학습 / 실험
 
-LLM:
-
-```text
-LLM/skills/
-├── environment/
-├── training/
-├── ablation/
-├── notebook/
-├── debugging/
-└── release/
-```
-
-Vision:
-
-```text
-VISION/skills/
-├── classification/
-├── detection/
-├── segmentation/
-├── ocr/
-├── pose-estimation/
-├── image-generation/
-└── vlm/
-```
-
-## 실험 / 학습
+장시간 학습에는 validation, Early Stopping, best Checkpoint, Resume, Ablation Study, 재현성 metadata를 기본 적용합니다.
 
 설정은 도메인별 YAML로 관리합니다.
 
@@ -170,6 +143,16 @@ VISION/config/ablation.yaml
 
 실험 기록은 환경 프로파일, Git 상태, configuration hash, seed, model/dataset revision, metric, runtime, peak RAM/VRAM, checkpoint를 포함해야 합니다.
 
+## 플랫폼 검증
+
+GitHub Actions는 실제 `windows-latest` runner에서 Windows PowerShell과 PowerShell 7을 사용해 영문/한글 및 Common/LLM/Vision/All 설치를 검증합니다. Dry-run, Merge, Unicode/공백 경로도 테스트합니다.
+
+Google Colab용 검증 Notebook도 제공합니다.
+
+[Colab 검증 Notebook 열기](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb)
+
+Notebook은 깨끗한 Colab runtime에서 저장소를 clone하고 환경 측정, LLM/Vision Memory Smoke Test, repository validation을 수행한 뒤 JSON 결과를 저장합니다.
+
 ## 검증
 
 ```bash
@@ -178,8 +161,31 @@ python scripts/check_i18n.py
 python scripts/test_installers.py
 ```
 
-GitHub Actions는 저장소 구조, Python syntax, 하드웨어 하드코딩, 영/한 필수 문서, 설치기 동작 및 CPU Memory Smoke Test를 검증합니다.
+GitHub Actions는 저장소 구조, Python syntax, 하드웨어 하드코딩, 영/한 문서, 설치기 동작 및 smoke test를 검증합니다.
 
 ## 버전
 
 현재 버전은 `VERSION` 파일에서 관리합니다.
+
+## 구조
+
+```text
+codingStandard/
+├── README.md
+├── README.ko.md
+├── VERSION
+├── AGENTS.md
+├── COMMON/
+├── LLM/
+├── VISION/
+├── i18n/ko/
+├── tests/colab/
+├── .github/workflows/
+└── scripts/
+    ├── install-domains.ps1
+    ├── install-domains.sh
+    ├── validate.py
+    ├── check_i18n.py
+    ├── test_installers.py
+    └── test_installers_windows.ps1
+```
