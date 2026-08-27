@@ -1,16 +1,19 @@
 # Claude Code Project Instructions
 
-이 파일은 Claude Code의 프로젝트 메모리 자동 진입점이다.
+This file is the Claude Code project entrypoint.
 
-전체 규칙은 다음 파일을 읽고 적용한다.
+Apply rules in this order:
 
 @AGENTS.md
-@LLM/AGENT.md
-@LLM/SKILL.md
-@LLM/ENVIRONMENT.md
+@COMMON/AGENT.md
+@COMMON/SKILL.md
+@COMMON/ENVIRONMENT.md
 
-작업 시작 시 `python LLM/environment.py`로 실제 실행환경을 확인할 수 있으면 먼저 확인한다.
+Then inspect the installed domain directories:
 
-환경 확인 → 자원 측정 → runtime configuration 확정 → Memory Smoke Test → 실행 → 사용하지 않는 branch/dead code 정리 → 테스트 순서를 따른다.
+- `LLM/` for language-model and NLP work.
+- `VISION/` for image/video/OCR/detection/segmentation/generation/VLM work.
 
-학습/파인튜닝에는 Early Stopping, best checkpoint, Resume, Ablation Study, GPU/RAM budget 및 resolved environment profile 기록을 적용한다.
+Apply the relevant domain and task-specific Skills only when they are installed and applicable.
+
+Before resource-sensitive work, inspect the actual runtime and use the available environment profiler. Before long-running training, run an appropriate Memory Smoke Test and lock the validated configuration.
