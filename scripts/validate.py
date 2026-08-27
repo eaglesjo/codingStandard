@@ -75,6 +75,11 @@ def check_notebook() -> None:
     for required_symbol in ("subprocess.run", "sys.executable", "platform.platform"):
         if required_symbol not in code:
             fail(f"Colab notebook missing required bootstrap usage: {required_symbol}")
+    for required_symbol in ("DEFAULT_REPO_URL", "_normalize_repository", "GITHUB_TOKEN", "GIT_ASKPASS"):
+        if required_symbol not in code:
+            fail(f"Colab notebook missing required repository handling: {required_symbol}")
+    if "capture_output=True" not in code or "validation_run.stderr" not in code:
+        fail("Colab notebook must expose repository validation stderr")
 
 
 def check_hardware_neutrality() -> None:
@@ -104,9 +109,11 @@ def check_windows_workflow() -> None:
     workflow = (ROOT / ".github" / "workflows" / "windows-install-test.yml").read_text(encoding="utf-8")
     if "runs-on: windows-latest" not in workflow:
         fail("Windows workflow must use the windows-latest runner")
-    for required in ("powershell", "pwsh", "DryRun", "Merge"):
-        if required not in workflow:
-            fail(f"Windows workflow missing validation for: {required}")
+    test_script = (ROOT / "scripts" / "test_installers_windows.ps1").read_text(encoding="utf-8")
+    haystack = workflow + "\n" + test_script
+    for required in ("powershell", "pwsh", "-DryRun", "-ConflictAction Merge"):
+        if required.lower() not in haystack.lower():
+            fail(f"Windows validation missing: {required}")
 
 
 def check_version_consistency() -> None:
