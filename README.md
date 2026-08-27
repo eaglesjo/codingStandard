@@ -53,6 +53,24 @@ vision = Common + Vision
 all    = Common + LLM + Vision
 ```
 
+## Supported AI Development Tools
+
+The installer provisions project-level adapters for common coding agents and AI development tools, including OpenAI Codex-compatible agents, Claude Code, Gemini CLI, GitHub Copilot, Cursor, Windsurf, Cline, Continue, JetBrains Junie, Amazon Q Developer, and Aider.
+
+### Manus
+
+Manus uses a different integration model. It currently documents Project Instructions and file-system-based Skills rather than a repository-root `AGENTS.md`-style automatic instruction file.
+
+The installer therefore also provides:
+
+```text
+MANUS/PROJECT_INSTRUCTIONS.md
+MANUS/SKILL.md
+MANUS/README.md
+```
+
+Copy `MANUS/PROJECT_INSTRUCTIONS.md` into the Manus Project Instructions for the project. Import `MANUS/SKILL.md` using Manus Skills when appropriate. Review Skills and bundled scripts before importing or executing them.
+
 ## AI Development Workflow
 
 ```text
@@ -87,17 +105,9 @@ Runtime decisions are based on measured capabilities rather than a named machine
 
 Use `COMMON/environment.py` as the shared environment source. LLM and Vision expose adapters/policies on top of it.
 
-## Common Layer
+## Common / LLM / Vision
 
-`COMMON/` contains environment inspection, resource safety, configuration, reproducibility, security, testing, and shared lifecycle rules.
-
-## LLM Layer
-
-`LLM/` covers language models, NLP, RAG, fine-tuning, Jupyter, and Colab. It provides domain Skills, training/ablation configuration, memory smoke testing, and adapters to the shared profiler and experiment metadata helper.
-
-## Vision Layer
-
-`VISION/` covers classification, detection, segmentation, OCR, pose estimation, image generation, and VLM. Vision resource policy considers image resolution, batch size, channels, activation/feature-map memory, workers, cache, and prefetching.
+`COMMON/` provides shared rules and runtime utilities. `LLM/` provides language-model and NLP workflows. `VISION/` provides computer-vision workflows including classification, detection, segmentation, OCR, pose estimation, image generation, and VLM.
 
 ## Skills
 
@@ -163,6 +173,7 @@ This project is released under the MIT License. See `LICENSE`.
 - [Vision Agent Rules](VISION/AGENT.md)
 - [Vision Skill](VISION/SKILL.md)
 - [Vision Environment](VISION/ENVIRONMENT.md)
+- [Manus Integration](MANUS/README.md)
 - [Windows Installer Test](scripts/test_installers_windows.ps1)
 - [Colab Validation](tests/colab/README.md)
 - [Korean README](README.ko.md)
