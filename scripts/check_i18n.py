@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 KO = ROOT / "i18n" / "ko"
 
 REQUIRED_LOCALIZED = {
-    "AGENTS.md", "CLAUDE.md", "GEMINI.md",
+    "AGENTS.md", "CLAUDE.md", "GEMINI.md", "INSTALL.md",
     ".github/copilot-instructions.md",
     ".github/instructions/llm.instructions.md",
     ".github/instructions/vision.instructions.md",
@@ -47,6 +47,10 @@ def main() -> int:
         en_text = (ROOT / rel).read_text(encoding="utf-8").lower()
         ko_text = (KO / rel).read_text(encoding="utf-8").lower()
         for concept in CORE_CONCEPTS:
+            # INSTALL.md is a procedure document and may use translated wording,
+            # so require only structural parity there.
+            if rel == "INSTALL.md":
+                continue
             if concept not in en_text or concept not in ko_text:
                 print(f"Missing core concept '{concept}' in {rel}")
                 errors += 1
