@@ -1,14 +1,14 @@
 param(
     [Parameter(Mandatory = $false)]
     [string]$Target = ".",
-
     [Parameter(Mandatory = $false)]
     [ValidateSet("en", "ko")]
     [string]$Language,
-
     [Parameter(Mandatory = $false)]
     [ValidateSet("Ask", "Merge", "Overwrite", "Skip")]
-    [string]$ConflictAction = "Ask"
+    [string]$ConflictAction = "Ask",
+    [Parameter(Mandatory = $false)]
+    [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,13 +21,9 @@ if (-not $Language) {
     Write-Host "  1) English (en)"
     Write-Host "  2) Korean  (ko)"
     $Selection = Read-Host "Language [1]"
-    if ([string]::IsNullOrWhiteSpace($Selection) -or $Selection -eq "1" -or $Selection -eq "en") {
-        $Language = "en"
-    } elseif ($Selection -eq "2" -or $Selection -eq "ko") {
-        $Language = "ko"
-    } else {
-        throw "Invalid language selection. Use 1, 2, en, or ko."
-    }
+    if ([string]::IsNullOrWhiteSpace($Selection) -or $Selection -in @("1", "en")) { $Language = "en" }
+    elseif ($Selection -in @("2", "ko")) { $Language = "ko" }
+    else { throw "Invalid language selection. Use 1, 2, en, or ko." }
 }
 
 function Get-SourcePath([string]$RelativePath) {
@@ -56,25 +52,19 @@ function Merge-AiderConfig([string]$Existing) {
             if ($items) { "read: [$items, CONVENTIONS.md]" } else { "read: [CONVENTIONS.md]" }
         })
     }
-
     if ($Existing -match "(?ms)^read:\s*\r?\n((?:[ \t]+-.*\r?\n)*)") {
         if ($Existing -match "CONVENTIONS\.md") { return $Existing }
         return [regex]::Replace($Existing, "(?ms)^read:\s*\r?\n((?:[ \t]+-.*\r?\n)*)", {
-            param($m)
-            "read:`r`n$($m.Groups[1].Value)  - CONVENTIONS.md`r`n"
+            param($m) "read:`r`n$($m.Groups[1].Value)  - CONVENTIONS.md`r`n"
         }, 1)
     }
-
-    $Markers = Get-Markers ".aider.conf.yml"
-    return "$($Existing.TrimEnd())`r`n`r`n$($Markers[0])`r`nread:`r`n  - CONVENTIONS.md`r`n$($Markers[1])`r`n"
+    return "$($Existing.TrimEnd())`r`n`r`n# BEGIN CODINGSTANDARD MANAGED BLOCK`r`nread:`r`n  - CONVENTIONS.md`r`n# END CODINGSTANDARD MANAGED BLOCK`r`n"
 }
 
 function Merge-Text([string]$Existing, [string]$Incoming, [string]$DestinationPath) {
     if ($DestinationPath -eq ".aider.conf.yml") { return Merge-AiderConfig $Existing }
     $Markers = Get-Markers $DestinationPath
-    $Start = [regex]::Escape($Markers[0])
-    $End = [regex]::Escape($Markers[1])
-    $Pattern = "(?ms)^$Start.*?$End\s*"
+    $Pattern = "(?ms)^$([regex]::Escape($Markers[0])).*?$([regex]::Escape($Markers[1]))\s*"
     if ($Existing -match $Pattern) {
         return [regex]::Replace($Existing, $Pattern, "$($Markers[0])`r`n$Incoming`r`n$($Markers[1])`r`n")
     }
@@ -85,15 +75,10 @@ function Resolve-Conflict([string]$DestinationRelativePath) {
     if ($script:GlobalConflictAction -ne "Ask") { return $script:GlobalConflictAction }
     Write-Host ""
     Write-Host "File already exists: $DestinationRelativePath" -ForegroundColor Yellow
-    Write-Host "  M = Merge"
-    Write-Host "  O = Overwrite"
-    Write-Host "  S = Skip"
-    Write-Host "  A = Merge all remaining files"
-    Write-Host "  W = Overwrite all remaining files"
-    Write-Host "  K = Skip all remaining files"
-    do {
-        $Choice = (Read-Host "Action [M/O/S]").Trim().ToUpperInvariant()
-    } while ($Choice -notin @("M", "O", "S", "A", "W", "K"))
+    Write-Host "  M = Merge   O = Overwrite   S = Skip"
+    Write-Host "  A = Merge all   W = Overwrite all   K = Skip all"
+    do { $Choice = (Read-Host "Action [M/O/S]").Trim().ToUpperInvariant() }
+    while ($Choice -notin @("M","O","S","A","W","K"))
     switch ($Choice) {
         "A" { $script:GlobalConflictAction = "Merge"; return "Merge" }
         "W" { $script:GlobalConflictAction = "Overwrite"; return "Overwrite" }
@@ -107,10 +92,16 @@ function Resolve-Conflict([string]$DestinationRelativePath) {
 function Install-File([string]$SourceRelativePath, [string]$DestinationRelativePath) {
     $Source = Get-SourcePath $SourceRelativePath
     $Destination = Join-Path $TargetRoot $DestinationRelativePath
+    $Exists = Test-Path -LiteralPath $Destination
+    if ($DryRun) {
+        if (-not $Exists) { Write-Host "[DRY-RUN] CREATE $DestinationRelativePath [$Language]" }
+        else { Write-Host "[DRY-RUN] EXIST $DestinationRelativePath [$Language] (policy=$ConflictAction)" }
+        return
+    }
+
     New-Item -ItemType Directory -Path (Split-Path -Parent $Destination) -Force | Out-Null
     $SourceText = [System.IO.File]::ReadAllText($Source, [System.Text.UTF8Encoding]::new($false))
-
-    if (-not (Test-Path -LiteralPath $Destination)) {
+    if (-not $Exists) {
         [System.IO.File]::WriteAllText($Destination, $SourceText, [System.Text.UTF8Encoding]::new($false))
         Write-Host "Installed $DestinationRelativePath [$Language]"
         return
@@ -133,24 +124,34 @@ function Install-File([string]$SourceRelativePath, [string]$DestinationRelativeP
 }
 
 $InstallMap = @(
-    @{ Source = "AGENTS.md"; Destination = "AGENTS.md" },
-    @{ Source = "CLAUDE.md"; Destination = "CLAUDE.md" },
-    @{ Source = "GEMINI.md"; Destination = "GEMINI.md" },
-    @{ Source = ".github/copilot-instructions.md"; Destination = ".github/copilot-instructions.md" },
-    @{ Source = ".github/instructions/llm.instructions.md"; Destination = ".github/instructions/llm.instructions.md" },
-    @{ Source = ".cursor/rules/coding-standard.mdc"; Destination = ".cursor/rules/coding-standard.mdc" },
-    @{ Source = ".windsurf/rules/coding-standard.md"; Destination = ".windsurf/rules/coding-standard.md" },
-    @{ Source = ".clinerules/01-coding-standard.md"; Destination = ".clinerules/01-coding-standard.md" },
-    @{ Source = ".continue/rules/01-coding-standard.md"; Destination = ".continue/rules/01-coding-standard.md" },
-    @{ Source = ".junie/AGENTS.md"; Destination = ".junie/AGENTS.md" },
-    @{ Source = "CONVENTIONS.md"; Destination = "CONVENTIONS.md" },
-    @{ Source = ".aider.conf.yml"; Destination = ".aider.conf.yml" },
-    @{ Source = "LLM/AGENT.md"; Destination = "LLM/AGENT.md" },
-    @{ Source = "LLM/SKILL.md"; Destination = "LLM/SKILL.md" },
-    @{ Source = "LLM/ENVIRONMENT.md"; Destination = "LLM/ENVIRONMENT.md" },
-    @{ Source = "LLM/environment.py"; Destination = "LLM/environment.py" },
-    @{ Source = "LLM/README.md"; Destination = "LLM/README.md" }
+    @{Source="AGENTS.md"; Destination="AGENTS.md"},
+    @{Source="CLAUDE.md"; Destination="CLAUDE.md"},
+    @{Source="GEMINI.md"; Destination="GEMINI.md"},
+    @{Source=".github/copilot-instructions.md"; Destination=".github/copilot-instructions.md"},
+    @{Source=".github/instructions/llm.instructions.md"; Destination=".github/instructions/llm.instructions.md"},
+    @{Source=".cursor/rules/coding-standard.mdc"; Destination=".cursor/rules/coding-standard.mdc"},
+    @{Source=".windsurf/rules/coding-standard.md"; Destination=".windsurf/rules/coding-standard.md"},
+    @{Source=".clinerules/01-coding-standard.md"; Destination=".clinerules/01-coding-standard.md"},
+    @{Source=".continue/rules/01-coding-standard.md"; Destination=".continue/rules/01-coding-standard.md"},
+    @{Source=".junie/AGENTS.md"; Destination=".junie/AGENTS.md"},
+    @{Source=".amazonq/rules/coding-standard.md"; Destination=".amazonq/rules/coding-standard.md"},
+    @{Source="CONVENTIONS.md"; Destination="CONVENTIONS.md"},
+    @{Source=".aider.conf.yml"; Destination=".aider.conf.yml"},
+    @{Source="LLM/AGENT.md"; Destination="LLM/AGENT.md"},
+    @{Source="LLM/SKILL.md"; Destination="LLM/SKILL.md"},
+    @{Source="LLM/ENVIRONMENT.md"; Destination="LLM/ENVIRONMENT.md"},
+    @{Source="LLM/environment.py"; Destination="LLM/environment.py"},
+    @{Source="LLM/README.md"; Destination="LLM/README.md"},
+    @{Source="LLM/config/training.yaml"; Destination="LLM/config/training.yaml"},
+    @{Source="LLM/config/ablation.yaml"; Destination="LLM/config/ablation.yaml"}
 )
+
+$SkillFiles = @(
+    "environment","training","ablation","notebook","debugging","release"
+)
+foreach ($Skill in $SkillFiles) {
+    $InstallMap += @{Source="LLM/skills/$Skill/SKILL.md"; Destination="LLM/skills/$Skill/SKILL.md"}
+}
 
 foreach ($Item in $InstallMap) { Install-File $Item.Source $Item.Destination }
 
@@ -158,5 +159,4 @@ Write-Host ""
 Write-Host "AI coding standard installed into: $TargetRoot"
 Write-Host "Language: $Language"
 Write-Host "Conflict policy: $ConflictAction"
-Write-Host "Environment profiler: python LLM/environment.py"
-Write-Host "Supported AI integrations: Codex/AGENTS.md, Claude Code, Gemini CLI, GitHub Copilot, Cursor, Windsurf, Cline, Continue, Junie, Aider"
+Write-Host "Dry run: $DryRun"
