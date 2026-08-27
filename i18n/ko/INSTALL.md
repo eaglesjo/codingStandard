@@ -1,0 +1,195 @@
+# 설치 가이드
+
+`install-domains.ps1`과 `install-domains.sh`가 첫 공개 배포 전 공식 설치기입니다.
+
+## 1. Clone
+
+```bash
+git clone https://github.com/eaglesjo/codingStandard.git
+```
+
+적용하려는 프로젝트의 루트에서 설치기를 실행합니다. 대상 폴더가 없으면 설치기가 생성합니다.
+
+## 2. 언어와 도메인 선택
+
+설치기는 영문/한글과 다음 네 가지 도메인을 지원합니다.
+
+```text
+언어
+  en = English
+  ko = Korean
+
+도메인
+  common = 공통 규칙만
+  llm    = Common + LLM
+  vision = Common + Vision
+  all    = Common + LLM + Vision
+```
+
+### Windows / PowerShell
+
+대화형 설치:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target .
+```
+
+명시적 설치:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target . -Language ko -Domain vision
+```
+
+### Linux / macOS
+
+대화형 설치:
+
+```bash
+bash ./codingStandard/scripts/install-domains.sh .
+```
+
+명시적 설치:
+
+```bash
+bash ./codingStandard/scripts/install-domains.sh . ko vision ask false
+```
+
+인자 순서는 다음과 같습니다.
+
+```text
+TARGET LANGUAGE DOMAIN CONFLICT_POLICY DRY_RUN
+```
+
+## 3. 설치 전 미리보기
+
+PowerShell:
+
+```powershell
+... -Language ko -Domain all -DryRun
+```
+
+Bash:
+
+```bash
+bash ./codingStandard/scripts/install-domains.sh . ko all ask true
+```
+
+Dry-run은 대상 프로젝트를 변경하지 않습니다.
+
+## 4. 기존 파일 처리
+
+대상 파일이 이미 존재하면 다음 중 하나를 선택합니다.
+
+```text
+Ask       파일별로 선택
+Merge     기존 내용을 유지하고 codingStandard 관리 블록만 갱신
+Overwrite 대상 파일 전체를 교체
+Skip      기존 파일을 그대로 유지
+```
+
+프로젝트 자체 규칙을 유지해야 하는 Agent 지침 파일에는 `Merge`를 권장합니다. 표준이 전체를 소유하는 파일에는 `Overwrite`를 사용할 수 있습니다.
+
+## 5. Common 설치 내용
+
+Common은 모든 프로젝트에 공통으로 적용되는 AI Agent 진입점과 규칙을 설치합니다.
+
+```text
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.github/*
+.cursor/*
+.windsurf/*
+.clinerules/*
+.continue/*
+.junie/*
+.amazonq/*
+CONVENTIONS.md
+.aider.conf.yml
+COMMON/*
+```
+
+## 6. LLM 추가 내용
+
+LLM 도메인을 선택하면 다음이 추가됩니다.
+
+```text
+LLM/AGENT.md
+LLM/SKILL.md
+LLM/ENVIRONMENT.md
+LLM/environment.py
+LLM/memory_smoke_test.py
+LLM/experiment.py
+LLM/config/*
+LLM/skills/*
+```
+
+LLM 규칙에는 환경 최적화, 메모리 안전 실행, Early Stopping, Best Checkpoint, Resume, Ablation Study, 재현성 및 자원 사용량 기록이 포함됩니다.
+
+## 7. Vision 추가 내용
+
+Vision 도메인을 선택하면 다음이 추가됩니다.
+
+```text
+VISION/AGENT.md
+VISION/SKILL.md
+VISION/ENVIRONMENT.md
+VISION/memory_smoke_test.py
+VISION/README.md
+VISION/config/*
+VISION/skills/*
+```
+
+Vision Skill은 Classification, Detection, Segmentation, OCR, Pose Estimation, Image Generation, VLM을 다룹니다.
+
+## 8. 설치 후 검증
+
+공통 환경 확인:
+
+```bash
+python COMMON/environment.py
+```
+
+LLM이 설치된 경우:
+
+```bash
+python LLM/environment.py
+python LLM/memory_smoke_test.py --cpu --steps 2
+```
+
+Vision이 설치된 경우:
+
+```bash
+python VISION/memory_smoke_test.py --device auto --image-size 224 --batch-size 1 --steps 2
+```
+
+저장소 검증:
+
+```bash
+python scripts/validate.py
+python scripts/check_i18n.py
+```
+
+## 9. Windows / Colab 검증
+
+Windows 설치 동작은 GitHub Actions의 실제 `windows-latest` runner에서 자동 검증합니다. PowerShell 5.1과 PowerShell 7, 언어/도메인 조합, Dry-run, Merge, Unicode 및 공백 경로를 확인합니다.
+
+Google Colab에서는 저장소의 검증 Notebook을 실행할 수 있습니다.
+
+[Colab 검증 Notebook](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb)
+
+## 10. 권장 작업 흐름
+
+```text
+설치
+→ AI 지침 자동 로딩
+→ 실제 환경 측정
+→ Runtime 설정 계산
+→ Memory Smoke Test
+→ 환경 확정
+→ 관련 Skill 적용
+→ 개발 / 학습 / 추론
+→ Early Stopping / Checkpoint / Resume
+→ Ablation / Experiment 기록
+→ 최종 검증
+```
