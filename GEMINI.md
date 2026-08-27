@@ -7,6 +7,14 @@
 @AGENTS.md
 @LLM/AGENT.md
 @LLM/SKILL.md
+@LLM/ENVIRONMENT.md
 
-작업 시작 시 환경 확인 → 환경 확정 → 사용하지 않는 실행 경로 제거 → 테스트를 수행한다.
-학습/파인튜닝에는 Early Stopping, best checkpoint, Resume, Ablation Study, GPU/RAM budget 규칙을 적용한다.
+작업 시작 시 가능하면 다음을 실행한다.
+
+```bash
+python LLM/environment.py
+```
+
+실제 환경 확인 → CPU/GPU/VRAM/RAM 측정 → runtime configuration 확정 → smoke test → 확정 환경에 최적화 → 사용하지 않는 실행 경로 제거 → 테스트 순서를 따른다.
+
+학습/파인튜닝에는 Early Stopping, best checkpoint, Resume, Ablation Study, GPU/RAM budget 및 resolved environment profile 기록을 적용한다.
