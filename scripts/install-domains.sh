@@ -33,7 +33,7 @@ files=(
   AGENTS.md CLAUDE.md GEMINI.md
   .github/copilot-instructions.md
   .cursor/rules/coding-standard.mdc .windsurf/rules/coding-standard.md
-  .clinerules/01-coding-standard.md .continue/rules/coding-standard.md
+  .clinerules/01-coding-standard.md .continue/rules/01-coding-standard.md
   .junie/AGENTS.md .amazonq/rules/coding-standard.md
   CONVENTIONS.md .aider.conf.yml
   COMMON/AGENT.md COMMON/SKILL.md COMMON/ENVIRONMENT.md COMMON/environment.py COMMON/experiment.py
