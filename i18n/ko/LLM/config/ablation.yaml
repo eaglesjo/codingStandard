@@ -1,0 +1,39 @@
+standard_version: 1.1.0
+
+study:
+  name: component_ablation
+  primary_metric: eval_loss
+  mode: min
+  keep_evaluation_conditions_fixed: true
+  max_budget: auto
+
+seeds:
+  - 42
+  - 43
+  - 44
+
+baseline:
+  feature_a: true
+  feature_b: true
+  augmentation: true
+
+variants:
+  - name: no_feature_a
+    changes:
+      feature_a: false
+  - name: no_feature_b
+    changes:
+      feature_b: false
+  - name: no_augmentation
+    changes:
+      augmentation: false
+
+tracking:
+  record_git_commit: true
+  record_config_hash: true
+  record_environment_profile: true
+  record_runtime_config: true
+  record_peak_vram: true
+  record_peak_ram: true
+  record_runtime: true
+  record_best_checkpoint: true
