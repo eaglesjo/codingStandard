@@ -1,92 +1,36 @@
 from __future__ import annotations
 
-import argparse
-import hashlib
-import json
-import subprocess
-from datetime import datetime, timezone
+"""LLM-facing adapter for the shared experiment metadata helper."""
+
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import Any
+import sys
 
-STANDARD_VERSION = "1.1.0"
+_COMMON = Path(__file__).resolve().parents[1] / "COMMON" / "experiment.py"
+_spec = spec_from_file_location("codingstandard_common_experiment", _COMMON)
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"Cannot load shared experiment helper: {_COMMON}")
+_module = module_from_spec(_spec)
+sys.modules[_spec.name] = _module
+_spec.loader.exec_module(_module)
 
+create_metadata = _module.create_metadata
 
-def git_value(*args: str) -> str | None:
-    try:
-        result = subprocess.run(
-            ["git", *args],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        return result.stdout.strip() or None
-    except (OSError, subprocess.CalledProcessError):
-        return None
-
-
-def canonical_json(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-
-def config_hash(config: Any) -> str:
-    return hashlib.sha256(canonical_json(config).encode("utf-8")).hexdigest()[:16]
-
-
-def build_metadata(
-    *,
-    experiment_id: str,
-    variant: str,
-    seed: int,
-    config: dict[str, Any],
-    environment_profile: dict[str, Any] | None = None,
-    model_revision: str | None = None,
-    dataset_revision: str | None = None,
-) -> dict[str, Any]:
-    return {
-        "standard_version": STANDARD_VERSION,
-        "experiment_id": experiment_id,
-        "variant": variant,
-        "seed": seed,
-        "config_hash": config_hash(config),
-        "git_commit": git_value("rev-parse", "HEAD"),
-        "git_branch": git_value("branch", "--show-current"),
-        "git_dirty": bool(git_value("status", "--porcelain")),
-        "model_revision": model_revision,
-        "dataset_revision": dataset_revision,
-        "environment_profile": environment_profile,
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
-        "config": config,
-    }
-
-
-def save_metadata(metadata: dict[str, Any], path: str | Path) -> None:
-    target = Path(path)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(
-        json.dumps(metadata, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Create reproducible experiment metadata")
+if __name__ == "__main__":
+    import argparse
+    import json
+    parser = argparse.ArgumentParser()
     parser.add_argument("experiment_id")
     parser.add_argument("variant")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--config", default="{}", help="JSON configuration")
-    parser.add_argument("--output", default="experiments/metadata.json")
+    parser.add_argument("--config", default="{}")
+    parser.add_argument("--model-revision")
+    parser.add_argument("--dataset-revision")
+    parser.add_argument("--environment-profile")
+    parser.add_argument("--runtime-config")
+    parser.add_argument("--output", required=True)
     args = parser.parse_args()
-
-    config = json.loads(args.config)
-    metadata = build_metadata(
-        experiment_id=args.experiment_id,
-        variant=args.variant,
-        seed=args.seed,
-        config=config,
-    )
-    save_metadata(metadata, args.output)
-    print(json.dumps(metadata, ensure_ascii=False, indent=2))
-
-
-if __name__ == "__main__":
-    main()
+    result = create_metadata(args.experiment_id, args.variant, args.seed, json.loads(args.config), args.model_revision, args.dataset_revision, args.environment_profile, json.loads(args.runtime_config) if args.runtime_config else None)
+    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.output).write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(result, ensure_ascii=False, indent=2))
