@@ -31,7 +31,7 @@ fi
 
 files=(
   AGENTS.md CLAUDE.md GEMINI.md
-  .github/copilot-instructions.md .github/instructions/llm.instructions.md .github/instructions/vision.instructions.md
+  .github/copilot-instructions.md
   .cursor/rules/coding-standard.mdc .windsurf/rules/coding-standard.md
   .clinerules/01-coding-standard.md .continue/rules/coding-standard.md
   .junie/AGENTS.md .amazonq/rules/coding-standard.md
@@ -40,11 +40,11 @@ files=(
   MANUS/PROJECT_INSTRUCTIONS.md MANUS/SKILL.md MANUS/README.md
 )
 if [[ "$DOMAIN" == llm || "$DOMAIN" == all ]]; then
-  files+=(LLM/AGENT.md LLM/SKILL.md LLM/ENVIRONMENT.md LLM/environment.py LLM/experiment.py LLM/memory_smoke_test.py LLM/README.md LLM/config/training.yaml LLM/config/ablation.yaml)
+  files+=(.github/instructions/llm.instructions.md LLM/AGENT.md LLM/SKILL.md LLM/ENVIRONMENT.md LLM/environment.py LLM/experiment.py LLM/memory_smoke_test.py LLM/README.md LLM/config/training.yaml LLM/config/ablation.yaml)
   while IFS= read -r f; do files+=("${f#$SRC/}"); done < <(find "$SRC/LLM/skills" -type f -name SKILL.md 2>/dev/null | sort)
 fi
 if [[ "$DOMAIN" == vision || "$DOMAIN" == all ]]; then
-  files+=(VISION/AGENT.md VISION/SKILL.md VISION/ENVIRONMENT.md VISION/memory_smoke_test.py VISION/README.md VISION/config/training.yaml VISION/config/ablation.yaml)
+  files+=(.github/instructions/vision.instructions.md VISION/AGENT.md VISION/SKILL.md VISION/ENVIRONMENT.md VISION/memory_smoke_test.py VISION/README.md VISION/config/training.yaml VISION/config/ablation.yaml)
   while IFS= read -r f; do files+=("${f#$SRC/}"); done < <(find "$SRC/VISION/skills" -type f -name SKILL.md 2>/dev/null | sort)
 fi
 
