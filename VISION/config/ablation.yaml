@@ -1,0 +1,39 @@
+standard_version: 1.2.0
+
+study:
+  name: vision_ablation
+  primary_metric: auto
+  mode: auto
+  max_budget: auto
+
+seeds: [42, 43, 44]
+
+baseline:
+  image_size: auto
+  preprocessing: standard
+  augmentation: true
+  model_variant: baseline
+
+variants:
+  - name: no_augmentation
+    augmentation: false
+  - name: smaller_image
+    image_size: auto_lower
+  - name: alternate_model
+    model_variant: alternate
+
+controls:
+  dataset_split: fixed
+  evaluation_protocol: fixed
+  early_stopping: fixed
+  checkpoint_policy: fixed
+  environment_profile: record
+
+record:
+  metrics: true
+  runtime: true
+  peak_vram: true
+  peak_ram: true
+  throughput: true
+  latency: true
+  image_size: true
