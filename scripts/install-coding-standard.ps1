@@ -41,7 +41,9 @@ function Get-SourcePath([string]$RelativePath) {
 }
 
 function Get-Markers([string]$Path) {
-    if ($Path -match "\.ya?ml$") { return @("# BEGIN CODINGSTANDARD MANAGED BLOCK", "# END CODINGSTANDARD MANAGED BLOCK") }
+    if ($Path -match "\.(py|ya?ml|sh|bash)$") {
+        return @("# BEGIN CODINGSTANDARD MANAGED BLOCK", "# END CODINGSTANDARD MANAGED BLOCK")
+    }
     return @("<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->", "<!-- END CODINGSTANDARD MANAGED BLOCK -->")
 }
 
