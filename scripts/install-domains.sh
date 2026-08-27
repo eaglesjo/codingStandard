@@ -2,40 +2,42 @@
 set -euo pipefail
 
 TARGET="${1:-.}"
-LANGUAGE="${2:-en}"
-DOMAIN="${3:-all}"
+LANGUAGE="${2:-}"
+DOMAIN="${3:-}"
 POLICY="${4:-ask}"
 DRY_RUN="${5:-false}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+[[ -d "$TARGET" ]] || { $([[ "$DRY_RUN" == true ]] || mkdir -p "$TARGET"); }
 TARGET="$(cd "$TARGET" && pwd)"
-SRC="$ROOT"
-if [[ "$LANGUAGE" == "ko" && -d "$ROOT/i18n/ko" ]]; then SRC="$ROOT/i18n/ko"; fi
+
+if [[ -z "$LANGUAGE" ]]; then
+  printf 'Language: 1) English  2) Korean\n'
+  read -r -p 'Language [1]: ' choice
+  [[ "${choice:-1}" == 2 ]] && LANGUAGE="ko" || LANGUAGE="en"
+fi
+if [[ -z "$DOMAIN" ]]; then
+  printf 'Domain: 1) Common  2) LLM  3) Vision  4) All\n'
+  read -r -p 'Domain [4]: ' choice
+  case "${choice:-4}" in 1) DOMAIN="common";; 2) DOMAIN="llm";; 3) DOMAIN="vision";; 4) DOMAIN="all";; *) echo 'Invalid domain' >&2; exit 1;; esac
+fi
 
 case "$LANGUAGE" in en|ko) ;; *) echo 'language: en|ko' >&2; exit 1;; esac
 case "$DOMAIN" in common|llm|vision|all) ;; *) echo 'domain: common|llm|vision|all' >&2; exit 1;; esac
 case "$POLICY" in ask|merge|overwrite|skip) ;; *) echo 'policy: ask|merge|overwrite|skip' >&2; exit 1;; esac
 case "$DRY_RUN" in true|false) ;; *) echo 'dry_run: true|false' >&2; exit 1;; esac
 
-if [[ -z "${2:-}" ]]; then
-  printf 'Language: 1) English  2) Korean\n'
-  read -r -p 'Language [1]: ' choice
-  [[ "${choice:-1}" == 2 ]] && LANGUAGE="ko" || LANGUAGE="en"
-  SRC="$ROOT"; [[ "$LANGUAGE" == "ko" && -d "$ROOT/i18n/ko" ]] && SRC="$ROOT/i18n/ko"
-fi
-if [[ -z "${3:-}" ]]; then
-  printf 'Domain: 1) Common  2) LLM  3) Vision  4) All\n'
-  read -r -p 'Domain [4]: ' choice
-  case "${choice:-4}" in 1) DOMAIN="common";; 2) DOMAIN="llm";; 3) DOMAIN="vision";; 4) DOMAIN="all";; *) echo 'Invalid domain' >&2; exit 1;; esac
-fi
+SRC="$ROOT"
+[[ "$LANGUAGE" == ko && -d "$ROOT/i18n/ko" ]] && SRC="$ROOT/i18n/ko"
 
 files=(
   AGENTS.md CLAUDE.md GEMINI.md
-  .github/copilot-instructions.md .github/instructions/llm.instructions.md
+  .github/copilot-instructions.md .github/instructions/llm.instructions.md .github/instructions/vision.instructions.md
   .cursor/rules/coding-standard.mdc .windsurf/rules/coding-standard.md
-  .clinerules/01-coding-standard.md .continue/rules/01-coding-standard.md
+  .clinerules/01-coding-standard.md .continue/rules/coding-standard.md
   .junie/AGENTS.md .amazonq/rules/coding-standard.md
   CONVENTIONS.md .aider.conf.yml
-  COMMON/AGENT.md COMMON/SKILL.md COMMON/ENVIRONMENT.md
+  COMMON/AGENT.md COMMON/SKILL.md COMMON/ENVIRONMENT.md COMMON/environment.py COMMON/experiment.py
 )
 if [[ "$DOMAIN" == llm || "$DOMAIN" == all ]]; then
   files+=(LLM/AGENT.md LLM/SKILL.md LLM/ENVIRONMENT.md LLM/environment.py LLM/experiment.py LLM/memory_smoke_test.py LLM/README.md LLM/config/training.yaml LLM/config/ablation.yaml)
