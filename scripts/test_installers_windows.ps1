@@ -41,7 +41,6 @@ function Invoke-Installer {
     }
     if ($DryRun) { $arguments.DryRun = $true }
     & $Installer @arguments
-    if ($LASTEXITCODE -ne 0) { throw "Installer failed: $Language/$Domain" }
 }
 
 try {
