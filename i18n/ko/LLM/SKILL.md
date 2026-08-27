@@ -139,7 +139,7 @@ prefetch / persistent worker 과다 사용 금지
 CPU/BLAS/OpenMP thread 제한 검토
 ```
 
-GPU와 RAM을 100%까지 채우지 않습니다.
+GPU와 RAM을 100%까지 채우지 않습니다. 메모리 여유를 남겨 시스템과 런타임의 안정성을 확보합니다.
 
 ## 8. Memory Smoke Test
 
