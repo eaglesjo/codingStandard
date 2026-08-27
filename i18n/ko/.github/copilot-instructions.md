@@ -1,9 +1,9 @@
 # GitHub Copilot 프로젝트 지침
 
-@../../AGENTS.md
-@../../LLM/AGENT.md
-@../../LLM/SKILL.md
-@../../LLM/ENVIRONMENT.md
+@../AGENTS.md
+@../LLM/AGENT.md
+@../LLM/SKILL.md
+@../LLM/ENVIRONMENT.md
 
 작업 전 실제 환경을 측정합니다.
 
