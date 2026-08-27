@@ -27,9 +27,25 @@ REQUIRED_LOCALIZED = {
     "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md", "MANUS/README.md",
 }
 
-# Only human-authored Markdown is checked semantically. YAML/config files and
-# language-neutral executable adapters are checked for presence instead.
-PROSE_DOCUMENTS = {p for p in REQUIRED_LOCALIZED if p.endswith(".md")}
+# Prose rule documents are checked semantically. README/INSTALL summaries and
+# structured config/adapter files are checked for presence only.
+SEMANTIC_DOCUMENTS = {
+    "AGENTS.md", "CLAUDE.md", "GEMINI.md",
+    ".github/copilot-instructions.md",
+    ".github/instructions/llm.instructions.md",
+    ".github/instructions/vision.instructions.md",
+    ".cursor/rules/coding-standard.mdc",
+    ".windsurf/rules/coding-standard.md",
+    ".clinerules/01-coding-standard.md",
+    ".continue/rules/coding-standard.md",
+    ".junie/AGENTS.md",
+    ".amazonq/rules/coding-standard.md",
+    "CONVENTIONS.md",
+    "COMMON/AGENT.md", "COMMON/SKILL.md", "COMMON/ENVIRONMENT.md",
+    "LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md",
+    "VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md",
+    "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md",
+}
 CONCEPT_ALTERNATIVES = {
     "environment": ("environment", "환경", "실행환경"),
     "memory": ("memory", "메모리"),
@@ -58,7 +74,7 @@ def main() -> int:
         return 1
 
     errors = 0
-    for rel in sorted(PROSE_DOCUMENTS):
+    for rel in sorted(SEMANTIC_DOCUMENTS):
         en_text = (ROOT / rel).read_text(encoding="utf-8").lower()
         ko_text = (KO / rel).read_text(encoding="utf-8").lower()
         for concept, alternatives in CONCEPT_ALTERNATIVES.items():
@@ -68,7 +84,7 @@ def main() -> int:
 
     if errors:
         return 1
-    print("i18n parity OK: English source and Korean localized files verified")
+    print("i18n parity OK: English/Korean file presence and rule-document anchors verified")
     return 0
 
 
