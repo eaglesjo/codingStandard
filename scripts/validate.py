@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -95,10 +96,18 @@ def check_hardware_neutrality() -> None:
 
 def run_i18n_check() -> None:
     checker = ROOT / "scripts" / "check_i18n.py"
-    namespace: dict[str, object] = {}
-    exec(compile(checker.read_text(encoding="utf-8"), str(checker), "exec"), namespace)
-    main = namespace.get("main")
-    if not callable(main) or main() != 0:
+    proc = subprocess.run(
+        [sys.executable, str(checker)],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.stdout:
+        print(proc.stdout, end="")
+    if proc.returncode != 0:
+        if proc.stderr:
+            print(proc.stderr, file=sys.stderr, end="")
         fail("English/Korean localization check failed")
 
 
