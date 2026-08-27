@@ -4,11 +4,11 @@
 
 An AI-oriented coding standard repository for consistent software development across projects, with a focus on Python, LLM, ML, Jupyter, and Google Colab workflows.
 
-It standardizes environment detection, hardware/resource profiling, runtime configuration, memory-safe execution, training reproducibility, Early Stopping, checkpoint/resume, and ablation studies.
+It standardizes environment detection, resource profiling, runtime configuration, memory-safe execution, training reproducibility, Early Stopping, checkpoint/resume, and ablation studies.
 
 ## Installation
 
-Clone the repository, then run the installer from the project root where you want to apply the standard.
+Clone the repository, then run the installer from the root of the project where you want to apply the standard.
 
 ### Windows / PowerShell
 
@@ -29,6 +29,22 @@ Install Korean explicitly:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target . -Language ko
+```
+
+You can also choose the conflict policy in advance:
+
+```powershell
+# Ask when an installed file already exists
+... -ConflictAction Ask
+
+# Merge the selected standard into existing text files
+... -ConflictAction Merge
+
+# Replace existing files
+... -ConflictAction Overwrite
+
+# Keep existing files unchanged
+... -ConflictAction Skip
 ```
 
 ### Linux / macOS
@@ -52,22 +68,49 @@ Install Korean explicitly:
 bash ./codingStandard/scripts/install-coding-standard.sh . ko
 ```
 
-The installer places the selected language into the standard project filenames:
+Conflict policy can be passed as the third argument:
 
-```text
-AGENTS.md
-CLAUDE.md
-GEMINI.md
-.github/copilot-instructions.md
-.github/instructions/llm.instructions.md
-LLM/AGENT.md
-LLM/SKILL.md
-LLM/ENVIRONMENT.md
-LLM/environment.py
-LLM/README.md
+```bash
+bash ./codingStandard/scripts/install-coding-standard.sh . en merge
+bash ./codingStandard/scripts/install-coding-standard.sh . ko overwrite
+bash ./codingStandard/scripts/install-coding-standard.sh . ko skip
 ```
 
-If any of these files already exist in the target project, review local changes first because the installer may overwrite them.
+### Existing file handling
+
+When a target file already exists and the conflict policy is `Ask`, the installer offers:
+
+```text
+M = Merge
+O = Overwrite
+S = Skip
+A = Merge all remaining
+W = Overwrite all remaining
+K = Skip all remaining
+```
+
+Merge preserves the existing file and maintains a clearly marked codingStandard-managed block. Re-running the installer updates that managed block instead of endlessly appending duplicate content.
+
+Structured files are handled conservatively. For the Aider configuration, merge adds `CONVENTIONS.md` to the existing `read` setting when it can do so safely; otherwise keep the existing config or choose overwrite.
+
+## Supported AI Development Tools
+
+The installer can provision project-level instruction files for multiple AI coding tools. The shared standard remains centered on the common `AGENTS.md` entrypoint, while tool-specific adapters are installed where the tool has its own rule format.
+
+| Tool | Installed project entrypoint |
+| --- | --- |
+| OpenAI Codex / compatible agents | `AGENTS.md` |
+| Claude Code | `CLAUDE.md` |
+| Gemini CLI | `GEMINI.md` |
+| GitHub Copilot | `.github/copilot-instructions.md` + `.github/instructions/` |
+| Cursor | `.cursor/rules/coding-standard.mdc` |
+| Windsurf | `.windsurf/rules/coding-standard.md` |
+| Cline | `.clinerules/01-coding-standard.md` |
+| Continue | `.continue/rules/01-coding-standard.md` |
+| JetBrains Junie | `.junie/AGENTS.md` |
+| Aider | `CONVENTIONS.md` + `.aider.conf.yml` |
+
+Cursor project rules use `.mdc` files, Cline uses `.clinerules/`, Windsurf uses `.windsurf/rules/`, Continue uses `.continue/rules/`, and Junie supports `.junie/AGENTS.md` or the project `AGENTS.md`. Aider can always load a conventions file through its `read` configuration. citeturn288560search0turn371326search5turn226223search1turn226223search5turn371326search3turn226223search0
 
 ## Usage
 
@@ -129,7 +172,7 @@ LLM/SKILL.md
 LLM/ENVIRONMENT.md
 ```
 
-The installer selects either the English or Korean document set and copies it to the filenames expected by the supported AI tools.
+The installer selects either the English or Korean document set and copies it to the filenames expected by the supported AI tools. Tool-specific adapters are kept small and point the agent toward the canonical project rules.
 
 ## Environment Optimization
 
@@ -156,24 +199,20 @@ codingStandard/
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── GEMINI.md
+├── CONVENTIONS.md               # Aider conventions
+├── .aider.conf.yml              # Aider auto-read configuration
+├── .cursor/rules/               # Cursor
+├── .windsurf/rules/             # Windsurf
+├── .clinerules/                 # Cline
+├── .continue/rules/             # Continue
+├── .junie/AGENTS.md             # Junie
 ├── .github/
 │   ├── copilot-instructions.md
 │   └── instructions/
-│       └── llm.instructions.md
 ├── i18n/
 │   ├── README.md
-│   └── ko/
-│       ├── AGENTS.md
-│       ├── CLAUDE.md
-│       ├── GEMINI.md
-│       ├── .github/
-│       └── LLM/
+│   └── ko/                      # Korean installer templates
 ├── LLM/
-│   ├── AGENT.md
-│   ├── SKILL.md
-│   ├── ENVIRONMENT.md
-│   ├── environment.py
-│   └── README.md
 └── scripts/
     ├── install-coding-standard.ps1
     └── install-coding-standard.sh
@@ -186,4 +225,4 @@ codingStandard/
 - [Environment Optimization](LLM/ENVIRONMENT.md)
 - [LLM/Jupyter Guide](LLM/README.md)
 - [Environment Profiler](LLM/environment.py)
-- [한국어 README](README.ko.md)
+- [Korean README](README.ko.md)
