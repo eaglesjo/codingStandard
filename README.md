@@ -4,7 +4,7 @@
 
 An AI-oriented coding standard repository for consistent software development across projects, with a focus on Python, LLM, ML, Jupyter, and Google Colab workflows.
 
-It standardizes environment detection, resource profiling, runtime configuration, memory-safe execution, training reproducibility, Early Stopping, checkpoint/resume, and ablation studies.
+It standardizes environment detection, capability/resource profiling, runtime configuration, memory-safe execution, training reproducibility, Early Stopping, checkpoint/resume, ablation studies, and AI-tool project instructions.
 
 ## Installation
 
@@ -19,31 +19,25 @@ git clone https://github.com/eaglesjo/codingStandard.git
 powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target .
 ```
 
-Install English explicitly:
+Explicit language:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target . -Language en
+... -Language en
+... -Language ko
 ```
 
-Install Korean explicitly:
+Preview without changing files:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target . -Language ko
+... -Language en -DryRun
 ```
 
-You can also choose the conflict policy in advance:
+Choose existing-file policy:
 
 ```powershell
-# Ask when an installed file already exists
 ... -ConflictAction Ask
-
-# Merge the selected standard into existing text files
 ... -ConflictAction Merge
-
-# Replace existing files
 ... -ConflictAction Overwrite
-
-# Keep existing files unchanged
 ... -ConflictAction Skip
 ```
 
@@ -56,29 +50,25 @@ git clone https://github.com/eaglesjo/codingStandard.git
 bash ./codingStandard/scripts/install-coding-standard.sh .
 ```
 
-Install English explicitly:
+Explicit language:
 
 ```bash
 bash ./codingStandard/scripts/install-coding-standard.sh . en
-```
-
-Install Korean explicitly:
-
-```bash
 bash ./codingStandard/scripts/install-coding-standard.sh . ko
 ```
 
-Conflict policy can be passed as the third argument:
+Conflict policy is the third argument and dry-run is the fourth:
 
 ```bash
-bash ./codingStandard/scripts/install-coding-standard.sh . en merge
+bash ./codingStandard/scripts/install-coding-standard.sh . ko merge
 bash ./codingStandard/scripts/install-coding-standard.sh . ko overwrite
 bash ./codingStandard/scripts/install-coding-standard.sh . ko skip
+bash ./codingStandard/scripts/install-coding-standard.sh . ko ask true
 ```
 
-### Existing file handling
+## Existing File Handling
 
-When a target file already exists and the conflict policy is `Ask`, the installer offers:
+The installer never needs to overwrite an existing file silently. With `Ask`, each conflict can be handled as:
 
 ```text
 M = Merge
@@ -89,13 +79,11 @@ W = Overwrite all remaining
 K = Skip all remaining
 ```
 
-Merge preserves the existing file and maintains a clearly marked codingStandard-managed block. Re-running the installer updates that managed block instead of endlessly appending duplicate content.
+`Merge` preserves existing content and replaces only the clearly marked codingStandard-managed block on subsequent runs. Structured Aider configuration is merged conservatively rather than treated as arbitrary Markdown.
 
-Structured files are handled conservatively. For the Aider configuration, merge adds `CONVENTIONS.md` to the existing `read` setting when it can do so safely; otherwise keep the existing config or choose overwrite.
+Use `DryRun` / `true` to preview the installation plan before making changes.
 
 ## Supported AI Development Tools
-
-The installer can provision project-level instruction files for multiple AI coding tools. The shared standard remains centered on the common `AGENTS.md` entrypoint, while tool-specific adapters are installed where the tool has its own rule format.
 
 | Tool | Installed project entrypoint |
 | --- | --- |
@@ -108,9 +96,10 @@ The installer can provision project-level instruction files for multiple AI codi
 | Cline | `.clinerules/01-coding-standard.md` |
 | Continue | `.continue/rules/01-coding-standard.md` |
 | JetBrains Junie | `.junie/AGENTS.md` |
+| Amazon Q Developer | `.amazonq/rules/coding-standard.md` |
 | Aider | `CONVENTIONS.md` + `.aider.conf.yml` |
 
-The installed adapters follow each tool's documented project-rule location and format while pointing back to the common project standard.
+Tool-specific files are thin adapters. The shared behavior remains defined by the common project standard.
 
 ## Usage
 
@@ -126,9 +115,9 @@ To save the detected profile:
 python LLM/environment.py .codingstandard/environment-profile.json
 ```
 
-The profiler detects the current Python/runtime environment, OS, CPU, RAM, GPU, VRAM, CUDA/MPS, and IDE/Jupyter/Colab state, then resolves a conservative runtime configuration.
+The profiler measures the actual Python/runtime environment, OS, CPU, RAM, disk, GPU/accelerator, VRAM, CUDA/MPS/ROCm/DirectML capabilities, and IDE/Jupyter/Colab state. It then resolves a conservative starting runtime configuration.
 
-No specific GPU, RAM size, OS, or IDE is treated as a mandatory machine-specific prerequisite. Runtime decisions are based on measured resources and workload requirements.
+No specific GPU, RAM size, OS, or IDE is treated as a mandatory machine-specific prerequisite.
 
 ## AI Development Workflow
 
@@ -139,7 +128,7 @@ Inspect repository / project
         ↓
 Detect Python / kernel / IDE / runtime
         ↓
-Measure CPU / RAM / GPU / VRAM / accelerator
+Measure CPU / RAM / disk / accelerator / VRAM / capabilities
         ↓
 Generate Environment Profile
         ↓
@@ -160,11 +149,61 @@ Run Ablation / record reproducibility + resources
 Final clean run
 ```
 
-The core principle is: **measure first, resolve second, validate third, then implement and run**.
+Core principle: **measure first, resolve second, validate third, then implement and run**.
+
+## Skills
+
+Task-specific skills are available under `LLM/skills/`:
+
+```text
+LLM/skills/
+├── environment/SKILL.md
+├── training/SKILL.md
+├── ablation/SKILL.md
+├── notebook/SKILL.md
+├── debugging/SKILL.md
+└── release/SKILL.md
+```
+
+Agents should use the relevant skill for the current task instead of applying unrelated rules indiscriminately.
+
+## Training and Ablation Configuration
+
+Reusable starting configurations are provided:
+
+```text
+LLM/config/training.yaml
+LLM/config/ablation.yaml
+```
+
+Training defaults include validation, Early Stopping, best checkpoint, Resume, environment-driven resource settings, and reproducibility metadata.
+
+Ablation defaults include a baseline, explicit variants, seed matrix, primary metric, controlled evaluation conditions, and resource tracking.
+
+## Experiment Metadata
+
+Use `LLM/experiment.py` to create reproducible experiment metadata including coding-standard version, config hash, Git commit/branch/dirty state, seed, model/dataset revision, and timestamp.
+
+Example:
+
+```bash
+python LLM/experiment.py baseline baseline --seed 42 --config '{"feature_a":true}' --output experiments/baseline.json
+```
 
 ## Automatic AI Instruction Loading
 
-The canonical sources are:
+The main project entrypoints are:
+
+```text
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.github/copilot-instructions.md
+```
+
+The installer also provisions tool-specific adapters for Cursor, Windsurf, Cline, Continue, Junie, Amazon Q Developer, and Aider.
+
+The common LLM rules are maintained in:
 
 ```text
 LLM/AGENT.md
@@ -172,62 +211,75 @@ LLM/SKILL.md
 LLM/ENVIRONMENT.md
 ```
 
-The installer selects either the English or Korean document set and copies it to the filenames expected by the supported AI tools. Tool-specific adapters are kept small and point the agent toward the canonical project rules.
-
 ## Environment Optimization
 
-The standard is environment-agnostic. `LLM/environment.py` measures the real execution environment and calculates a conservative starting configuration instead of assuming a particular machine.
+The standard is environment-agnostic. `LLM/environment.py` measures capabilities instead of assuming a particular machine.
 
-Recommended settings are treated as starting points only. The workload-specific Memory Smoke Test is the final gate before a long training run.
+Recommended settings are starting points only. A workload-specific Memory Smoke Test is the final gate before long training.
 
 The optimization policy may use, where supported and justified:
 
-- small batch sizes with gradient accumulation
+- small batches with gradient accumulation
 - mixed precision
 - gradient checkpointing
 - quantization
 - CPU offload
 - controlled DataLoader workers/prefetching
 - streaming/chunking/memory mapping
-- explicit CPU thread limits
-- inference mode for evaluation/inference
+- CPU thread limits
+- inference mode
 
-## ML / LLM Training Principles
+VRAM, RAM, and disk headroom are preserved instead of targeting 100% utilization.
 
-- Keep VRAM and RAM headroom instead of targeting 100% utilization.
-- Apply validation-based Early Stopping to long-running training.
-- Save the best checkpoint and keep training resumable.
-- Define baseline and ablation variants in an explicit configuration matrix.
-- Keep evaluation conditions controlled across variants.
-- Record seed, model/dataset revisions, metrics, runtime, peak VRAM/RAM, and the resolved environment profile.
-- When OOM occurs, use staged memory recovery rather than repeating the same configuration indefinitely.
+## Validation and CI
+
+Run local repository validation:
+
+```bash
+python scripts/validate.py
+```
+
+GitHub Actions runs the same validation on pushes to `main` and pull requests. It checks required files, Korean template coverage, Python syntax, and machine-specific hardware assumptions in the shared documentation.
+
+## Versioning
+
+The current coding standard version is stored in `VERSION`.
+
+Runtime profiles and experiment metadata should record the coding-standard version so results remain traceable after the standard evolves.
 
 ## Repository Structure
 
 ```text
 codingStandard/
-├── README.md                    # English default
-├── README.ko.md                 # Korean guide
+├── README.md
+├── README.ko.md
+├── VERSION
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── GEMINI.md
-├── CONVENTIONS.md               # Aider conventions
-├── .aider.conf.yml              # Aider auto-read configuration
-├── .cursor/rules/               # Cursor
-├── .windsurf/rules/             # Windsurf
-├── .clinerules/                 # Cline
-├── .continue/rules/             # Continue
-├── .junie/AGENTS.md             # Junie
+├── CONVENTIONS.md
+├── .aider.conf.yml
+├── .amazonq/rules/
+├── .cursor/rules/
+├── .windsurf/rules/
+├── .clinerules/
+├── .continue/rules/
+├── .junie/
 ├── .github/
-│   ├── copilot-instructions.md
-│   └── instructions/
-├── i18n/
-│   ├── README.md
-│   └── ko/                      # Korean installer templates
+├── i18n/ko/
 ├── LLM/
-└── scripts/
-    ├── install-coding-standard.ps1
-    └── install-coding-standard.sh
+│   ├── AGENT.md
+│   ├── SKILL.md
+│   ├── ENVIRONMENT.md
+│   ├── environment.py
+│   ├── experiment.py
+│   ├── config/
+│   └── skills/
+├── scripts/
+│   ├── install-coding-standard.ps1
+│   ├── install-coding-standard.sh
+│   └── validate.py
+└── .github/workflows/validate-coding-standard.yml
 ```
 
 ## Documentation
@@ -237,4 +289,5 @@ codingStandard/
 - [Environment Optimization](LLM/ENVIRONMENT.md)
 - [LLM/Jupyter Guide](LLM/README.md)
 - [Environment Profiler](LLM/environment.py)
+- [Experiment Metadata Helper](LLM/experiment.py)
 - [Korean README](README.ko.md)
