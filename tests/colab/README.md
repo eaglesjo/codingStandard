@@ -18,20 +18,22 @@ The notebook does not require the repository URL to stay fixed. It uses this pre
 2. Interactive repository URL prompt.
 3. The original `eaglesjo/codingStandard` URL as the default value.
 
-This allows the same notebook to validate the original repository, a fork, or a relocated copy.
+The repository prompt is displayed as two lines:
 
-## Private repository authentication
+```text
+GitHub repository, owner/repository, or owner
+[https://github.com/your-github-username/codingStandard.git]:
+```
 
-The repository may be private. The notebook supports both public and private repositories.
+## Public and private repository authentication
 
-For a private repository, create a GitHub token with read access to that repository and either:
+The notebook first attempts an unauthenticated clone.
 
-1. store it in Google Colab Secrets as `GITHUB_TOKEN`, or
-2. let the notebook prompt for it securely with `getpass`.
+- **Public repository:** clone continues immediately; no token prompt is shown.
+- **Private repository:** after the unauthenticated clone is rejected, the notebook requests a **GitHub Personal Access Token** through a secure `getpass` prompt.
+- A `GITHUB_TOKEN` stored in Google Colab Secrets or the environment is used automatically when available.
 
 The token is passed to Git through a temporary `GIT_ASKPASS` helper. It is not placed in the clone URL, notebook source, printed output, or saved result JSON. Remove the token from the Colab session after testing.
-
-If the repository is public, leave the token prompt blank.
 
 ## What it checks
 
@@ -40,10 +42,11 @@ If the repository is public, leave the token prompt blank.
 3. Runs the shared LLM environment profiler.
 4. Runs a small LLM training smoke test with checkpoint save/reload.
 5. Runs a small Vision training smoke test with image tensors.
-6. Records resource information and pass/fail status as JSON.
-7. Verifies that the notebook can run from a clean runtime without relying on a local developer machine.
+6. Runs repository validation.
+7. Records resource information and pass/fail status as JSON.
+8. Verifies that the notebook can run from a clean runtime without relying on a local developer machine.
 
-If `/content/codingStandard` exists from a failed or partial clone and is not a valid Git working tree, the notebook removes the incomplete directory and retries cleanly.
+If `/content/codingStandard` exists from a failed or partial clone, the notebook removes the incomplete directory and retries cleanly.
 
 The tests are intentionally small. A passing Colab smoke test validates the development standard and minimal execution path; it does not prove that an arbitrary production model will fit in the available Colab runtime.
 
