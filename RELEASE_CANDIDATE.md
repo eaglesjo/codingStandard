@@ -14,4 +14,4 @@ This file marks the repository as ready for final pre-release validation. Do not
 
 ## Release version
 
-1.4.0
+1.4.1
