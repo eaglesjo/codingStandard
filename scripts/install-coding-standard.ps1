@@ -37,26 +37,18 @@ function Get-SourcePath([string]$RelativePath) {
 }
 
 function Get-Markers([string]$Path) {
-    if ($Path -match "\.(py|ya?ml|sh|bash)$") {
-        return @("# BEGIN CODINGSTANDARD MANAGED BLOCK", "# END CODINGSTANDARD MANAGED BLOCK")
-    }
+    if ($Path -match "\.(py|ya?ml|sh|bash)$") { return @("# BEGIN CODINGSTANDARD MANAGED BLOCK", "# END CODINGSTANDARD MANAGED BLOCK") }
     return @("<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->", "<!-- END CODINGSTANDARD MANAGED BLOCK -->")
 }
 
 function Merge-AiderConfig([string]$Existing) {
     if ($Existing -match "(?m)^read:\s*\[([^\]]*)\]\s*$") {
         if ($Existing -match "CONVENTIONS\.md") { return $Existing }
-        return [regex]::Replace($Existing, "(?m)^read:\s*\[([^\]]*)\]\s*$", {
-            param($m)
-            $items = $m.Groups[1].Value.Trim()
-            if ($items) { "read: [$items, CONVENTIONS.md]" } else { "read: [CONVENTIONS.md]" }
-        })
+        return [regex]::Replace($Existing, "(?m)^read:\s*\[([^\]]*)\]\s*$", { param($m) $items = $m.Groups[1].Value.Trim(); if ($items) { "read: [$items, CONVENTIONS.md]" } else { "read: [CONVENTIONS.md]" } })
     }
     if ($Existing -match "(?ms)^read:\s*\r?\n((?:[ \t]+-.*\r?\n)*)") {
         if ($Existing -match "CONVENTIONS\.md") { return $Existing }
-        return [regex]::Replace($Existing, "(?ms)^read:\s*\r?\n((?:[ \t]+-.*\r?\n)*)", {
-            param($m) "read:`r`n$($m.Groups[1].Value)  - CONVENTIONS.md`r`n"
-        }, 1)
+        return [regex]::Replace($Existing, "(?ms)^read:\s*\r?\n((?:[ \t]+-.*\r?\n)*)", { param($m) "read:`r`n$($m.Groups[1].Value)  - CONVENTIONS.md`r`n" }, 1)
     }
     return "$($Existing.TrimEnd())`r`n`r`n# BEGIN CODINGSTANDARD MANAGED BLOCK`r`nread:`r`n  - CONVENTIONS.md`r`n# END CODINGSTANDARD MANAGED BLOCK`r`n"
 }
@@ -65,9 +57,7 @@ function Merge-Text([string]$Existing, [string]$Incoming, [string]$DestinationPa
     if ($DestinationPath -eq ".aider.conf.yml") { return Merge-AiderConfig $Existing }
     $Markers = Get-Markers $DestinationPath
     $Pattern = "(?ms)^$([regex]::Escape($Markers[0])).*?$([regex]::Escape($Markers[1]))\s*"
-    if ($Existing -match $Pattern) {
-        return [regex]::Replace($Existing, $Pattern, "$($Markers[0])`r`n$Incoming`r`n$($Markers[1])`r`n")
-    }
+    if ($Existing -match $Pattern) { return [regex]::Replace($Existing, $Pattern, "$($Markers[0])`r`n$Incoming`r`n$($Markers[1])`r`n") }
     return "$($Existing.TrimEnd())`r`n`r`n$($Markers[0])`r`n$Incoming`r`n$($Markers[1])`r`n"
 }
 
@@ -77,8 +67,7 @@ function Resolve-Conflict([string]$DestinationRelativePath) {
     Write-Host "File already exists: $DestinationRelativePath" -ForegroundColor Yellow
     Write-Host "  M = Merge   O = Overwrite   S = Skip"
     Write-Host "  A = Merge all   W = Overwrite all   K = Skip all"
-    do { $Choice = (Read-Host "Action [M/O/S]").Trim().ToUpperInvariant() }
-    while ($Choice -notin @("M","O","S","A","W","K"))
+    do { $Choice = (Read-Host "Action [M/O/S]").Trim().ToUpperInvariant() } while ($Choice -notin @("M","O","S","A","W","K"))
     switch ($Choice) {
         "A" { $script:GlobalConflictAction = "Merge"; return "Merge" }
         "W" { $script:GlobalConflictAction = "Overwrite"; return "Overwrite" }
@@ -98,28 +87,14 @@ function Install-File([string]$SourceRelativePath, [string]$DestinationRelativeP
         else { Write-Host "[DRY-RUN] EXIST $DestinationRelativePath [$Language] (policy=$ConflictAction)" }
         return
     }
-
     New-Item -ItemType Directory -Path (Split-Path -Parent $Destination) -Force | Out-Null
     $SourceText = [System.IO.File]::ReadAllText($Source, [System.Text.UTF8Encoding]::new($false))
-    if (-not $Exists) {
-        [System.IO.File]::WriteAllText($Destination, $SourceText, [System.Text.UTF8Encoding]::new($false))
-        Write-Host "Installed $DestinationRelativePath [$Language]"
-        return
-    }
-
+    if (-not $Exists) { [System.IO.File]::WriteAllText($Destination, $SourceText, [System.Text.UTF8Encoding]::new($false)); Write-Host "Installed $DestinationRelativePath [$Language]"; return }
     $Action = Resolve-Conflict $DestinationRelativePath
     switch ($Action) {
         "Skip" { Write-Host "Skipped $DestinationRelativePath" }
-        "Overwrite" {
-            [System.IO.File]::WriteAllText($Destination, $SourceText, [System.Text.UTF8Encoding]::new($false))
-            Write-Host "Overwritten $DestinationRelativePath [$Language]"
-        }
-        "Merge" {
-            $ExistingText = [System.IO.File]::ReadAllText($Destination, [System.Text.UTF8Encoding]::new($false))
-            $MergedText = Merge-Text $ExistingText $SourceText $DestinationRelativePath
-            [System.IO.File]::WriteAllText($Destination, $MergedText, [System.Text.UTF8Encoding]::new($false))
-            Write-Host "Merged $DestinationRelativePath [$Language]"
-        }
+        "Overwrite" { [System.IO.File]::WriteAllText($Destination, $SourceText, [System.Text.UTF8Encoding]::new($false)); Write-Host "Overwritten $DestinationRelativePath [$Language]" }
+        "Merge" { $ExistingText = [System.IO.File]::ReadAllText($Destination, [System.Text.UTF8Encoding]::new($false)); $MergedText = Merge-Text $ExistingText $SourceText $DestinationRelativePath; [System.IO.File]::WriteAllText($Destination, $MergedText, [System.Text.UTF8Encoding]::new($false)); Write-Host "Merged $DestinationRelativePath [$Language]" }
     }
 }
 
@@ -141,18 +116,13 @@ $InstallMap = @(
     @{Source="LLM/SKILL.md"; Destination="LLM/SKILL.md"},
     @{Source="LLM/ENVIRONMENT.md"; Destination="LLM/ENVIRONMENT.md"},
     @{Source="LLM/environment.py"; Destination="LLM/environment.py"},
+    @{Source="LLM/experiment.py"; Destination="LLM/experiment.py"},
     @{Source="LLM/README.md"; Destination="LLM/README.md"},
     @{Source="LLM/config/training.yaml"; Destination="LLM/config/training.yaml"},
     @{Source="LLM/config/ablation.yaml"; Destination="LLM/config/ablation.yaml"}
 )
 
-$SkillFiles = @(
-    "environment","training","ablation","notebook","debugging","release"
-)
-foreach ($Skill in $SkillFiles) {
-    $InstallMap += @{Source="LLM/skills/$Skill/SKILL.md"; Destination="LLM/skills/$Skill/SKILL.md"}
-}
-
+foreach ($Skill in @("environment","training","ablation","notebook","debugging","release")) { $InstallMap += @{Source="LLM/skills/$Skill/SKILL.md"; Destination="LLM/skills/$Skill/SKILL.md"} }
 foreach ($Item in $InstallMap) { Install-File $Item.Source $Item.Destination }
 
 Write-Host ""
