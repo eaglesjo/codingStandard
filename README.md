@@ -25,6 +25,8 @@ codingStandard/
 ├── LLM/
 │   ├── AGENT.md                      # Canonical 전체 개발 규칙
 │   ├── SKILL.md                      # Canonical LLM/Jupyter 작업 절차
+│   ├── ENVIRONMENT.md                # 환경 측정/최적화 규칙
+│   ├── environment.py                # 실행환경 프로파일러
 │   └── README.md                     # LLM 표준 사용 가이드
 └── scripts/
     ├── install-coding-standard.ps1   # Windows 설치
@@ -33,12 +35,12 @@ codingStandard/
 
 ## AI 자동 로딩 구조
 
-공통 규칙은 `LLM/AGENT.md`와 `LLM/SKILL.md`에 두고, AI 제품별 자동 탐색 파일은 얇은 adapter로 유지합니다.
+공통 규칙은 `LLM/AGENT.md`, `LLM/SKILL.md`, `LLM/ENVIRONMENT.md`에 두고, AI 제품별 자동 탐색 파일은 얇은 adapter로 유지합니다.
 
 ```text
                 LLM/AGENT.md
-                     │
                 LLM/SKILL.md
+             LLM/ENVIRONMENT.md
                      │
         ┌────────────┼────────────┐
         ↓            ↓            ↓
@@ -50,21 +52,12 @@ codingStandard/
        instructions.md    llm.instructions.md
 ```
 
-GitHub Copilot은 저장소 전체 지침으로 `.github/copilot-instructions.md`를 지원하고, VS Code/Copilot 및 Copilot CLI에서는 `AGENTS.md`를 Agent instruction으로 사용할 수 있습니다. Gemini CLI는 `GEMINI.md`, Claude Code는 프로젝트 루트의 `CLAUDE.md`를 자동으로 읽습니다.
-
 ## 다른 프로젝트에 적용하기
 
 ### Windows / PowerShell
 
-먼저 standard repository를 clone합니다.
-
 ```powershell
 git clone https://github.com/eaglesjo/codingStandard.git
-```
-
-프로젝트 루트에서 다음을 실행합니다.
-
-```powershell
 powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target .
 ```
 
@@ -75,20 +68,7 @@ git clone https://github.com/eaglesjo/codingStandard.git
 bash ./codingStandard/scripts/install-coding-standard.sh .
 ```
 
-설치 스크립트는 다음을 프로젝트 루트에 배치합니다.
-
-```text
-AGENTS.md
-CLAUDE.md
-GEMINI.md
-.github/copilot-instructions.md
-.github/instructions/llm.instructions.md
-LLM/AGENT.md
-LLM/SKILL.md
-LLM/README.md
-```
-
-기존 파일은 교체될 수 있으므로, 프로젝트별로 이미 수정한 파일이 있다면 먼저 백업하거나 diff를 확인합니다.
+설치 스크립트는 AI 자동 진입점, `LLM/` 표준 문서 및 환경 프로파일러를 프로젝트에 배치합니다.
 
 ## 개발 시작 시 AI가 수행해야 하는 순서
 
@@ -101,22 +81,55 @@ OS / IDE / Python / Runtime 확인
         ↓
 CPU / GPU / VRAM / RAM 확인
         ↓
-Environment Profile 확정
+LLM/environment.py 실행
+        ↓
+Environment Profile / Runtime Configuration 생성
+        ↓
+Memory Smoke Test
+        ↓
+Environment Lock
         ↓
 불필요한 OS / device 분기 제거
         ↓
-Dependency / UTF-8 / Path 확인
-        ↓
-Memory budget 적용
+실행환경에 맞게 batch / sequence / workers / precision 최적화
         ↓
 구현 / 테스트
 ```
 
 환경이 실제로 하나로 확정된 프로젝트에서는 해당 환경에 필요하지 않은 대체 실행 경로를 제거합니다. 여러 플랫폼을 공식 지원하는 reusable library는 필요한 분기를 유지합니다.
 
+## Environment Profiler
+
+프로파일러는 현재 Python/IDE/Jupyter/Colab, CPU, RAM, GPU, VRAM, CUDA/MPS를 측정하고 보수적인 runtime configuration을 계산합니다.
+
+```bash
+python LLM/environment.py
+```
+
+profile을 저장:
+
+```bash
+python LLM/environment.py .codingstandard/environment-profile.json
+```
+
+주요 resolved 설정:
+
+```text
+device
+batch_size
+gradient_accumulation_steps
+num_workers
+pin_memory
+FP16 / BF16
+gradient_checkpointing
+max_seq_length
+```
+
+권장값은 시작점이며 실제 Memory Smoke Test 결과를 기준으로 최종 확정합니다.
+
 ## LLM/ML 학습 기본 원칙
 
-기본 로컬 프로파일은 다음을 기준으로 합니다.
+기본 로컬 프로파일:
 
 ```text
 Windows
@@ -127,24 +140,18 @@ System RAM / 16 GB
 
 학습 코드는 다음을 기본 적용합니다.
 
-- VRAM/RAM 사전 측정
+- VRAM/RAM/CPU 사전 측정
 - 보수적인 batch size
 - gradient accumulation
 - FP16 AMP
 - 필요 시 gradient checkpointing / quantization / CPU offload
 - Windows DataLoader worker 절제
+- Memory Smoke Test
 - Validation metric
 - Early Stopping
 - Best checkpoint / Resume
 - Ablation Study configuration
-- Seed / model revision / dataset revision / metric / resource usage 기록
+- Seed / model revision / dataset revision / metric / resource usage / environment profile 기록
 - OOM 단계별 recovery
 
-상세 규칙은 `LLM/AGENT.md`, 실행 절차는 `LLM/SKILL.md`를 확인합니다.
-
-## 관련 문서
-
-- `AGENTS.md` — AI coding agent 공통 진입점
-- `LLM/AGENT.md` — 전체 개발 규칙
-- `LLM/SKILL.md` — 실제 작업 절차 및 실행 패턴
-- `LLM/README.md` — LLM 표준 상세 사용 가이드
+상세 규칙은 `LLM/AGENT.md`, 실행 절차는 `LLM/SKILL.md`, 환경 최적화는 `LLM/ENVIRONMENT.md`를 사용합니다.
