@@ -8,23 +8,51 @@ It standardizes environment detection, hardware/resource profiling, runtime conf
 
 ## Installation
 
-Clone the repository, then run the installer from the root of the project where you want to apply the standard.
+Clone the repository, then run the installer from the project root where you want to apply the standard.
 
 ### Windows / PowerShell
+
+Interactive language selection:
 
 ```powershell
 git clone https://github.com/eaglesjo/codingStandard.git
 powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target .
 ```
 
+Install English explicitly:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target . -Language en
+```
+
+Install Korean explicitly:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target . -Language ko
+```
+
 ### Linux / macOS
+
+Interactive language selection:
 
 ```bash
 git clone https://github.com/eaglesjo/codingStandard.git
 bash ./codingStandard/scripts/install-coding-standard.sh .
 ```
 
-The installer copies the AI entrypoints and standard documents into the target project:
+Install English explicitly:
+
+```bash
+bash ./codingStandard/scripts/install-coding-standard.sh . en
+```
+
+Install Korean explicitly:
+
+```bash
+bash ./codingStandard/scripts/install-coding-standard.sh . ko
+```
+
+The installer places the selected language into the standard project filenames:
 
 ```text
 AGENTS.md
@@ -39,7 +67,7 @@ LLM/environment.py
 LLM/README.md
 ```
 
-If any of these files already exist in the target project, review local changes before running the installer because the installer may overwrite them.
+If any of these files already exist in the target project, review local changes first because the installer may overwrite them.
 
 ## Usage
 
@@ -57,24 +85,9 @@ python LLM/environment.py .codingstandard/environment-profile.json
 
 The profiler detects the current Python/runtime environment, OS, CPU, RAM, GPU, VRAM, CUDA/MPS, and IDE/Jupyter/Colab state, then resolves a conservative runtime configuration.
 
-Key resolved settings include:
-
-```text
-device
-batch_size
-gradient_accumulation_steps
-num_workers
-pin_memory
-fp16 / bf16
-gradient_checkpointing
-max_seq_length
-```
-
 No specific GPU, RAM size, OS, or IDE is treated as a mandatory machine-specific prerequisite. Runtime decisions are based on measured resources and workload requirements.
 
 ## AI Development Workflow
-
-AI coding agents are expected to follow this workflow:
 
 ```text
 Load AI instructions
@@ -116,42 +129,13 @@ LLM/SKILL.md
 LLM/ENVIRONMENT.md
 ```
 
-AI-specific project entrypoints act as thin adapters that point agents to those sources:
-
-```text
-                 LLM/AGENT.md
-                 LLM/SKILL.md
-              LLM/ENVIRONMENT.md
-                      │
-         ┌────────────┼────────────┐
-         ↓            ↓            ↓
-     AGENTS.md     CLAUDE.md    GEMINI.md
-         │             │            │
-         └───────┬─────┴─────┬──────┘
-                 ↓           ↓
-      .github/copilot-   .github/instructions/
-        instructions.md    llm.instructions.md
-```
-
-When an AI coding tool starts in a project containing these entrypoints, it can discover the project-specific instructions without requiring the developer to repeatedly paste the standard manually.
+The installer selects either the English or Korean document set and copies it to the filenames expected by the supported AI tools.
 
 ## Environment Optimization
 
 The standard is environment-agnostic. `LLM/environment.py` measures the real execution environment and calculates a conservative starting configuration instead of assuming a particular machine.
 
 Recommended settings are treated as starting points only. The workload-specific Memory Smoke Test is the final gate before a long training run.
-
-The optimization policy may use, where supported and justified:
-
-- small batch sizes with gradient accumulation
-- mixed precision
-- gradient checkpointing
-- quantization
-- CPU offload
-- controlled DataLoader workers/prefetching
-- streaming/chunking/memory mapping
-- explicit CPU thread limits
-- inference mode for evaluation/inference
 
 ## ML / LLM Training Principles
 
@@ -167,6 +151,8 @@ The optimization policy may use, where supported and justified:
 
 ```text
 codingStandard/
+├── README.md                    # English default
+├── README.ko.md                 # Korean guide
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── GEMINI.md
@@ -174,6 +160,14 @@ codingStandard/
 │   ├── copilot-instructions.md
 │   └── instructions/
 │       └── llm.instructions.md
+├── i18n/
+│   ├── README.md
+│   └── ko/
+│       ├── AGENTS.md
+│       ├── CLAUDE.md
+│       ├── GEMINI.md
+│       ├── .github/
+│       └── LLM/
 ├── LLM/
 │   ├── AGENT.md
 │   ├── SKILL.md
