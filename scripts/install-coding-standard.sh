@@ -4,6 +4,7 @@ set -euo pipefail
 TARGET="${1:-.}"
 LANGUAGE="${2:-}"
 CONFLICT_ACTION="${3:-ask}"
+CONFLICT_CHOICE=""
 SOURCE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET_ROOT="$(cd "$TARGET" && pwd)"
 
@@ -46,24 +47,24 @@ get_source() {
 
 conflict_choice() {
   local destination="$1"
+  CONFLICT_CHOICE="$CONFLICT_ACTION"
   if [[ "$CONFLICT_ACTION" != "ask" ]]; then
-    printf '%s\n' "$CONFLICT_ACTION"
     return
   fi
 
-  printf '\nFile already exists: %s\n' "$destination"
-  printf '  m = merge\n  o = overwrite\n  s = skip\n  a = merge all remaining\n  w = overwrite all remaining\n  k = skip all remaining\n'
+  printf '\nFile already exists: %s\n' "$destination" >&2
+  printf '  m = merge\n  o = overwrite\n  s = skip\n  a = merge all remaining\n  w = overwrite all remaining\n  k = skip all remaining\n' >&2
   while true; do
     read -r -p 'Action [m/o/s]: ' choice
     choice="${choice:-m}"
     case "${choice,,}" in
-      m) printf 'merge\n'; return ;;
-      o) printf 'overwrite\n'; return ;;
-      s) printf 'skip\n'; return ;;
-      a) CONFLICT_ACTION="merge"; printf 'merge\n'; return ;;
-      w) CONFLICT_ACTION="overwrite"; printf 'overwrite\n'; return ;;
-      k) CONFLICT_ACTION="skip"; printf 'skip\n'; return ;;
-      *) printf 'Use m, o, s, a, w, or k.\n' ;;
+      m) CONFLICT_CHOICE="merge"; return ;;
+      o) CONFLICT_CHOICE="overwrite"; return ;;
+      s) CONFLICT_CHOICE="skip"; return ;;
+      a) CONFLICT_ACTION="merge"; CONFLICT_CHOICE="merge"; return ;;
+      w) CONFLICT_ACTION="overwrite"; CONFLICT_CHOICE="overwrite"; return ;;
+      k) CONFLICT_ACTION="skip"; CONFLICT_CHOICE="skip"; return ;;
+      *) printf 'Use m, o, s, a, w, or k.\n' >&2 ;;
     esac
   done
 }
@@ -75,7 +76,14 @@ merge_aider_config() {
       printf '%s\n' "$existing"
       return
     fi
-    perl -0pe 's/^read:\s*\[([^\]]*)\]\s*$/"read: [" . (length($1) ? $1 . ", CONVENTIONS.md" : "CONVENTIONS.md") . "]"/me' <<< "$existing"
+    awk '
+      /^read:[[:space:]]*\[/ {
+        sub(/\][[:space:]]*$/, ", CONVENTIONS.md]")
+        print
+        next
+      }
+      { print }
+    ' <<< "$existing"
     return
   fi
 
@@ -142,7 +150,8 @@ install_file() {
     return
   fi
 
-  action="$(conflict_choice "$destination_relative")"
+  conflict_choice "$destination_relative"
+  action="$CONFLICT_CHOICE"
   case "$action" in
     skip)
       printf 'Skipped %s\n' "$destination_relative"
