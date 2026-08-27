@@ -12,6 +12,7 @@ REQUIRED_LOCALIZED = {
     "AGENTS.md", "CLAUDE.md", "GEMINI.md",
     ".github/copilot-instructions.md",
     ".github/instructions/llm.instructions.md",
+    ".github/instructions/vision.instructions.md",
     ".cursor/rules/coding-standard.mdc",
     ".windsurf/rules/coding-standard.md",
     ".clinerules/01-coding-standard.md",
@@ -24,8 +25,6 @@ REQUIRED_LOCALIZED = {
     "VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md", "VISION/README.md",
     "VISION/config/training.yaml", "VISION/config/ablation.yaml",
 }
-
-REQUIRED_ENGLISH_SOURCE = {Path(path) for path in REQUIRED_LOCALIZED}
 CORE_CONCEPTS = ("environment", "memory", "early stopping", "checkpoint", "ablation")
 
 
@@ -34,8 +33,8 @@ def main() -> int:
         print("ERROR: i18n/ko is required", file=sys.stderr)
         return 1
 
-    missing_en = [str(path) for path in sorted(REQUIRED_ENGLISH_SOURCE) if not (ROOT / path).is_file()]
-    missing_ko = [str(path) for path in sorted(REQUIRED_LOCALIZED) if not (KO / path).is_file()]
+    missing_en = [p for p in sorted(REQUIRED_LOCALIZED) if not (ROOT / p).is_file()]
+    missing_ko = [p for p in sorted(REQUIRED_LOCALIZED) if not (KO / p).is_file()]
     if missing_en or missing_ko:
         if missing_en:
             print("Missing English source files:", *missing_en, sep="\n  ")
@@ -44,11 +43,11 @@ def main() -> int:
         return 1
 
     errors = 0
-    for rel in sorted(REQUIRED_ENGLISH_SOURCE):
-        en = (ROOT / rel).read_text(encoding="utf-8").lower()
-        ko = (KO / rel).read_text(encoding="utf-8").lower()
+    for rel in sorted(REQUIRED_LOCALIZED):
+        en_text = (ROOT / rel).read_text(encoding="utf-8").lower()
+        ko_text = (KO / rel).read_text(encoding="utf-8").lower()
         for concept in CORE_CONCEPTS:
-            if concept not in en or concept not in ko:
+            if concept not in en_text or concept not in ko_text:
                 print(f"Missing core concept '{concept}' in {rel}")
                 errors += 1
 
