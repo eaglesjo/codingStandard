@@ -20,7 +20,10 @@ install_file "$SOURCE_ROOT/.github/copilot-instructions.md" "$TARGET_ROOT/.githu
 install_file "$SOURCE_ROOT/.github/instructions/llm.instructions.md" "$TARGET_ROOT/.github/instructions/llm.instructions.md"
 install_file "$SOURCE_ROOT/LLM/AGENT.md" "$TARGET_ROOT/LLM/AGENT.md"
 install_file "$SOURCE_ROOT/LLM/SKILL.md" "$TARGET_ROOT/LLM/SKILL.md"
+install_file "$SOURCE_ROOT/LLM/ENVIRONMENT.md" "$TARGET_ROOT/LLM/ENVIRONMENT.md"
+install_file "$SOURCE_ROOT/LLM/environment.py" "$TARGET_ROOT/LLM/environment.py"
 install_file "$SOURCE_ROOT/LLM/README.md" "$TARGET_ROOT/LLM/README.md"
 
 printf '\nAI coding instructions installed into: %s\n' "$TARGET_ROOT"
+printf 'Environment profiler: python LLM/environment.py\n'
 printf 'Supported entrypoints: AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md\n'
