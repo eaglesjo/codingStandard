@@ -20,7 +20,7 @@ training:
 
 resources:
   batch_size: auto
-gradient_accumulation_steps: auto
+  gradient_accumulation_steps: auto
   max_seq_length: auto
   num_workers: auto
   mixed_precision: auto
