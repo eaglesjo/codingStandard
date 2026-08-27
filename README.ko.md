@@ -1,10 +1,10 @@
 # codingStandard
 
+> **언어:** [English README](README.md) · 한국어 (현재 문서)
+
 AI coding agent가 프로젝트를 일관된 규칙으로 개발하도록 돕는 공통 Coding Standard 저장소입니다.
 
-> English: [README.md](README.md)
-
-Python / LLM / ML / Jupyter / Google Colab 개발을 중심으로 환경 확인, 자원 프로파일링, 실행 설정 결정, 메모리 검증, 학습 재현성을 표준화합니다.
+Python / LLM / ML / Jupyter / Google Colab 개발을 중심으로 환경 확인, 자원 프로파일링, 실행 설정 결정, 메모리 안전 실행, 학습 재현성을 표준화합니다.
 
 ## 설치
 
@@ -12,23 +12,51 @@ Python / LLM / ML / Jupyter / Google Colab 개발을 중심으로 환경 확인,
 
 ### Windows / PowerShell
 
+언어를 설치 중에 선택하려면:
+
 ```powershell
 git clone https://github.com/eaglesjo/codingStandard.git
 powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target .
 ```
 
+영문으로 명시적 설치:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target . -Language en
+```
+
+한글로 명시적 설치:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-coding-standard.ps1 -Target . -Language ko
+```
+
 ### Linux / macOS
+
+언어를 설치 중에 선택하려면:
 
 ```bash
 git clone https://github.com/eaglesjo/codingStandard.git
 bash ./codingStandard/scripts/install-coding-standard.sh .
 ```
 
-설치 스크립트는 대상 프로젝트에 AI 자동 진입점과 LLM 표준 문서를 복사합니다.
+영문:
+
+```bash
+bash ./codingStandard/scripts/install-coding-standard.sh . en
+```
+
+한글:
+
+```bash
+bash ./codingStandard/scripts/install-coding-standard.sh . ko
+```
+
+선택한 언어의 문서는 대상 프로젝트에서 AI 도구가 자동 탐색하는 표준 파일 이름으로 설치됩니다.
 
 ## 사용법
 
-설치 후 대상 프로젝트 루트에서 환경 프로파일러를 실행합니다.
+설치 후 대상 프로젝트 루트에서 실행환경 프로파일러를 실행합니다.
 
 ```bash
 python LLM/environment.py
@@ -40,9 +68,9 @@ python LLM/environment.py
 python LLM/environment.py .codingstandard/environment-profile.json
 ```
 
-프로파일러는 현재 Python/IDE/Jupyter/Colab, OS, CPU, RAM, GPU, VRAM, CUDA/MPS 상태를 측정하고 보수적인 runtime configuration을 계산합니다.
+프로파일러는 현재 Python/runtime, OS, CPU, RAM, GPU, VRAM, CUDA/MPS, IDE/Jupyter/Colab 상태를 실제로 측정하고 workload에 맞는 보수적인 runtime configuration을 계산합니다.
 
-특정 GPU, RAM, OS, IDE를 실행 전제조건으로 고정하지 않습니다. 실제 측정값과 workload를 기준으로 최종 설정을 확정합니다.
+특정 GPU, RAM, OS, IDE를 필수 전제조건으로 고정하지 않습니다. 실제 측정값과 workload를 기준으로 최종 설정을 결정합니다.
 
 ## AI 작업 흐름
 
@@ -57,7 +85,7 @@ CPU / RAM / GPU / VRAM / accelerator 측정
         ↓
 Environment Profile 생성
         ↓
-Runtime Configuration Resolve
+Runtime Configuration 결정
         ↓
 Memory Smoke Test
         ↓
@@ -69,24 +97,29 @@ Environment Lock
         ↓
 Evaluation / Early Stopping / Checkpoint
         ↓
-Ablation / Reproducibility / Resource 기록
+Ablation / 재현성 / 자원 사용량 기록
         ↓
 최종 Clean Run
 ```
-
-환경을 먼저 측정하고 실행 설정을 결정한 뒤 최소 workload로 검증하고 구현/실행을 진행하는 구조입니다.
 
 ## 저장소 구조
 
 ```text
 codingStandard/
+├── README.md                    # English default
+├── README.ko.md                 # 한국어 안내
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── GEMINI.md
 ├── .github/
-│   ├── copilot-instructions.md
-│   └── instructions/
-│       └── llm.instructions.md
+├── i18n/
+│   ├── README.md
+│   └── ko/
+│       ├── AGENTS.md
+│       ├── CLAUDE.md
+│       ├── GEMINI.md
+│       ├── .github/
+│       └── LLM/
 ├── LLM/
 │   ├── AGENT.md
 │   ├── SKILL.md
@@ -98,17 +131,11 @@ codingStandard/
     └── install-coding-standard.sh
 ```
 
-## 자동 로딩 구조
+## 자동 AI 지침 로딩
 
-공통 규칙의 canonical source는 다음 세 파일입니다.
+공통 규칙은 `LLM/AGENT.md`, `LLM/SKILL.md`, `LLM/ENVIRONMENT.md`를 기준으로 합니다.
 
-```text
-LLM/AGENT.md
-LLM/SKILL.md
-LLM/ENVIRONMENT.md
-```
-
-제품별 자동 진입점은 이를 프로젝트에 연결하는 얇은 adapter 역할을 합니다.
+설치 스크립트는 `en` 또는 `ko`를 선택하면 동일한 표준 파일 이름에 해당 언어의 문서를 배치합니다. 따라서 사용 중인 AI 도구는 별도의 수동 복사 없이 프로젝트의 표준 진입점을 읽을 수 있습니다.
 
 ## Environment Profiler
 
@@ -124,7 +151,7 @@ python LLM/environment.py
 python LLM/environment.py .codingstandard/environment-profile.json
 ```
 
-환경 프로파일에는 실제 실행 환경과 resolved runtime configuration이 함께 기록됩니다. 권장값은 시작점이며 모델/데이터별 Memory Smoke Test 결과를 기준으로 최종 확정합니다.
+환경 프로파일에는 실제 실행 환경과 resolved runtime configuration이 함께 기록됩니다. 권장값은 시작점이며 실제 Memory Smoke Test 결과를 기준으로 최종 확정합니다.
 
 ## ML / LLM 학습 원칙
 
@@ -140,12 +167,9 @@ python LLM/environment.py .codingstandard/environment-profile.json
 
 ## 문서
 
-전체 개발 규칙: `LLM/AGENT.md`
-
-실행 절차: `LLM/SKILL.md`
-
-환경 최적화: `LLM/ENVIRONMENT.md`
-
-LLM/Jupyter 사용 가이드: `LLM/README.md`
-
-환경 프로파일러: `LLM/environment.py`
+- 전체 개발 규칙: `LLM/AGENT.md`
+- 실행 절차: `LLM/SKILL.md`
+- 환경 최적화: `LLM/ENVIRONMENT.md`
+- LLM/Jupyter 사용 가이드: `LLM/README.md`
+- 환경 프로파일러: `LLM/environment.py`
+- [영문 README](README.md)
