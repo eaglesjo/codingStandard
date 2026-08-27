@@ -21,8 +21,11 @@ REQUIRED_LOCALIZED = {
     ".amazonq/rules/coding-standard.md",
     "CONVENTIONS.md", ".aider.conf.yml",
     "COMMON/AGENT.md", "COMMON/SKILL.md", "COMMON/ENVIRONMENT.md",
+    "COMMON/environment.py", "COMMON/experiment.py",
     "LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md", "LLM/README.md",
+    "LLM/environment.py", "LLM/experiment.py", "LLM/memory_smoke_test.py",
     "VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md", "VISION/README.md",
+    "VISION/memory_smoke_test.py",
     "VISION/config/training.yaml", "VISION/config/ablation.yaml",
     "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md", "MANUS/README.md",
 }
@@ -97,9 +100,6 @@ def main() -> int:
         en_text = (ROOT / rel).read_text(encoding="utf-8").lower()
         ko_text = (KO / rel).read_text(encoding="utf-8").lower()
         for concept, alternatives in CONCEPT_ALTERNATIVES.items():
-            # The English document defines the concepts that its Korean
-            # counterpart must preserve. This avoids false failures caused by
-            # demanding unrelated concepts in every adapter document.
             if contains_any(en_text, alternatives["en"]) and not contains_any(ko_text, alternatives["ko"]):
                 print(f"Missing localized core concept '{concept}' in {rel}")
                 errors += 1
