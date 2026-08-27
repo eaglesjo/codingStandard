@@ -27,6 +27,7 @@ codingStandard/
 │   ├── SKILL.md                      # Canonical LLM/Jupyter 작업 절차
 │   ├── ENVIRONMENT.md                # 환경 측정/최적화 규칙
 │   ├── environment.py                # 실행환경 프로파일러
+│   ├── LOCAL_HARDWARE_PROFILE_BACKUP.md # 이전 로컬 하드웨어 백업
 │   └── README.md                     # LLM 표준 사용 가이드
 └── scripts/
     ├── install-coding-standard.ps1   # Windows 설치
@@ -36,6 +37,8 @@ codingStandard/
 ## AI 자동 로딩 구조
 
 공통 규칙은 `LLM/AGENT.md`, `LLM/SKILL.md`, `LLM/ENVIRONMENT.md`에 두고, AI 제품별 자동 탐색 파일은 얇은 adapter로 유지합니다.
+
+중요: 특정 PC의 GPU, RAM, OS를 현재 실행환경의 전제조건으로 사용하지 않습니다. 실제 환경은 `LLM/environment.py`가 측정한 결과를 source of truth로 사용합니다.
 
 ```text
                 LLM/AGENT.md
@@ -129,23 +132,16 @@ max_seq_length
 
 ## LLM/ML 학습 기본 원칙
 
-기본 로컬 프로파일:
-
-```text
-Windows
-VS Code
-NVIDIA RTX 3050 Ti Laptop GPU / 4 GB VRAM
-System RAM / 16 GB
-```
+특정 GPU/RAM을 고정하지 않고 실제 측정된 자원을 기준으로 보수적인 runtime profile을 구성합니다.
 
 학습 코드는 다음을 기본 적용합니다.
 
 - VRAM/RAM/CPU 사전 측정
 - 보수적인 batch size
 - gradient accumulation
-- FP16 AMP
+- 지원되는 CUDA에서 FP16 AMP 검토
 - 필요 시 gradient checkpointing / quantization / CPU offload
-- Windows DataLoader worker 절제
+- DataLoader worker 절제
 - Memory Smoke Test
 - Validation metric
 - Early Stopping
@@ -153,5 +149,7 @@ System RAM / 16 GB
 - Ablation Study configuration
 - Seed / model revision / dataset revision / metric / resource usage / environment profile 기록
 - OOM 단계별 recovery
+
+이전에 사용하던 특정 로컬 장비 프로파일은 `LLM/LOCAL_HARDWARE_PROFILE_BACKUP.md`에 보존되어 있으며 현재 환경 판정에는 사용하지 않습니다.
 
 상세 규칙은 `LLM/AGENT.md`, 실행 절차는 `LLM/SKILL.md`, 환경 최적화는 `LLM/ENVIRONMENT.md`를 사용합니다.
