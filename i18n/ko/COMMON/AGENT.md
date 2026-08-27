@@ -11,7 +11,7 @@
 7. 작은 의미있는 테스트 후 전체 검증을 수행합니다.
 8. 환경이 확정되면 의도된 다중 플랫폼 지원이 아닌 불필요한 branch/dead code를 제거합니다.
 9. 장시간 작업은 validation, Early Stopping, best checkpoint, Resume을 기본 적용합니다.
-10. 실험은 baseline, variant, seed, metric, 자원 사용량을 기록합니다.
+10. 실험은 baseline, variant, seed, metric, 자원 사용량과 메모리 사용량을 기록합니다.
 
 ## 표준 흐름
 
