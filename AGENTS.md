@@ -12,8 +12,6 @@
 
 `LLM/environment.py`는 현재 실행 환경을 측정하고 resolved runtime configuration을 계산하는 공통 프로파일러이다.
 
-`LLM/LOCAL_HARDWARE_PROFILE_BACKUP.md`는 이전에 사용하던 특정 로컬 하드웨어 프로파일의 백업이며 현재 환경 판정에는 사용하지 않는다.
-
 작업을 시작할 때 다음 순서로 읽고 적용한다.
 
 1. 이 `AGENTS.md`
