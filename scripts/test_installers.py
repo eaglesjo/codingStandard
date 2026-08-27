@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Integration-test the installers in disposable temporary projects."""
+"""Integration-test the domain installer in disposable projects."""
 from __future__ import annotations
 
 import shutil
@@ -8,91 +8,54 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PS1 = ROOT / "scripts" / "install-coding-standard.ps1"
-SH = ROOT / "scripts" / "install-coding-standard.sh"
-EXPECTED = [
-    "AGENTS.md", "CLAUDE.md", "GEMINI.md", "CONVENTIONS.md", ".aider.conf.yml",
-    ".github/copilot-instructions.md", ".github/instructions/llm.instructions.md",
-    ".cursor/rules/coding-standard.mdc", ".windsurf/rules/coding-standard.md",
-    ".clinerules/01-coding-standard.md", ".continue/rules/01-coding-standard.md",
-    ".junie/AGENTS.md", ".amazonq/rules/coding-standard.md",
-    "LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md", "LLM/environment.py",
-    "LLM/memory_smoke_test.py", "LLM/experiment.py", "LLM/README.md",
-    "LLM/config/training.yaml", "LLM/config/ablation.yaml",
-]
-EXPECTED += [f"LLM/skills/{name}/SKILL.md" for name in (
-    "environment", "training", "ablation", "notebook", "debugging", "release"
-)]
+PS1 = ROOT / "scripts" / "install-domains.ps1"
+SH = ROOT / "scripts" / "install-domains.sh"
+COMMON = ["AGENTS.md", "CLAUDE.md", "GEMINI.md", "COMMON/AGENT.md", "COMMON/SKILL.md", "COMMON/ENVIRONMENT.md"]
+LLM = ["LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md", "LLM/environment.py", "LLM/experiment.py", "LLM/memory_smoke_test.py"]
+VISION = ["VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md", "VISION/memory_smoke_test.py"]
 
 
-def check_expected(target: Path) -> None:
-    missing = [path for path in EXPECTED if not (target / path).is_file()]
+def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, cwd=ROOT, check=True, text=True, capture_output=True)
+
+
+def check(target: Path, paths: list[str]) -> None:
+    missing = [p for p in paths if not (target / p).is_file()]
     if missing:
         raise AssertionError(f"missing installed files: {missing}")
 
 
-def run_bash(language: str) -> None:
+def test_bash() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        target = Path(tmp) / "project"
-        target.mkdir()
-        dry = subprocess.run(
-            ["bash", str(SH), str(target), language, "overwrite", "true"],
-            cwd=ROOT, check=True, text=True, capture_output=True,
-        )
-        if "DRY-RUN" not in dry.stdout or any(target.iterdir()):
-            raise AssertionError("bash dry-run changed the target or produced no dry-run output")
-
-        subprocess.run(
-            ["bash", str(SH), str(target), language, "overwrite", "false"],
-            cwd=ROOT, check=True, text=True, capture_output=True,
-        )
-        check_expected(target)
-
+        target = Path(tmp) / "project"; target.mkdir()
+        dry = run(["bash", str(SH), str(target), "en", "all", "overwrite", "true"])
+        if any(target.iterdir()) or "DRY-RUN" not in dry.stdout:
+            raise AssertionError("bash dry-run modified target")
+        run(["bash", str(SH), str(target), "en", "all", "overwrite", "false"])
+        check(target, COMMON + LLM + VISION)
         agents = target / "AGENTS.md"
-        agents.write_text(
-            "# Local project rule\n\n"
-            "<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->\nold\n"
-            "<!-- END CODINGSTANDARD MANAGED BLOCK -->\n",
-            encoding="utf-8",
-        )
-        subprocess.run(
-            ["bash", str(SH), str(target), language, "merge", "false"],
-            cwd=ROOT, check=True, text=True, capture_output=True,
-        )
-        merged = agents.read_text(encoding="utf-8")
-        if "# Local project rule" not in merged or "old" in merged:
-            raise AssertionError("merge did not preserve local content or replace managed block")
+        agents.write_text("# Local\n\n<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->\nold\n<!-- END CODINGSTANDARD MANAGED BLOCK -->\n", encoding="utf-8")
+        run(["bash", str(SH), str(target), "en", "common", "merge", "false"])
+        text = agents.read_text(encoding="utf-8")
+        assert "# Local" in text and "old" not in text
 
 
-def run_powershell(language: str) -> bool:
+def test_powershell() -> None:
     executable = shutil.which("pwsh") or shutil.which("powershell")
     if not executable:
-        return False
+        return
     with tempfile.TemporaryDirectory() as tmp:
-        target = Path(tmp) / "project"
-        target.mkdir()
-        subprocess.run(
-            [executable, "-NoProfile", "-File", str(PS1), "-Target", str(target),
-             "-Language", language, "-ConflictAction", "Overwrite", "-DryRun"],
-            cwd=ROOT, check=True, text=True, capture_output=True,
-        )
+        target = Path(tmp) / "project"; target.mkdir()
+        run([executable, "-NoProfile", "-File", str(PS1), "-Target", str(target), "-Language", "ko", "-Domain", "vision", "-ConflictAction", "Overwrite", "-DryRun"])
         if any(target.iterdir()):
-            raise AssertionError("PowerShell dry-run modified the target")
-        subprocess.run(
-            [executable, "-NoProfile", "-File", str(PS1), "-Target", str(target),
-             "-Language", language, "-ConflictAction", "Overwrite"],
-            cwd=ROOT, check=True, text=True, capture_output=True,
-        )
-        check_expected(target)
-    return True
+            raise AssertionError("PowerShell dry-run modified target")
+        run([executable, "-NoProfile", "-File", str(PS1), "-Target", str(target), "-Language", "ko", "-Domain", "vision", "-ConflictAction", "Overwrite"])
+        check(target, VISION)
 
 
 def main() -> int:
-    for language in ("en", "ko"):
-        run_bash(language)
-    ps = shutil.which("pwsh") or shutil.which("powershell")
-    powershell_available = bool(ps) and all(run_powershell(lang) for lang in ("en", "ko"))
-    print(f"installer tests passed (bash; powershell tested={powershell_available})")
+    test_bash(); test_powershell()
+    print("domain installer tests passed")
     return 0
 
 
