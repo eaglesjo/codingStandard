@@ -1,0 +1,12 @@
+---
+description: Project-wide coding standard and AI development workflow
+alwaysApply: true
+---
+
+# codingStandard
+
+Follow the project instructions in `AGENTS.md`, `LLM/AGENT.md`, `LLM/SKILL.md`, and `LLM/ENVIRONMENT.md`.
+
+Before implementation, detect and measure the real development/runtime environment. Resolve resource settings from measured CPU, RAM, GPU, VRAM, accelerator, Python runtime, and workload requirements. Run a memory smoke test before long training. After the environment is locked, remove unused platform/device branches unless the code is intentionally multi-platform.
+
+For training, use validation metrics, Early Stopping, best checkpoints, resume support, controlled ablation studies, and reproducibility/resource metadata.
