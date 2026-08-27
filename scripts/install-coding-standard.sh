@@ -68,10 +68,42 @@ conflict_choice() {
   done
 }
 
+merge_aider_config() {
+  local existing="$1"
+  if grep -qE '^read:[[:space:]]*\[' <<< "$existing"; then
+    if grep -q 'CONVENTIONS.md' <<< "$existing"; then
+      printf '%s\n' "$existing"
+      return
+    fi
+    perl -0pe 's/^read:\s*\[([^\]]*)\]\s*$/"read: [" . (length($1) ? $1 . ", CONVENTIONS.md" : "CONVENTIONS.md") . "]"/me' <<< "$existing"
+    return
+  fi
+
+  if grep -qE '^read:[[:space:]]*$' <<< "$existing"; then
+    if grep -q 'CONVENTIONS.md' <<< "$existing"; then
+      printf '%s\n' "$existing"
+      return
+    fi
+    awk '
+      BEGIN { added=0 }
+      /^read:[[:space:]]*$/ && !added { print; print "  - CONVENTIONS.md"; added=1; next }
+      { print }
+    ' <<< "$existing"
+    return
+  fi
+
+  printf '%s\n\n# BEGIN CODINGSTANDARD MANAGED BLOCK\nread:\n  - CONVENTIONS.md\n# END CODINGSTANDARD MANAGED BLOCK\n' "${existing%$'\n'}"
+}
+
 merge_text() {
   local existing="$1"
   local incoming="$2"
   local destination="$3"
+  if [[ "$destination" == ".aider.conf.yml" ]]; then
+    merge_aider_config "$existing"
+    return
+  fi
+
   local start='<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->'
   local end='<!-- END CODINGSTANDARD MANAGED BLOCK -->'
   if [[ "$destination" == *.yml || "$destination" == *.yaml ]]; then
@@ -81,9 +113,9 @@ merge_text() {
 
   if grep -Fq "$start" <<< "$existing"; then
     awk -v start="$start" -v end="$end" -v incoming="$incoming" '
-      $0 == start {print; print incoming; inblock=1; next}
-      $0 == end {print; inblock=0; next}
-      !inblock {print}
+      $0 == start { print; print incoming; inblock=1; next }
+      $0 == end { print; inblock=0; next }
+      !inblock { print }
     ' <<< "$existing"
   else
     printf '%s\n\n%s\n%s\n%s\n' "${existing%$'\n'}" "$start" "$incoming" "$end"
@@ -102,7 +134,6 @@ install_file() {
   source="$(get_source "$source_relative")"
   destination="$TARGET_ROOT/$destination_relative"
   mkdir -p "$(dirname "$destination")"
-
   source_text="$(cat "$source")"
 
   if [[ ! -e "$destination" ]]; then
