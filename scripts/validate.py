@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "AGENTS.md", "CLAUDE.md", "GEMINI.md", "INSTALL.md",
     "COMMON/AGENT.md", "COMMON/SKILL.md", "COMMON/ENVIRONMENT.md",
     "COMMON/environment.py", "COMMON/experiment.py",
+    "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md", "MANUS/README.md",
     "LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md",
     "LLM/environment.py", "LLM/memory_smoke_test.py", "LLM/experiment.py",
     "VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md",
@@ -40,6 +41,9 @@ def fail(message: str) -> None:
 def check_required_files() -> None:
     missing = [path for path in REQUIRED_FILES if not (ROOT / path).is_file()]
     missing += ["i18n/ko/INSTALL.md"] if not (ROOT / "i18n/ko/INSTALL.md").is_file() else []
+    for path in ("i18n/ko/MANUS/PROJECT_INSTRUCTIONS.md", "i18n/ko/MANUS/SKILL.md", "i18n/ko/MANUS/README.md"):
+        if not (ROOT / path).is_file():
+            missing.append(path)
     if missing:
         fail("Missing required files: " + ", ".join(missing))
 
@@ -67,7 +71,7 @@ def check_notebook() -> None:
 
 
 def check_hardware_neutrality() -> None:
-    for root in (ROOT / "COMMON", ROOT / "LLM", ROOT / "VISION"):
+    for root in (ROOT / "COMMON", ROOT / "LLM", ROOT / "VISION", ROOT / "MANUS"):
         for path in root.rglob("*.md"):
             text = path.read_text(encoding="utf-8")
             for pattern in FORBIDDEN_HARDWARE_PATTERNS:
