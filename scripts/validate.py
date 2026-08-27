@@ -68,6 +68,13 @@ def check_notebook() -> None:
         fail("Colab notebook must use nbformat 4")
     if not notebook.get("cells"):
         fail("Colab notebook has no cells")
+    code = "\n".join("".join(cell.get("source", [])) for cell in notebook.get("cells", []) if cell.get("cell_type") == "code")
+    for required_import in ("import subprocess", "import sys", "import platform"):
+        if required_import not in code:
+            fail(f"Colab notebook missing required bootstrap import: {required_import}")
+    for required_symbol in ("subprocess.run", "sys.executable", "platform.platform"):
+        if required_symbol not in code:
+            fail(f"Colab notebook missing required bootstrap usage: {required_symbol}")
 
 
 def check_hardware_neutrality() -> None:
@@ -102,6 +109,18 @@ def check_windows_workflow() -> None:
             fail(f"Windows workflow missing validation for: {required}")
 
 
+def check_version_consistency() -> None:
+    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        fail(f"VERSION must use semantic versioning: {version!r}")
+    common_env = (ROOT / "COMMON" / "environment.py").read_text(encoding="utf-8")
+    match = re.search(r'STANDARD_VERSION\s*=\s*["\']([^"\']+)["\']', common_env)
+    if not match:
+        fail("COMMON/environment.py is missing STANDARD_VERSION")
+    if match.group(1) != version:
+        fail(f"Version mismatch: VERSION={version}, COMMON/environment.py={match.group(1)}")
+
+
 def main() -> None:
     check_required_files()
     check_python()
@@ -109,6 +128,7 @@ def main() -> None:
     check_hardware_neutrality()
     check_no_legacy_installer()
     check_windows_workflow()
+    check_version_consistency()
     run_i18n_check()
     print("codingStandard validation passed")
 
