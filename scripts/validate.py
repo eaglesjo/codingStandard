@@ -8,31 +8,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_KO = {
-    "AGENTS.md",
-    "CLAUDE.md",
-    "GEMINI.md",
-    ".github/copilot-instructions.md",
-    ".github/instructions/llm.instructions.md",
-    ".cursor/rules/coding-standard.mdc",
-    ".windsurf/rules/coding-standard.md",
-    ".clinerules/01-coding-standard.md",
-    ".continue/rules/01-coding-standard.md",
-    ".junie/AGENTS.md",
-    ".amazonq/rules/coding-standard.md",
-    "CONVENTIONS.md",
-    ".aider.conf.yml",
-    "LLM/AGENT.md",
-    "LLM/SKILL.md",
-    "LLM/ENVIRONMENT.md",
-    "LLM/README.md",
-    "LLM/config/training.yaml",
-    "LLM/config/ablation.yaml",
-    "LLM/skills/environment/SKILL.md",
-    "LLM/skills/training/SKILL.md",
-    "LLM/skills/ablation/SKILL.md",
-    "LLM/skills/notebook/SKILL.md",
-    "LLM/skills/debugging/SKILL.md",
-    "LLM/skills/release/SKILL.md",
+    "AGENTS.md", "CLAUDE.md", "GEMINI.md", "CONVENTIONS.md", ".aider.conf.yml",
+    ".github/copilot-instructions.md", ".github/instructions/llm.instructions.md",
+    ".cursor/rules/coding-standard.mdc", ".windsurf/rules/coding-standard.md",
+    ".clinerules/01-coding-standard.md", ".continue/rules/01-coding-standard.md",
+    ".junie/AGENTS.md", ".amazonq/rules/coding-standard.md",
+    "LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md", "LLM/README.md",
+    "LLM/config/training.yaml", "LLM/config/ablation.yaml",
+    *{f"LLM/skills/{name}/SKILL.md" for name in ("environment", "training", "ablation", "notebook", "debugging", "release")},
 }
 
 FORBIDDEN_HARDWARE_PATTERNS = [
@@ -59,12 +42,14 @@ def check_python() -> None:
 
 
 def check_language_parity() -> None:
-    ko_root = ROOT / "i18n" / "ko"
-    if not ko_root.exists():
-        fail("Missing i18n/ko")
-    missing = [p for p in sorted(REQUIRED_KO) if not (ko_root / p).is_file()]
-    if missing:
-        fail("Missing Korean templates: " + ", ".join(missing))
+    checker = ROOT / "scripts" / "check_i18n.py"
+    if not checker.is_file():
+        fail("Missing scripts/check_i18n.py")
+    namespace: dict[str, object] = {}
+    exec(compile(checker.read_text(encoding="utf-8"), str(checker), "exec"), namespace)
+    main = namespace.get("main")
+    if not callable(main) or main() != 0:
+        fail("English/Korean localization parity check failed")
 
 
 def check_hardware_neutrality() -> None:
@@ -79,7 +64,13 @@ def check_hardware_neutrality() -> None:
 
 
 def check_required_files() -> None:
-    required = [ROOT / "VERSION", ROOT / "LLM" / "environment.py", ROOT / "LLM" / "experiment.py"]
+    required = [
+        ROOT / "VERSION",
+        ROOT / "LLM" / "environment.py",
+        ROOT / "LLM" / "memory_smoke_test.py",
+        ROOT / "LLM" / "experiment.py",
+        ROOT / "scripts" / "test_installers.py",
+    ]
     missing = [str(p.relative_to(ROOT)) for p in required if not p.is_file()]
     if missing:
         fail("Missing required files: " + ", ".join(missing))
