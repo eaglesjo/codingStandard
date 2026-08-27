@@ -23,7 +23,7 @@
 - 의미가 있는 경우 validation과 Early Stopping을 사용합니다.
 - 장시간 학습은 best Checkpoint 저장/복원과 Resume을 지원합니다.
 - baseline, controlled ablation, seed, primary metric, resource tracking을 정의합니다.
-- Git 상태, coding-standard 버전, configuration, environment profile, model/dataset revision, 자원 사용량을 기록합니다.
+- Git 상태, coding-standard 버전, configuration, environment profile, model/dataset revision, 자원 사용량과 메모리 사용량을 기록합니다.
 - OOM 또는 자원 오류는 실패한 설정을 반복하지 않고 단계적인 설정 완화로 복구합니다.
 
 ## Manus 전용 안전 규칙
