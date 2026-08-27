@@ -27,10 +27,20 @@ REQUIRED_LOCALIZED = {
     "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md", "MANUS/README.md",
 }
 
-# These are human-authored prose documents. Structured config files and executable
-# adapters are language-neutral and therefore do not require bilingual keyword parity.
+# Only human-authored Markdown is checked semantically. YAML/config files and
+# language-neutral executable adapters are checked for presence instead.
 PROSE_DOCUMENTS = {p for p in REQUIRED_LOCALIZED if p.endswith(".md")}
-CORE_CONCEPTS = ("environment", "memory", "early stopping", "checkpoint", "ablation")
+CONCEPT_ALTERNATIVES = {
+    "environment": ("environment", "환경", "실행환경"),
+    "memory": ("memory", "메모리"),
+    "early stopping": ("early stopping", "얼리 스토핑", "조기 종료"),
+    "checkpoint": ("checkpoint", "체크포인트"),
+    "ablation": ("ablation", "어브레이션", "ablation study", "어브레이션 스터디"),
+}
+
+
+def contains_any(text: str, alternatives: tuple[str, ...]) -> bool:
+    return any(term in text for term in alternatives)
 
 
 def main() -> int:
@@ -47,15 +57,13 @@ def main() -> int:
             print("Missing Korean files:", *missing_ko, sep="\n  ", file=sys.stderr)
         return 1
 
-    # Markdown files must preserve the important workflow concepts in both languages.
-    # This deliberately does not apply to YAML, config, or adapter files.
     errors = 0
     for rel in sorted(PROSE_DOCUMENTS):
         en_text = (ROOT / rel).read_text(encoding="utf-8").lower()
         ko_text = (KO / rel).read_text(encoding="utf-8").lower()
-        for concept in CORE_CONCEPTS:
-            if concept not in en_text or concept not in ko_text:
-                print(f"Missing core concept '{concept}' in {rel}")
+        for concept, alternatives in CONCEPT_ALTERNATIVES.items():
+            if not contains_any(en_text, alternatives) or not contains_any(ko_text, alternatives):
+                print(f"Missing localized core concept '{concept}' in {rel}")
                 errors += 1
 
     if errors:
