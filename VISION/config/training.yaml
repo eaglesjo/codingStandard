@@ -1,0 +1,42 @@
+standard_version: 1.2.0
+
+task: auto
+runtime:
+  use_common_environment_profile: true
+  memory_smoke_test_required: true
+  keep_headroom: true
+
+vision:
+  image_size: auto
+  channels: auto
+  batch_size: auto
+  num_workers: auto
+  prefetch_factor: auto
+  cache_mode: bounded
+  augmentation: true
+
+training:
+  validation_required: true
+  early_stopping:
+    enabled: true
+    metric: auto
+    mode: auto
+    patience: 5
+    min_delta: 0.0
+    restore_best: true
+  checkpoint:
+    save_best: true
+    resume_enabled: true
+
+resources:
+  mixed_precision: auto
+  gradient_checkpointing: auto
+  gradient_accumulation_steps: auto
+
+audit:
+  record_environment_profile: true
+  record_runtime_config: true
+  record_git_commit: true
+  record_image_size: true
+  record_peak_vram: true
+  record_peak_ram: true
