@@ -15,68 +15,57 @@
 - dependency bootstrap
 - UTF-8 / 한글
 - CPU / CUDA / MPS
-- 제한된 GPU VRAM / System RAM 환경의 학습 및 추론
-- reproducibility
-- security
-- notebook automation
+- 제한된 GPU VRAM / System RAM
+- 환경 확정 후 불필요한 분기 제거
+- Early Stopping / Checkpoint / Resume
+- Ablation Study / Experiment Tracking
+- reproducibility / security
 
 ## 1. 적용 대상
 
-다음 작업에 이 Skill을 적용한다.
-
 - `.ipynb` 생성/수정
-- Jupyter/JupyterLab
-- Google Colab
-- Python LLM
-- PyTorch
-- Transformers
-- Hugging Face
-- embedding
-- RAG
-- vector database
-- prompt engineering
-- model evaluation
-- ML/data experiment
+- Python LLM / PyTorch / Transformers / Hugging Face
+- embedding / RAG / evaluation
+- ML experiment
 - local GPU training / fine-tuning
+- ablation study
 
-## 2. 작업 시작 시 환경 확인
+## 2. 작업 시작 순서
 
-환경 의존적인 작업 전에 다음을 실행한다.
-
-```python
-import platform
-import sys
-from pathlib import Path
-
-print("Python:", sys.version)
-print("Executable:", sys.executable)
-print("OS:", platform.system())
-print("Architecture:", platform.machine())
-print("CWD:", Path.cwd())
-print("Jupyter:", "ipykernel" in sys.modules)
-print("Colab:", "google.colab" in sys.modules)
-```
-
-패키지 설치 기준은 반드시 현재 notebook kernel의 `sys.executable`이다.
-
-## 3. Bootstrap Cell 자동 삽입
-
-새 Notebook을 만들면 experiment code보다 먼저 다음 셀을 자동으로 생성한다.
+환경 의존적인 작업 전에 다음을 확인한다.
 
 ```text
-Cell 0: Markdown - 목적
-Cell 1: Environment Detection
-Cell 2: Hardware / Memory Detection
-Cell 3: UTF-8 Configuration
-Cell 4: Project Root Detection
-Cell 5: Dependency Bootstrap
-Cell 6: Resource Configuration
-Cell 7: Imports
-Cell 8: Configuration
-Cell 9+: Experiment
+1. Python / active kernel
+2. OS / architecture
+3. Jupyter / Colab
+4. GPU / CUDA / VRAM
+5. System RAM / CPU
+6. dependency
+7. project root
+8. experiment requirements
 ```
 
-기존 Notebook에 bootstrap이 없으면 사용자 코드를 삭제하지 않고 상단에 추가한다.
+환경이 확정되기 전에는 범용 코드를 유지할 수 있다. 환경이 확정되면 사용하지 않는 실행 경로는 삭제한다.
+
+## 3. Bootstrap Cell
+
+새 Notebook:
+
+```text
+Cell 0: 목적
+Cell 1: Environment Detection
+Cell 2: Hardware / Memory Detection
+Cell 3: Environment Lock / Resource Profile
+Cell 4: UTF-8
+Cell 5: Project Root
+Cell 6: Dependency Bootstrap
+Cell 7: Imports
+Cell 8: Resource Configuration
+Cell 9: Experiment Configuration
+Cell 10+: Data / Model / Training / Evaluation
+```
+
+기존 Notebook은 사용자 코드를 먼저 보존하고 bootstrap을 추가한 후 검증이 끝나면 정리한다.
 
 ## 4. Environment Detection
 
@@ -108,60 +97,58 @@ def detect_environment():
 
 
 ENV = detect_environment()
-
-for key, value in ENV.items():
-    print(f"{key}: {value}")
 ```
 
-## 5. UTF-8
+## 5. Environment Lock / Branch Cleanup
 
-```python
-import sys
+초기에는 자동 감지 코드를 사용한다. 실제 실행 환경이 검증되면 profile을 확정하고 핵심 실행 코드에서는 사용하지 않는 branch를 제거한다.
 
-for stream in (sys.stdout, sys.stderr):
-    try:
-        stream.reconfigure(encoding="utf-8")
-    except (AttributeError, ValueError):
-        pass
-
-print("한글 UTF-8 테스트: 정상")
+```text
+Detect
+ ↓
+Validate
+ ↓
+Lock profile
+ ↓
+Remove dead branches
+ ↓
+Run confirmed configuration
 ```
 
-파일은 항상 encoding을 명시한다.
+예를 들어 Windows + CUDA 환경이 확정된 프로젝트라면 핵심 training path에서 CPU/MPS용 대체 실행 코드를 삭제할 수 있다.
+
+단, 여러 OS/device를 공식 지원하는 reusable library에서는 분기를 유지한다. 이 경우 detection과 execution을 분리한다.
+
+최종 코드에 남길 것:
+
+- 최소 환경 진단
+- 확정된 device / dtype / worker configuration
+- 실제 사용하는 실행 경로
+- 재현성 metadata
+
+삭제 권장:
+
+- 사용하지 않는 OS/device branch
+- 주석 처리된 이전 구현
+- dead code
+- 사용하지 않는 import
+- 중복 environment detection
+
+## 6. UTF-8 / Path
+
+파일은 `encoding="utf-8"`을 명시하고 경로는 `pathlib.Path`를 사용한다.
 
 ```python
 from pathlib import Path
 
-text = Path(path).read_text(encoding="utf-8")
-Path(path).write_text(text, encoding="utf-8")
-```
-
-JSON/CSV에도 명시적인 UTF-8을 사용한다.
-
-## 6. Project Root
-
-```python
-from pathlib import Path
-import sys
-
-ROOT = Path.cwd()
-
-for parent in [ROOT, *ROOT.parents]:
-    if (
-        (parent / "pyproject.toml").exists()
-        or (parent / ".git").exists()
-        or (parent / "src").exists()
-    ):
-        ROOT = parent
-        break
-
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+DATA_DIR = ROOT / "data"
+OUTPUT_DIR = ROOT / "outputs"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 ```
 
 ## 7. Dependency Bootstrap
 
-핵심 함수:
+현재 Notebook kernel을 기준으로 설치한다.
 
 ```python
 import importlib
@@ -169,156 +156,65 @@ import subprocess
 import sys
 
 
-def ensure_package(
-    import_name: str,
-    package_name: str | None = None,
-):
+def ensure_package(import_name: str, package_name: str | None = None):
     package_name = package_name or import_name
-
     try:
         return importlib.import_module(import_name)
     except ImportError:
-        print(f"Installing missing package: {package_name}")
         subprocess.check_call([
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            package_name,
+            sys.executable, "-m", "pip", "install", package_name
         ])
         return importlib.import_module(import_name)
 ```
 
-예:
+프로젝트 dependency는 `pyproject.toml`, `requirements.txt`, lock file을 기준으로 한다.
 
-```python
-ensure_package("numpy")
-ensure_package("pandas")
-ensure_package("matplotlib")
-ensure_package("transformers")
-ensure_package("sklearn", "scikit-learn")
-```
-
-매번 설치하지 않는다. 프로젝트의 dependency manifest가 기준이다.
-
-## 8. Version-aware Dependency
-
-재현성이 중요한 경우 버전을 지정한다.
-
-```python
-ensure_package(
-    "transformers",
-    "transformers==X.Y.Z",
-)
-```
-
-가능하면 실제 버전은 `pyproject.toml` 또는 lock file과 일치시킨다.
-
-## 9. OS 처리
-
-```python
-import platform
-
-OS = platform.system()
-
-if OS == "Windows":
-    ...
-elif OS == "Darwin":
-    ...
-elif OS == "Linux":
-    ...
-else:
-    raise RuntimeError(f"Unsupported OS: {OS}")
-```
-
-가능하면 OS 분기보다 Python 표준 API를 사용한다.
-
-## 10. Cross-platform Path
-
-```python
-DATA_DIR = ROOT / "data"
-OUTPUT_DIR = ROOT / "outputs"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-```
-
-고정 사용자 경로와 직접 만든 path separator를 사용하지 않는다.
-
-## 11. Colab
-
-```python
-IS_COLAB = "google.colab" in sys.modules
-WORKSPACE = Path("/content") if IS_COLAB else ROOT
-```
-
-Colab runtime filesystem은 임시 저장 공간으로 취급한다.
-
-필요할 때만 Drive를 mount한다.
-
-```python
-def mount_google_drive():
-    if not IS_COLAB:
-        return False
-
-    from google.colab import drive
-    drive.mount("/content/drive")
-    return True
-```
-
-Colab Local Runtime은 로컬 시스템에서 코드를 실행할 수 있으므로 신뢰할 수 있는 Notebook만 실행한다.
-
-## 12. GPU / Device
+## 8. Device Detection
 
 ```python
 def detect_device():
     try:
         import torch
-
         if torch.cuda.is_available():
             return "cuda"
-
-        if (
-            hasattr(torch.backends, "mps")
-            and torch.backends.mps.is_available()
-        ):
+        if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             return "mps"
-
     except ImportError:
         pass
-
     return "cpu"
 
 
 DEVICE = detect_device()
-print("Device:", DEVICE)
 ```
 
 우선순위는 CUDA → MPS → CPU이다.
 
-## 13. 기준 로컬 개발 환경: Windows / VS Code / RTX 3050 Ti 4 GB / RAM 16 GB
-
-이 Skill의 로컬 LLM/ML 기본 프로파일은 다음 환경을 기준으로 한다.
+## 9. 기준 로컬 환경
 
 ```text
 OS: Windows
 IDE: VS Code
 GPU: NVIDIA GeForce RTX 3050 Ti Laptop GPU
-GPU VRAM: 4 GB
+VRAM: 4 GB
 System RAM: 16 GB
 ```
 
-4 GB VRAM을 최우선 제약으로 취급한다. 더 큰 GPU/RAM이 감지되더라도 기본 설정은 보수적으로 시작하고 실제 자원 사용량을 확인한 후 단계적으로 증가시킨다.
+보수적인 시작값:
 
-권장 시작 예산:
+```python
+BATCH_SIZE = 1
+GRADIENT_ACCUMULATION_STEPS = 8
+MAX_SEQ_LENGTH = 256
+NUM_WORKERS = 0
+USE_FP16 = True
+GRADIENT_CHECKPOINTING = True
+```
 
-- VRAM: 전체 4 GB를 채우지 않는다. 가능하면 약 3.0~3.5 GB 이하를 실사용 목표로 하고 0.5~1.0 GB의 여유를 둔다.
-- RAM: Windows, VS Code, Jupyter 및 백그라운드 프로세스용 공간을 남긴다. 16 GB 전체를 dataset/cache에 할당하지 않는다.
-- CPU: 데이터 전처리/토크나이징/I/O에 활용하되 DataLoader worker를 과도하게 늘리지 않는다.
+4 GB VRAM 전체와 16 GB RAM 전체를 채우지 않는다. 실제 자원 측정 결과로 조정한다.
 
-이 값은 절대적인 안전 한도가 아니라 시작점이다. 실제 모델과 데이터에 따라 조정한다.
+## 10. Hardware / Memory Detection
 
-## 14. Hardware / Memory Detection
-
-학습 또는 대규모 추론 전에 실제 가용 자원을 확인한다.
+학습 전에 실제 자원을 확인한다.
 
 ```python
 import os
@@ -326,10 +222,7 @@ import platform
 
 
 def inspect_resources():
-    result = {
-        "cpu_count": os.cpu_count(),
-        "os": platform.system(),
-    }
+    result = {"cpu_count": os.cpu_count(), "os": platform.system()}
 
     try:
         import psutil
@@ -350,557 +243,323 @@ def inspect_resources():
         pass
 
     return result
-
-
-RESOURCES = inspect_resources()
-for key, value in RESOURCES.items():
-    print(f"{key}: {value}")
 ```
 
-가능하면 `nvidia-smi`가 아니라 PyTorch API를 이용해 코드 자체의 이식성을 유지한다.
+## 11. GPU / CPU / RAM Optimization
 
-## 15. GPU Memory Optimization
-
-RTX 3050 Ti 4 GB에서는 다음 순서를 기본 전략으로 사용한다.
-
-1. `batch_size=1`부터 시작한다.
-2. effective batch size가 필요하면 gradient accumulation을 사용한다.
-3. sequence length / block size / image resolution 등 입력 크기를 먼저 줄인다.
-4. CUDA에서는 FP16 mixed precision을 우선 검토한다.
-5. activation memory가 큰 모델은 gradient checkpointing을 검토한다.
-6. Hugging Face/Transformers에서는 가능한 경우 8-bit/4-bit quantization을 검토한다.
-7. optimizer state가 크면 메모리 효율적인 optimizer 또는 CPU offload를 검토한다.
-8. 추론에서는 `model.eval()` + `torch.inference_mode()`를 사용한다.
-9. 필요 없는 tensor reference를 유지하지 않는다.
-10. 대형 결과를 Python list에 무한 누적하지 않는다.
-11. 매 step마다 `torch.cuda.empty_cache()`를 호출하지 않는다.
-12. CUDA OOM 발생 시 동일 설정을 무한 재시도하지 말고 resource profile을 낮춘다.
-
-권장 시작 configuration:
-
-```python
-BATCH_SIZE = 1
-GRADIENT_ACCUMULATION_STEPS = 8
-MAX_SEQ_LENGTH = 256
-USE_FP16 = True
-GRADIENT_CHECKPOINTING = True
-```
-
-모든 모델에 위 값을 강제하지 않는다. 실제 메모리 측정 결과를 기준으로 조정한다.
-
-## 16. Mixed Precision
-
-CUDA 학습에서는 FP32 전체 학습보다 mixed precision을 우선 검토한다.
-
-```python
-import torch
-
-USE_AMP = DEVICE == "cuda"
-AMP_DTYPE = torch.float16
-```
-
-```python
-with torch.autocast(
-    device_type="cuda",
-    dtype=torch.float16,
-    enabled=USE_AMP,
-):
-    loss = model(**batch).loss
-```
-
-RTX 3050 Ti 4 GB에서는 FP16을 기본 후보로 사용한다. BF16은 실제 GPU/PyTorch 지원 여부를 확인한 후 사용한다.
-
-## 17. Gradient Accumulation
-
-작은 VRAM에서 batch size를 키우지 않고 effective batch size를 확보한다.
-
-```python
-BATCH_SIZE = 1
-GRADIENT_ACCUMULATION_STEPS = 8
-
-loss = loss / GRADIENT_ACCUMULATION_STEPS
-loss.backward()
-
-if (step + 1) % GRADIENT_ACCUMULATION_STEPS == 0:
-    optimizer.step()
-    optimizer.zero_grad(set_to_none=True)
-```
-
-effective batch size:
+GPU:
 
 ```text
-effective_batch_size = batch_size × gradient_accumulation_steps × world_size
+batch size ↓
+sequence/input size ↓
+gradient accumulation
+FP16 AMP
+gradient checkpointing
+8-bit / 4-bit quantization 검토
+optimizer memory / CPU offload 검토
 ```
 
-단일 RTX 3050 Ti에서는 일반적으로 `world_size=1`이다.
+CPU/RAM:
 
-## 18. Gradient Checkpointing
-
-activation memory가 병목일 때 gradient checkpointing을 사용한다.
-
-```python
-if hasattr(model, "gradient_checkpointing_enable"):
-    model.gradient_checkpointing_enable()
+```text
+전체 dataset RAM 적재 금지
+streaming/chunking/memory mapping
+num_workers=0 또는 1부터 시작
+persistent_workers 기본 비활성화
+prefetch 과다 설정 금지
+DataFrame/list/tensor 중복 복사 금지
+CPU thread 무제한 증가 금지
 ```
 
-계산량이 증가하므로 VRAM 절감이 실제로 필요한 경우 우선 적용한다.
-
-## 19. Inference Memory
-
-추론에서는 training graph를 만들지 않는다.
+추론:
 
 ```python
 model.eval()
-
 with torch.inference_mode():
     outputs = model(**inputs)
 ```
 
-`max_new_tokens`를 무제한으로 두지 않는다.
+매 step마다 `torch.cuda.empty_cache()`를 호출하지 않는다.
 
-```python
-MAX_NEW_TOKENS = 256
-```
+## 12. Memory Smoke Test
 
-4 GB VRAM에서는 입력 길이와 생성 길이를 동시에 크게 설정하지 않는다.
-
-## 20. CPU / System RAM Optimization
-
-16 GB RAM 환경에서 RAM을 VRAM의 무제한 대체 공간처럼 사용하지 않는다.
-
-규칙:
-
-- 전체 dataset을 RAM에 무조건 로드하지 않는다.
-- 가능하면 streaming, chunking, memory mapping을 사용한다.
-- 대용량 pandas DataFrame을 불필요하게 복제하지 않는다.
-- 대규모 `list(...)` 변환으로 데이터를 복사하지 않는다.
-- DataLoader `num_workers`는 0 또는 1부터 시작한다.
-- worker를 늘릴 때 RAM 사용량과 Windows 안정성을 확인한다.
-- CUDA DataLoader에서 `pin_memory=True`는 전송 병목이 있고 RAM 여유가 있을 때 사용한다.
-- `persistent_workers=True`는 worker RAM을 계속 점유하므로 작은 RAM 환경의 기본값으로 사용하지 않는다.
-- `prefetch_factor`를 과도하게 높이지 않는다.
-- CPU에서 큰 batch를 여러 개 미리 만들지 않는다.
-- 불필요한 dataset cache를 삭제한다.
-- 긴 문자열/토큰 배열을 Python object로 중복 보관하지 않는다.
-
-권장 시작값:
-
-```python
-NUM_WORKERS = 0
-PIN_MEMORY = DEVICE == "cuda"
-PERSISTENT_WORKERS = False
-```
-
-데이터가 크면 `IterableDataset`, streaming, chunk 처리 또는 on-disk cache를 우선 검토한다.
-
-## 21. CPU Usage Optimization
-
-GPU가 작은 환경에서는 CPU 전처리가 병목이 될 수 있으므로 CPU를 활용하되 모든 core를 무조건 점유하지 않는다.
-
-```python
-import os
-
-CPU_COUNT = os.cpu_count() or 1
-CPU_WORKERS = min(2, CPU_COUNT)
-```
-
-실제 throughput을 측정한 후 worker 수를 증가시킨다.
-
-Windows standalone script에서 multiprocessing을 사용할 경우:
-
-```python
-if __name__ == "__main__":
-    main()
-```
-
-Notebook에서는 `num_workers=0`을 기본값으로 하여 spawn 관련 문제와 RAM 증가를 우선 방지한다.
-
-## 22. GPU / RAM Monitoring
-
-학습/추론 중 주기적으로 메모리를 확인한다.
-
-```python
-def gpu_memory_report():
-    import torch
-
-    if not torch.cuda.is_available():
-        return
-
-    allocated = torch.cuda.memory_allocated() / 1024**3
-    reserved = torch.cuda.memory_reserved() / 1024**3
-    free, total = torch.cuda.mem_get_info()
-    free /= 1024**3
-    total /= 1024**3
-
-    print(
-        f"GPU memory: allocated={allocated:.2f} GB, "
-        f"reserved={reserved:.2f} GB, "
-        f"free={free:.2f} GB, total={total:.2f} GB"
-    )
-```
-
-RAM도 가능하면 `psutil.virtual_memory()`로 기록한다.
-
-목표는 GPU utilization 100%가 아니라 **OOM 없이 안정적으로 학습/추론하는 것**이다.
-
-## 23. OOM Prevention / Recovery
-
-### CUDA OOM
-
-다음 순서로 자원을 낮춘다.
-
-1. batch size → 1
-2. sequence length / input resolution 감소
-3. `max_new_tokens` 감소
-4. gradient accumulation 유지
-5. FP16 AMP 활성화
-6. gradient checkpointing 활성화
-7. 8-bit/4-bit quantization 검토
-8. optimizer/model CPU offload 검토
-9. 더 작은 model/checkpoint 사용
-10. 그래도 실패하면 4 GB VRAM 범위를 벗어나는 설정임을 명시적으로 보고
-
-### System RAM 부족
-
-1. DataLoader worker → 0
-2. prefetch 감소
-3. streaming/chunking 적용
-4. batch size 감소
-5. 중간 결과 cache/list 제거
-6. 대형 DataFrame 복사 제거
-7. disk-based dataset/cache 사용
-8. dataset/model 규모 감소
-
-`del`, `gc.collect()`, `torch.cuda.empty_cache()`는 보조적인 메모리 반환 수단일 뿐이며 모델/입력/optimizer 자체가 한도를 초과하는 문제를 해결하지 못한다.
-
-## 24. Memory Smoke Test
-
-실제 전체 학습 전에 작은 데이터와 짧은 step으로 메모리 검사를 수행한다.
-
-권장 절차:
+본 학습 전에 작은 workload로 다음을 검증한다.
 
 ```text
-1 batch
-→ 1 forward
-→ 1 backward
-→ 1 optimizer step
-→ memory report
-→ 필요 시 configuration 축소
-→ 짧은 multi-step test
-→ full training
+model load
+→ forward
+→ backward
+→ optimizer step
+→ validation
+→ checkpoint save
 ```
 
-학습 설정을 한 번에 크게 잡지 않는다. 특히 4 GB VRAM에서는 첫 실행부터 full dataset/full sequence length로 시작하지 않는다.
+peak VRAM, RAM, loss, runtime을 기록한다.
 
-## 25. Training Checkpoint / Resume
+Smoke Test가 실패하면 본 학습을 시작하지 않고 configuration을 낮춘다.
 
-메모리 문제, Windows/Jupyter 종료 또는 장시간 학습 중단에 대비하여 checkpoint를 저장한다.
+## 13. OOM Recovery
+
+```text
+OOM 감지
+↓
+VRAM/RAM 기록
+↓
+batch size 감소
+↓
+sequence/input 감소
+↓
+workers 감소
+↓
+AMP 확인
+↓
+checkpointing / quantization / offload 검토
+↓
+smoke test
+↓
+통과 시 학습
+```
+
+동일 configuration으로 무한 재시도하지 않는다.
+
+## 14. Training Configuration
+
+```python
+TRAIN_CONFIG = {
+    "batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "max_seq_length": 256,
+    "learning_rate": 2e-5,
+    "num_train_epochs": 10,
+    "eval_strategy": "epoch",
+    "save_strategy": "epoch",
+    "mixed_precision": "fp16",
+}
+```
+
+한 곳에서 관리하고 실험별로 저장한다.
+
+## 15. Early Stopping
+
+장시간 학습에는 validation 기반 Early Stopping을 기본 적용한다.
+
+```python
+EARLY_STOPPING = {
+    "enabled": True,
+    "metric": "eval_loss",
+    "mode": "min",
+    "patience": 3,
+    "min_delta": 0.0,
+    "restore_best": True,
+}
+```
+
+필수 원칙:
+
+- validation split/eval dataset
+- metric과 방향 명시
+- patience 명시
+- best checkpoint 저장
+- best checkpoint 복원
+- early stop 시점 기록
+
+Hugging Face Trainer를 사용하면 `EarlyStoppingCallback`, `metric_for_best_model`, `greater_is_better`, `load_best_model_at_end`를 일관되게 설정한다.
+
+직접 loop를 작성하면 같은 정책을 명시적으로 구현하고 테스트한다.
+
+## 16. Checkpoint / Resume
+
+가능한 경우 checkpoint에 다음을 포함한다.
+
+```text
+model
+optimizer
+scheduler
+AMP scaler
+epoch / global step
+best metric
+Early Stopping counter
+training config
+seed
+model revision
+dataset revision
+```
+
+중단 후 resume이 가능해야 한다.
+
+## 17. Ablation Study
+
+baseline을 먼저 정의하고 구성 요소의 효과를 분리한다.
+
+```python
+ABLATION_CONFIG = {
+    "study_name": "components",
+    "baseline": {
+        "feature_a": True,
+        "feature_b": True,
+        "augmentation": True,
+    },
+    "variants": {
+        "no_feature_a": {"feature_a": False},
+        "no_feature_b": {"feature_b": False},
+        "no_augmentation": {"augmentation": False},
+    },
+    "seeds": [42, 43, 44],
+    "primary_metric": "eval_loss",
+    "metric_mode": "min",
+}
+```
+
+Ablation 대상 예:
+
+- model component / feature
+- prompt component
+- retrieval / reranker
+- augmentation
+- loss component
+- optimizer
+- learning rate
+- context length
+- embedding model
+- quantization
+
+한 실험에서 변경 요인을 명확히 기록한다.
+
+## 18. 공정한 Ablation / Experiment Matrix
+
+모든 variant는 가능하면 다음을 동일하게 유지한다.
+
+```text
+train/validation split
+test set
+metric
+Early Stopping policy
+maximum budget
+checkpoint rule
+seed set
+```
+
+예:
+
+```python
+EXPERIMENTS = [
+    {"name": "baseline", "feature_a": True, "feature_b": True},
+    {"name": "no_feature_a", "feature_a": False, "feature_b": True},
+    {"name": "no_feature_b", "feature_a": True, "feature_b": False},
+]
+```
+
+결과에는 최소한 다음을 기록한다.
+
+```text
+experiment_id
+variant
+changed_parameters
+seed
+model_revision
+dataset_revision
+best_metric
+best_epoch/step
+early_stopped
+peak_vram
+peak_ram
+runtime
+checkpoint_path
+```
+
+## 19. Experiment Tracking
 
 권장 구조:
 
 ```text
-checkpoints/
-├── latest/
-├── best/
-└── step-XXXX/
+experiments/
+└── <study_name>/
+    ├── baseline/
+    ├── no_feature_a/
+    ├── no_feature_b/
+    └── no_augmentation/
 ```
 
-가능하면 model state, optimizer state, scheduler state, AMP scaler state, epoch/step, random state, training configuration, model/dataset revision을 저장한다.
+각 variant의 configuration, metrics, resource usage, checkpoint를 저장한다.
 
-checkpoint 저장 자체가 메모리를 폭증시키지 않도록 state를 순차적으로 디스크에 저장하고 불필요한 duplicate object를 만들지 않는다.
+## 20. Notebook Idempotency
 
-## 26. LLM 구조
+cell을 여러 번 실행해도 결과가 무한 누적되지 않아야 한다.
+
+- state 초기화
+- deterministic output path
+- 임시 파일 정리
+- overwrite 정책 명시
+
+clean kernel에서 Run All이 가능해야 한다.
+
+## 21. Validation Workflow
 
 ```text
-Configuration
-    ↓
-Resource Detection
-    ↓
-Prompt
-    ↓
-Data
-    ↓
-Model / API Client
-    ↓
-Inference / Training
-    ↓
-Evaluation
-    ↓
-Checkpoint
-    ↓
-Export
-```
-
-재사용 구현은 `src/`에 둔다.
-
-## 27. Model Configuration
-
-```python
-MODEL_ID = "..."
-TEMPERATURE = 0.2
-MAX_NEW_TOKENS = 256
-MAX_SEQ_LENGTH = 256
-BATCH_SIZE = 1
-GRADIENT_ACCUMULATION_STEPS = 8
-SEED = 42
-```
-
-magic number를 여러 cell에 분산하지 않는다.
-
-## 28. Prompt 관리
-
-```text
-prompts/
-├── system/
-├── user/
-└── evaluation/
-```
-
-재사용 prompt를 Notebook에 복사하지 않는다.
-
-## 29. Secret 관리
-
-금지:
-
-```python
-API_KEY = "sk-..."
-```
-
-권장:
-
-```python
-import os
-
-API_KEY = os.getenv("OPENAI_API_KEY")
-```
-
-credential, token, private key, `.env`를 repository에 commit하지 않는다.
-
-## 30. Reproducibility
-
-```python
-import random
-import numpy as np
-
-SEED = 42
-random.seed(SEED)
-np.random.seed(SEED)
-
-try:
-    import torch
-    torch.manual_seed(SEED)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(SEED)
-except ImportError:
-    pass
-```
-
-실험 metadata에는 가능한 경우 Python version, OS, architecture, package versions, model ID/revision, dataset version, device, GPU/VRAM, RAM, batch size, gradient accumulation, sequence length, precision, quantization, gradient checkpointing, DataLoader worker 수, parameters, seed, prompt version, metrics를 기록한다.
-
-## 31. Notebook Idempotency
-
-cell을 여러 번 실행해도 예기치 않은 상태 누적이 없어야 한다.
-
-```python
-results = []
-```
-
-같은 결과에 반복적으로 append되는 hidden state를 피한다.
-
-GPU tensor, model, optimizer, DataLoader 및 대형 dataset reference를 cell 실행마다 중복 생성하지 않는다.
-
-## 32. Korean Matplotlib
-
-OS별 한글 폰트를 고정하지 않는다.
-
-```python
-from matplotlib import font_manager
-
-
-def find_korean_font():
-    candidates = [
-        "Malgun Gothic",
-        "AppleGothic",
-        "NanumGothic",
-        "Noto Sans CJK KR",
-        "Noto Sans KR",
-    ]
-
-    installed = {
-        font.name
-        for font in font_manager.fontManager.ttflist
-    }
-
-    for candidate in candidates:
-        if candidate in installed:
-            return candidate
-
-    return None
-```
-
-폰트가 없으면 warning을 표시하되 가능한 경우 전체 Notebook 실행을 중단시키지 않는다.
-
-## 33. Error Handling
-
-금지:
-
-```python
-try:
-    ...
-except:
-    pass
-```
-
-명시적인 exception type과 actionable error message를 사용한다.
-
-## 34. Code Quality
-
-- PEP 8
-- Ruff
-- Black-compatible formatting
-- type hints
-- small functions
-- explicit error handling
-- reusable code in `src/`
-- tests in `tests/`
-
-## 35. Notebook 자동 생성 규칙
-
-새 Notebook:
-
-1. 목적 Markdown
-2. Environment Detection
-3. Hardware / Memory Detection
-4. UTF-8
-5. Project Root
-6. Dependency Bootstrap
-7. Resource Configuration
-8. Imports
-9. Configuration
-10. Experiment
-
-기존 Notebook:
-
-- 사용자 코드를 삭제하지 않는다.
-- bootstrap이 없으면 상단에 추가한다.
-- `!pip install`은 active kernel 기준 설치로 정리한다.
-- OS 고정 경로는 `Path`로 변경한다.
-- encoding을 명시한다.
-- `cuda` 하드코딩을 device detection으로 바꾼다.
-- 중복 reusable code는 `src/` 분리를 검토한다.
-- batch/sequence length/worker 수가 하드웨어에 맞는지 확인한다.
-- 학습 전에 memory smoke test를 추가한다.
-
-## 36. Validation Workflow
-
-수정 후 가능하면:
-
 1. Kernel/Runtime restart
 2. Run All
-3. dependency 확인
-4. environment 확인
-5. GPU/RAM 확인
-6. UTF-8/한글 확인
-7. memory smoke test
-8. model inference 확인
-9. visualization 확인
-10. output 확인
-11. relevant tests 실행
-12. checkpoint/resume 확인
+3. Environment/Resource 확인
+4. Environment Lock
+5. Memory Smoke Test
+6. Baseline 학습
+7. Early Stopping 동작 확인
+8. Checkpoint save/resume 확인
+9. Ablation 실행
+10. metrics + resource 기록
+11. dead code 제거
+12. 최종 Run All
+```
 
-## 37. 완료 체크리스트
+## 22. 완료 체크리스트
 
 ```text
 Environment
-[ ] OS
-[ ] architecture
-[ ] Python version
-[ ] sys.executable
-[ ] Jupyter
-[ ] Colab
-[ ] CPU
-[ ] GPU
-[ ] VRAM
-[ ] System RAM
+[ ] OS / architecture
+[ ] Python / active kernel
+[ ] GPU / VRAM
+[ ] RAM / CPU
+[ ] environment profile 확정
+[ ] 미사용 environment branch 삭제
 
-Dependencies
-[ ] package detection
-[ ] missing package installation
-[ ] active kernel installation
-[ ] version requirements
-
-Hardware Optimization
-[ ] RTX 3050 Ti 4 GB profile considered
-[ ] RAM 16 GB profile considered
-[ ] conservative VRAM budget
-[ ] batch size starts at 1 when needed
+Memory
+[ ] batch size
+[ ] sequence/input size
+[ ] workers
+[ ] AMP
 [ ] gradient accumulation
-[ ] sequence length limit
-[ ] FP16/AMP review
-[ ] gradient checkpointing review
-[ ] quantization review
-[ ] CPU offload review
-[ ] DataLoader worker limit
-[ ] prefetch limit
-[ ] RAM cache limit
-[ ] GPU/RAM monitoring
+[ ] checkpointing/quantization 검토
 [ ] memory smoke test
-[ ] OOM recovery strategy
-[ ] checkpoint/resume
+[ ] OOM recovery
 
-Compatibility
-[ ] Windows
-[ ] Linux
-[ ] macOS
-[ ] Jupyter
-[ ] Colab
-[ ] Colab Local Runtime
+Training
+[ ] validation metric
+[ ] Early Stopping
+[ ] best checkpoint
+[ ] Resume
 
-Encoding
-[ ] UTF-8
-[ ] Korean console
-[ ] Korean files
-[ ] Korean CSV
-[ ] Korean visualization
+Ablation
+[ ] baseline
+[ ] variants
+[ ] controlled variables
+[ ] seed matrix
+[ ] primary/secondary metrics
+[ ] VRAM/RAM/runtime 기록
 
-Security
-[ ] no hard-coded API keys
-[ ] no credentials committed
-
-Notebook
-[ ] bootstrap cells
-[ ] top-to-bottom execution
-[ ] idempotency
-[ ] no hidden state
-
-Code Quality
-[ ] PEP 8
-[ ] type hints
-[ ] error handling
-[ ] reusable code in src
-[ ] tests
+Quality
+[ ] clean kernel Run All
+[ ] dead code 제거
 [ ] reproducibility metadata
+[ ] tests
 ```
 
-## 38. Definition of Done
+## 23. Definition of Done
 
-- local Jupyter에서 동작
-- VS Code Jupyter에서 동작
-- Google Colab에서 동작
-- Windows/Linux/macOS 고려
-- active Python kernel 감지
-- missing dependency를 해당 kernel에 설치
-- UTF-8/Korean 보존
-- cross-platform path 사용
-- CPU/CUDA/MPS 자동 감지
-- 실제 GPU VRAM/RAM 확인
-- 4 GB VRAM 환경에서 보수적인 기본값 사용
-- 16 GB RAM 환경에서 dataset/cache/worker 사용량 제한
-- FP16/gradient accumulation/checkpointing/quantization을 필요에 따라 적용
-- GPU/RAM memory smoke test 통과
-- OOM 발생 시 완화 가능한 configuration 보유
-- 장시간 학습은 checkpoint/resume 지원
-- secret 보호
-- fresh kernel/runtime에서 Run All 가능
-- reusable code와 Notebook orchestration 분리
-- 재현성 정보 기록
+- 실제 실행 환경을 확인했다.
+- 확정된 환경에서 필요한 코드만 남겼다.
+- 4 GB VRAM / 16 GB RAM 제약을 반영했다.
+- Memory Smoke Test를 통과했다.
+- Early Stopping이 적용됐다.
+- best checkpoint와 Resume이 가능하다.
+- baseline과 Ablation variant를 동일 조건에서 비교할 수 있다.
+- metric, seed, configuration, resource 사용량을 기록한다.
+- clean kernel/runtime에서 실행된다.
