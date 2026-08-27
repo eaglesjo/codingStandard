@@ -34,6 +34,8 @@ AI Agent 또는 코딩 Agent가 프로젝트를 수정할 때 따라야 하는 *
 - 재현성
 - Agent 작업 순서
 - 완료 조건
+- 로컬 GPU / RAM 자원 최적화
+- OOM 예방 및 복구
 
 ### SKILL.md
 
@@ -50,6 +52,7 @@ LLM/Jupyter 관련 작업을 수행할 때 Agent가 실제로 적용하는 **작
 - embedding / RAG
 - evaluation
 - ML experiment
+- 제한된 VRAM/RAM 환경의 학습
 
 ---
 
@@ -138,6 +141,8 @@ UTF-8
  ↓
 Device
  ↓
+Hardware / Memory
+ ↓
 Application Code
 ```
 
@@ -159,12 +164,14 @@ SKILL.md의 Jupyter/Colab 개발 절차를 적용해서
 ```text
 Cell 0  : 목적 / 설명
 Cell 1  : Environment Detection
-Cell 2  : UTF-8 Configuration
-Cell 3  : Project Root Detection
-Cell 4  : Dependency Bootstrap
-Cell 5  : Imports
-Cell 6  : Configuration
-Cell 7+ : Experiment
+Cell 2  : Hardware / Memory Detection
+Cell 3  : UTF-8 Configuration
+Cell 4  : Project Root Detection
+Cell 5  : Dependency Bootstrap
+Cell 6  : Imports
+Cell 7  : Resource Configuration
+Cell 8  : Configuration
+Cell 9+ : Experiment
 ```
 
 ---
@@ -292,6 +299,8 @@ awk
 ```
 
 파일과 디렉터리 조작에는 Python 표준 라이브러리를 우선 사용합니다.
+
+Windows의 Python multiprocessing/DataLoader 사용 시 worker를 늘리기 전에 안정성을 확인합니다. Notebook에서는 특히 `num_workers=0` 또는 `1`부터 시작하고, 안정성이 확인된 경우에만 증가시킵니다.
 
 ## Linux
 
@@ -474,86 +483,374 @@ model.to(DEVICE)
 
 ---
 
-# 12. Google Colab
+# 12. 로컬 개발 하드웨어 프로파일
 
-Colab 여부:
+로컬 Windows + VS Code 개발 환경에서는 다음 하드웨어를 기본 프로파일로 사용합니다.
 
-```python
-IS_COLAB = "google.colab" in sys.modules
+```text
+OS          : Windows
+IDE         : VS Code + VS Code Jupyter
+GPU         : NVIDIA GeForce RTX 3050 Ti Laptop GPU
+GPU VRAM    : 4 GB
+System RAM  : 16 GB
 ```
 
-Colab 기본 workspace:
+이 환경에서는 **4 GB VRAM이 가장 중요한 제약 조건**입니다. 따라서 Agent는 더 큰 장비가 확인되기 전까지 보수적인 설정을 우선 적용합니다.
+
+### 권장 자원 예산
+
+```text
+GPU VRAM
+  ├─ 전체 4 GB를 목표로 사용하지 않음
+  ├─ 시작 목표: 약 3.0~3.5 GB 이하
+  └─ 약 0.5~1.0 GB 여유 확보
+
+System RAM
+  ├─ Windows / VS Code / Jupyter를 위한 공간 확보
+  ├─ Dataset 전체 cache를 메모리에 올리지 않음
+  └─ DataLoader worker를 필요 이상으로 늘리지 않음
+```
+
+위 숫자는 절대적인 안전 한도가 아니라 시작점입니다. 실제 모델, CUDA/PyTorch 버전, 드라이버, 백그라운드 프로세스와 데이터 크기에 따라 실제 사용량을 측정한 후 조정합니다.
+
+---
+
+# 13. GPU / RAM 자원 확인
+
+학습이나 대형 inference를 시작하기 전에 실제 가용 자원을 확인합니다.
 
 ```python
-WORKSPACE = (
-    Path("/content")
-    if IS_COLAB
-    else ROOT
+import os
+import platform
+
+
+def inspect_resources():
+    result = {
+        "cpu_count": os.cpu_count(),
+        "os": platform.system(),
+    }
+
+    try:
+        import psutil
+        memory = psutil.virtual_memory()
+        result["ram_total_gb"] = round(memory.total / 1024**3, 2)
+        result["ram_available_gb"] = round(memory.available / 1024**3, 2)
+    except ImportError:
+        pass
+
+    try:
+        import torch
+        if torch.cuda.is_available():
+            free, total = torch.cuda.mem_get_info()
+            result["vram_total_gb"] = round(total / 1024**3, 2)
+            result["vram_free_gb"] = round(free / 1024**3, 2)
+            result["gpu_name"] = torch.cuda.get_device_name(0)
+    except (ImportError, RuntimeError):
+        pass
+
+    return result
+
+
+RESOURCES = inspect_resources()
+for key, value in RESOURCES.items():
+    print(f"{key}: {value}")
+```
+
+`nvidia-smi`가 설치되어 있다고 가정하지 않습니다. 가능하면 PyTorch API로 확인합니다.
+
+---
+
+# 14. 4 GB VRAM 학습 최적화 규칙
+
+4 GB VRAM 환경에서는 다음 순서로 메모리를 줄이는 것을 기본 전략으로 합니다.
+
+```text
+1. Batch Size 감소
+        ↓
+2. Sequence Length / Input Size 감소
+        ↓
+3. FP16 Mixed Precision
+        ↓
+4. Gradient Accumulation
+        ↓
+5. Gradient Checkpointing
+        ↓
+6. 8-bit / 4-bit Quantization 검토
+        ↓
+7. CPU Offload 검토
+        ↓
+8. Dataset / DataLoader 메모리 최적화
+```
+
+권장 시작값:
+
+```python
+BATCH_SIZE = 1
+GRADIENT_ACCUMULATION_STEPS = 8
+MAX_SEQ_LENGTH = 256
+USE_FP16 = True
+GRADIENT_CHECKPOINTING = True
+```
+
+위 값은 모델에 따라 조정합니다. 작은 모델에서 무조건 모든 최적화를 강제하지 않고 실제 VRAM 사용량을 확인합니다.
+
+### 특히 피해야 하는 패턴
+
+```text
+배치 크기를 먼저 크게 설정
+긴 sequence length를 그대로 사용
+FP32 전체 학습 고정
+DataLoader worker 과다 사용
+Dataset 전체를 RAM에 복제
+불필요한 intermediate tensor 저장
+매 step마다 empty_cache() 호출
+OOM 후 같은 설정으로 무한 재시도
+```
+
+---
+
+# 15. Mixed Precision
+
+CUDA 학습에서는 FP32 전체 학습보다 mixed precision을 우선 검토합니다.
+
+```python
+import torch
+
+USE_AMP = DEVICE == "cuda"
+AMP_DTYPE = torch.float16
+```
+
+예:
+
+```python
+with torch.autocast(
+    device_type="cuda",
+    dtype=torch.float16,
+    enabled=USE_AMP,
+):
+    loss = model(**batch).loss
+```
+
+RTX 3050 Ti 4 GB 환경에서는 FP16을 기본 후보로 사용합니다. BF16은 실제 GPU/PyTorch 지원 여부를 확인한 후 선택합니다.
+
+AMP 사용으로 수치 불안정성이 발생하면 해당 연산만 FP32로 처리하거나 AMP를 부분적으로 비활성화합니다.
+
+---
+
+# 16. Gradient Accumulation
+
+작은 VRAM에서는 batch size를 올리는 대신 gradient accumulation으로 effective batch size를 확보합니다.
+
+```python
+BATCH_SIZE = 1
+GRADIENT_ACCUMULATION_STEPS = 8
+
+loss = loss / GRADIENT_ACCUMULATION_STEPS
+loss.backward()
+
+if (step + 1) % GRADIENT_ACCUMULATION_STEPS == 0:
+    optimizer.step()
+    optimizer.zero_grad(set_to_none=True)
+```
+
+effective batch size:
+
+```text
+effective_batch_size = batch_size × gradient_accumulation_steps
+```
+
+---
+
+# 17. Gradient Checkpointing
+
+Activation memory가 큰 모델은 gradient checkpointing을 검토합니다.
+
+```python
+if hasattr(model, "gradient_checkpointing_enable"):
+    model.gradient_checkpointing_enable()
+```
+
+메모리를 줄이는 대신 계산량이 증가할 수 있으므로 학습 속도와 메모리를 함께 측정합니다.
+
+---
+
+# 18. DataLoader / CPU / RAM 최적화
+
+System RAM 16 GB 환경에서는 DataLoader가 RAM을 과도하게 사용하지 않도록 합니다.
+
+권장 시작점:
+
+```python
+from torch.utils.data import DataLoader
+
+loader = DataLoader(
+    dataset,
+    batch_size=1,
+    num_workers=0,
+    pin_memory=True,
+    persistent_workers=False,
 )
 ```
 
-Colab runtime의 파일은 영구 저장소가 아니므로 중요한 결과물은 별도의 영구 저장 위치에 export해야 합니다.
+GPU를 사용하는 경우 `pin_memory=True`를 검토하되 실제 성능 향상과 RAM 사용량을 함께 확인합니다.
 
-Google Drive가 필요한 경우에만 mount합니다.
+Windows Notebook에서는 `num_workers=0` 또는 `1`부터 시작합니다. 안정성과 RAM 사용량을 확인한 후 증가시킵니다.
+
+Dataset 전체를 `list`, `DataFrame`, tensor 등으로 중복 복사하지 말고 가능한 경우 streaming, lazy loading, chunking을 사용합니다.
+
+---
+
+# 19. 추론 메모리 최적화
+
+학습이 아닌 inference에서는 gradient 계산을 비활성화합니다.
 
 ```python
-def mount_google_drive():
-    if not IS_COLAB:
-        return False
+model.eval()
 
-    from google.colab import drive
-    drive.mount("/content/drive")
-    return True
+with torch.inference_mode():
+    outputs = model(**batch)
 ```
 
----
-
-# 13. Colab Local Runtime
-
-Colab Local Runtime에서는 Notebook이 사용자의 실제 PC에서 실행됩니다.
-
-따라서 다음과 같은 동작이 로컬 PC에서 수행될 수 있음을 고려해야 합니다.
-
-- 파일 읽기/쓰기
-- subprocess
-- package installation
-- local network access
-- GPU access
-
-따라서 신뢰할 수 있는 Notebook만 실행하고 외부 Notebook을 그대로 실행하지 않습니다.
+큰 결과를 모두 RAM에 쌓지 말고 가능한 경우 즉시 파일이나 chunk 단위 결과물로 저장합니다.
 
 ---
 
-# 14. LLM 프로젝트 구조
+# 20. `torch.cuda.empty_cache()` 사용 원칙
 
-권장 구조:
+`torch.cuda.empty_cache()`는 메모리 최적화의 1차 해결책으로 사용하지 않습니다.
+
+나쁜 예:
+
+```python
+for batch in loader:
+    ...
+    torch.cuda.empty_cache()
+```
+
+먼저 다음을 줄입니다.
 
 ```text
-project/
-├── AGENT.md
-├── SKILL.md
-├── pyproject.toml
-├── src/
-│   └── ...
-├── notebooks/
-│   ├── 00_environment_check.ipynb
-│   ├── 01_data_preparation.ipynb
-│   ├── 02_model_loading.ipynb
-│   ├── 03_experiment.ipynb
-│   └── 04_evaluation.ipynb
-├── prompts/
-│   ├── system/
-│   ├── user/
-│   └── evaluation/
-├── tests/
-└── outputs/
+batch size
+sequence length
+model size
+activation memory
+optimizer state
+temporary tensor/reference
 ```
 
-Notebook은 orchestration과 실험에 집중하고, 재사용 가능한 로직은 `src/`로 이동합니다.
+`empty_cache()`는 실제로 더 이상 사용하지 않는 CUDA allocator cache를 반환해야 하는 제한적인 상황에서만 사용합니다.
 
 ---
 
-# 15. Prompt 관리
+# 21. OOM 예방 및 복구
+
+학습 시작 전에 작은 subset으로 Memory Smoke Test를 수행합니다.
+
+```text
+1 batch
+  ↓
+forward
+  ↓
+loss
+  ↓
+backward
+  ↓
+optimizer step
+  ↓
+VRAM / RAM 확인
+```
+
+CUDA OOM이 발생하면 같은 설정으로 무한 재시도하지 않습니다.
+
+권장 완화 순서:
+
+```text
+OOM
+ ↓
+BATCH_SIZE × 0.5
+ ↓
+MAX_SEQ_LENGTH 감소
+ ↓
+FP16 확인
+ ↓
+Gradient Checkpointing
+ ↓
+Quantization / Offload 검토
+ ↓
+더 작은 model 또는 input 사용
+```
+
+RAM 부족 시:
+
+```text
+RAM 부족
+ ↓
+DataLoader num_workers 감소
+ ↓
+prefetch / persistent workers 감소
+ ↓
+Dataset cache 제거
+ ↓
+streaming / chunking
+ ↓
+불필요한 DataFrame / tensor 복사 제거
+```
+
+메모리 부족을 감지한 경우 사용자에게 원인과 변경한 설정을 명시하고, 조용히 품질이나 데이터 크기를 변경하지 않습니다.
+
+---
+
+# 22. Checkpoint / Resume
+
+장시간 학습은 중단될 수 있다는 전제로 설계합니다.
+
+권장 checkpoint 정보:
+
+```text
+model state
+optimizer state
+scheduler state
+scaler state
+current epoch / step
+best metric
+training configuration
+random seed
+model / dataset revision
+```
+
+가능하면 일정 step마다 checkpoint를 저장하고 `resume_from_checkpoint` 또는 동등한 방식으로 이어서 학습할 수 있도록 합니다.
+
+학습 완료 후 checkpoint가 정상적으로 생성되었는지 확인합니다.
+
+---
+
+# 23. VS Code 운영 규칙
+
+Windows + VS Code 환경에서는 다음을 기본으로 합니다.
+
+```text
+VS Code
+  ↓
+Python Interpreter 확인
+  ↓
+Jupyter Kernel 확인
+  ↓
+CUDA / GPU 확인
+  ↓
+Memory Profile 확인
+  ↓
+Notebook 실행
+```
+
+Terminal에서 사용하는 Python과 VS Code Notebook kernel의 Python이 다를 수 있으므로 `sys.executable`을 항상 확인합니다.
+
+GPU 학습 Notebook을 실행할 때는 VS Code 내부의 다른 Python 프로세스, Jupyter kernel, 디버거가 메모리를 점유할 수 있음을 고려합니다.
+
+학습 중에는 불필요한 Notebook kernel을 종료하고, 큰 변수나 출력 셀을 무분별하게 유지하지 않습니다.
+
+---
+
+# 24. Prompt 관리
 
 긴 prompt를 Notebook마다 복사하지 않습니다.
 
@@ -573,7 +870,7 @@ Prompt version도 가능하면 실험 metadata에 기록합니다.
 
 ---
 
-# 16. API Key / Secret
+# 25. API Key / Secret
 
 절대로 다음처럼 작성하지 않습니다.
 
@@ -603,7 +900,7 @@ service-account.json
 
 ---
 
-# 17. 재현성
+# 26. 재현성
 
 실험에는 가능한 한 seed를 사용합니다.
 
@@ -641,13 +938,16 @@ Parameters
 Seed
 Prompt version
 Metrics
+Resource profile
+Peak VRAM
+Peak RAM
 ```
 
 LLM API의 서버 측 모델 업데이트나 비결정적 동작 때문에 완전한 재현성이 보장되지 않는 경우에는 해당 사실을 기록합니다.
 
 ---
 
-# 18. Notebook Idempotency
+# 27. Notebook Idempotency
 
 Notebook은 가능한 한 여러 번 실행해도 안전해야 합니다.
 
@@ -671,7 +971,7 @@ results = []
 
 ---
 
-# 19. Python Coding Standard
+# 28. Python Coding Standard
 
 기본 기준:
 
@@ -705,7 +1005,7 @@ except ImportError as exc:
 
 ---
 
-# 20. 테스트
+# 29. 테스트
 
 재사용 가능한 코드는 `tests/`에서 검증합니다.
 
@@ -718,13 +1018,15 @@ UTF-8
 path handling
 핵심 inference
 evaluation
+memory smoke test
+checkpoint / resume
 ```
 
 Notebook은 가능하면 clean kernel에서 실행 검증합니다.
 
 ---
 
-# 21. Agent 권장 작업 순서
+# 30. Agent 권장 작업 순서
 
 LLM/Jupyter 프로젝트를 수정할 때 Agent는 다음 순서를 따릅니다.
 
@@ -736,19 +1038,23 @@ LLM/Jupyter 프로젝트를 수정할 때 Agent는 다음 순서를 따릅니다
 5. Notebook 구조 확인
 6. Python kernel 확인
 7. OS / runtime 확인
-8. dependency 확인
-9. reusable code 확인
-10. bootstrap cell 확인
-11. 코드 수정
-12. UTF-8 / path / device 확인
-13. 테스트
-14. clean kernel Run All
-15. 변경사항 보고
+8. GPU / VRAM / RAM 확인
+9. dependency 확인
+10. reusable code 확인
+11. bootstrap cell 확인
+12. memory budget 설정
+13. 코드 수정
+14. UTF-8 / path / device 확인
+15. Memory Smoke Test
+16. 테스트
+17. clean kernel Run All
+18. checkpoint / output 확인
+19. 변경사항 보고
 ```
 
 ---
 
-# 22. 새 Notebook 생성 예
+# 31. 새 Notebook 생성 예
 
 Agent에게 다음처럼 요청할 수 있습니다.
 
@@ -756,8 +1062,9 @@ Agent에게 다음처럼 요청할 수 있습니다.
 LLM SKILL을 적용해서 새로운 RAG 실험 Notebook을 만들어줘.
 Jupyter와 Google Colab에서 모두 실행 가능해야 하고
 Windows/Linux/macOS도 고려해줘.
-상단에 environment detection, UTF-8, project root,
-dependency bootstrap, device detection을 넣어줘.
+상단에 environment detection, hardware/memory detection,
+UTF-8, project root, dependency bootstrap, device detection을 넣어줘.
+로컬 GPU가 4 GB VRAM이면 batch size 1과 메모리 절약 설정부터 시작해줘.
 ```
 
 결과 Notebook의 시작 부분은 대략 다음과 같은 구조가 됩니다.
@@ -766,27 +1073,35 @@ dependency bootstrap, device detection을 넣어줘.
 # 1. Environment
 ENV = detect_environment()
 
-# 2. UTF-8
+# 2. Resources
+RESOURCES = inspect_resources()
+
+# 3. UTF-8
 configure_utf8()
 
-# 3. Project Root
+# 4. Project Root
 ROOT = detect_project_root()
 
-# 4. Dependencies
+# 5. Dependencies
 ensure_package("numpy")
 ensure_package("pandas")
 
-# 5. Device
+# 6. Device
 DEVICE = detect_device()
 
-# 6. Experiment configuration
+# 7. Resource configuration
+BATCH_SIZE = 1
+MAX_SEQ_LENGTH = 256
+USE_FP16 = DEVICE == "cuda"
+
+# 8. Experiment configuration
 MODEL_ID = "..."
 SEED = 42
 ```
 
 ---
 
-# 23. 기존 Notebook 개선 예
+# 32. 기존 Notebook 개선 예
 
 기존 코드:
 
@@ -811,6 +1126,15 @@ df = pd.read_csv(
 )
 ```
 
+추가로 로컬 4 GB GPU에서 학습하는 경우:
+
+```python
+BATCH_SIZE = 1
+GRADIENT_ACCUMULATION_STEPS = 8
+MAX_SEQ_LENGTH = 256
+USE_FP16 = DEVICE == "cuda"
+```
+
 즉:
 
 ```text
@@ -829,11 +1153,15 @@ pathlib.Path
 implicit encoding
  ↓
 explicit UTF-8
+
+unbounded memory usage
+ ↓
+resource budget + monitoring
 ```
 
 ---
 
-# 24. 의존성 관리 권장 순서
+# 33. 의존성 관리 권장 순서
 
 프로젝트 수준에서는 다음 우선순위를 권장합니다.
 
@@ -850,37 +1178,78 @@ Notebook에서는 **환경이 처음 준비되지 않은 경우에도 실험을 
 
 ---
 
-# 25. 완료 조건
+# 34. 완료 조건
 
 LLM Notebook 또는 관련 코드를 완료했다고 판단하기 전에 가능한 범위에서 다음을 확인합니다.
 
 ```text
+Environment
 [ ] OS detection
 [ ] architecture detection
 [ ] Python version detection
 [ ] sys.executable detection
 [ ] Jupyter detection
 [ ] Colab detection
-[ ] dependency detection
+[ ] device detection
+
+Dependencies
+[ ] package detection
 [ ] missing package installation
 [ ] active kernel installation
+[ ] version requirements
+
+Hardware / Memory
+[ ] GPU name / VRAM 확인
+[ ] System RAM 확인
+[ ] CPU worker 수 확인
+[ ] memory budget 설정
+[ ] batch size 보수적 시작
+[ ] sequence length 확인
+[ ] mixed precision 검토
+[ ] gradient accumulation 검토
+[ ] gradient checkpointing 검토
+[ ] quantization / offload 검토
+[ ] Memory Smoke Test
+[ ] OOM recovery strategy
+[ ] checkpoint / resume
+
+Compatibility
+[ ] Windows
+[ ] Linux
+[ ] macOS
+[ ] Jupyter
+[ ] Colab
+[ ] Colab Local Runtime
+
+Encoding
 [ ] UTF-8
-[ ] Korean text
-[ ] Korean matplotlib
-[ ] project root detection
-[ ] cross-platform path
-[ ] CPU/CUDA/MPS
-[ ] secret protection
-[ ] notebook idempotency
-[ ] Run All
-[ ] reusable code separation
+[ ] Korean console
+[ ] Korean files
+[ ] Korean CSV
+[ ] Korean visualization
+
+Security
+[ ] no hard-coded API keys
+[ ] no credentials committed
+
+Notebook
+[ ] bootstrap cells
+[ ] top-to-bottom execution
+[ ] idempotency
+[ ] no hidden state
+
+Code Quality
+[ ] PEP 8
+[ ] type hints
+[ ] error handling
+[ ] reusable code in src
 [ ] tests
 [ ] reproducibility metadata
 ```
 
 ---
 
-# 26. 다른 프로젝트에 복사할 때
+# 35. 다른 프로젝트에 복사할 때
 
 최소 구성은 다음 두 파일입니다.
 
@@ -905,9 +1274,9 @@ PROJECT_RULES.md
 
 ---
 
-# 27. 업데이트 방법
+# 36. 업데이트 방법
 
-이 표준 repository의 `LLM/AGENT.md`, `LLM/SKILL.md`를 최신 버전으로 받은 후 프로젝트에 반영합니다.
+이 표준 repository의 `LLM/AGENT.md`, `LLM/SKILL.md`, `LLM/README.md`를 최신 버전으로 받은 후 프로젝트에 반영합니다.
 
 ```bash
 git pull origin main
@@ -924,11 +1293,11 @@ Windows에서는 파일 탐색기나 PowerShell을 사용해도 됩니다. OS에
 
 ---
 
-# 28. 권장 운영 방식
+# 37. 권장 운영 방식
 
 이 문서를 단순한 Markdown 참고자료로만 사용하지 말고 **LLM 개발 프로젝트의 공통 계약(contract)**으로 취급합니다.
 
-Agent가 Notebook을 만들거나 수정할 때 다음을 기본 질문으로 삼습니다.
+특히 제한된 로컬 하드웨어에서는 다음 질문을 기본 점검 항목으로 삼습니다.
 
 ```text
 이 코드는 현재 OS에서만 동작하는가?
@@ -936,6 +1305,11 @@ Agent가 Notebook을 만들거나 수정할 때 다음을 기본 질문으로 �
 현재 kernel에 package를 설치하는가?
 한글이 깨지지 않는가?
 GPU가 없어도 실행 가능한가?
+현재 GPU VRAM과 RAM을 확인했는가?
+현재 설정이 4 GB VRAM / 16 GB RAM 환경에서 합리적인가?
+학습 전에 Memory Smoke Test를 수행하는가?
+OOM 또는 RAM 부족 시 낮출 설정이 정의되어 있는가?
+checkpoint로 학습을 재개할 수 있는가?
 API key가 노출되지 않는가?
 Kernel을 재시작하고 Run All할 수 있는가?
 재사용 코드는 src로 분리되어 있는가?
@@ -946,8 +1320,8 @@ Kernel을 재시작하고 Run All할 수 있는가?
 
 ---
 
-# 29. 관련 파일
+# 38. 관련 파일
 
 - `AGENT.md` — Agent가 따라야 할 전체 개발 규칙
 - `SKILL.md` — Jupyter/Colab LLM 작업 절차 및 실행 패턴
-- `README.md` — 설치, 적용, 사용 및 운영 가이드
+- `README.md` — 설치, 적용, 사용, 하드웨어 최적화 및 운영 가이드
