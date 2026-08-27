@@ -16,7 +16,7 @@ REQUIRED_LOCALIZED = {
     ".cursor/rules/coding-standard.mdc",
     ".windsurf/rules/coding-standard.md",
     ".clinerules/01-coding-standard.md",
-    ".continue/rules/01-coding-standard.md",
+    ".continue/rules/coding-standard.md",
     ".junie/AGENTS.md",
     ".amazonq/rules/coding-standard.md",
     "CONVENTIONS.md", ".aider.conf.yml",
@@ -24,6 +24,7 @@ REQUIRED_LOCALIZED = {
     "LLM/AGENT.md", "LLM/SKILL.md", "LLM/ENVIRONMENT.md", "LLM/README.md",
     "VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md", "VISION/README.md",
     "VISION/config/training.yaml", "VISION/config/ablation.yaml",
+    "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md", "MANUS/README.md",
 }
 CORE_CONCEPTS = ("environment", "memory", "early stopping", "checkpoint", "ablation")
 
@@ -47,9 +48,7 @@ def main() -> int:
         en_text = (ROOT / rel).read_text(encoding="utf-8").lower()
         ko_text = (KO / rel).read_text(encoding="utf-8").lower()
         for concept in CORE_CONCEPTS:
-            # INSTALL.md is a procedure document and may use translated wording,
-            # so require only structural parity there.
-            if rel == "INSTALL.md":
+            if rel in {"INSTALL.md", "MANUS/README.md", "MANUS/PROJECT_INSTRUCTIONS.md", "MANUS/SKILL.md"}:
                 continue
             if concept not in en_text or concept not in ko_text:
                 print(f"Missing core concept '{concept}' in {rel}")
