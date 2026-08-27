@@ -114,10 +114,12 @@ merge_text() {
 
   local start='<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->'
   local end='<!-- END CODINGSTANDARD MANAGED BLOCK -->'
-  if [[ "$destination" == *.yml || "$destination" == *.yaml ]]; then
-    start='# BEGIN CODINGSTANDARD MANAGED BLOCK'
-    end='# END CODINGSTANDARD MANAGED BLOCK'
-  fi
+  case "$destination" in
+    *.yml|*.yaml|*.py|*.sh|*.bash)
+      start='# BEGIN CODINGSTANDARD MANAGED BLOCK'
+      end='# END CODINGSTANDARD MANAGED BLOCK'
+      ;;
+  esac
 
   if grep -Fq "$start" <<< "$existing"; then
     awk -v start="$start" -v end="$end" -v incoming="$incoming" '
