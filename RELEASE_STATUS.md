@@ -1,1 +1,1 @@
-Release candidate 1.4.0. Complete all CI and platform validation before tagging.
+Release candidate 1.4.1. Complete all CI and platform validation before tagging.
