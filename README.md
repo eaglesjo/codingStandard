@@ -146,7 +146,7 @@ Google Colab validation is provided as a runnable notebook:
 
 [Open the Colab validation notebook](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb)
 
-The notebook runs in a clean Colab runtime, measures the environment, runs LLM and Vision smoke tests, and performs repository validation.
+The notebook can validate the original repository or a fork/moved copy. Enter a full GitHub URL, `owner/repository`, or just a GitHub owner name; an owner name automatically uses the `codingStandard` repository name. Private repositories can use a `GITHUB_TOKEN` Colab Secret or secure token prompt.
 
 ## Validation
 
