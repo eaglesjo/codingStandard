@@ -119,6 +119,16 @@ The profiler measures the actual Python/runtime environment, OS, CPU, RAM, disk,
 
 No specific GPU, RAM size, OS, or IDE is treated as a mandatory machine-specific prerequisite.
 
+## Memory Smoke Test
+
+Before a long training run, execute the standardized synthetic smoke test:
+
+```bash
+python LLM/memory_smoke_test.py --cpu --steps 2
+```
+
+On an accelerator-enabled machine, omit `--cpu` and use a conservative workload. The runner validates a minimal `load → forward → backward → optimizer step → checkpoint save/reload` path and records runtime, RAM, and GPU memory information. Use the same pattern with the real model before starting a full training job.
+
 ## AI Development Workflow
 
 ```text
@@ -237,9 +247,12 @@ Run local repository validation:
 
 ```bash
 python scripts/validate.py
+python scripts/check_i18n.py
+python scripts/test_installers.py
+python LLM/memory_smoke_test.py --cpu --steps 2
 ```
 
-GitHub Actions runs the same validation on pushes to `main` and pull requests. It checks required files, Korean template coverage, Python syntax, and machine-specific hardware assumptions in the shared documentation.
+GitHub Actions runs repository validation, installer integration tests, and a CPU memory smoke test on pushes to `main` and pull requests.
 
 ## Versioning
 
@@ -272,13 +285,16 @@ codingStandard/
 │   ├── SKILL.md
 │   ├── ENVIRONMENT.md
 │   ├── environment.py
+│   ├── memory_smoke_test.py
 │   ├── experiment.py
 │   ├── config/
 │   └── skills/
 ├── scripts/
 │   ├── install-coding-standard.ps1
 │   ├── install-coding-standard.sh
-│   └── validate.py
+│   ├── validate.py
+│   ├── check_i18n.py
+│   └── test_installers.py
 └── .github/workflows/validate-coding-standard.yml
 ```
 
@@ -289,5 +305,6 @@ codingStandard/
 - [Environment Optimization](LLM/ENVIRONMENT.md)
 - [LLM/Jupyter Guide](LLM/README.md)
 - [Environment Profiler](LLM/environment.py)
+- [Memory Smoke Test](LLM/memory_smoke_test.py)
 - [Experiment Metadata Helper](LLM/experiment.py)
 - [Korean README](README.ko.md)
