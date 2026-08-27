@@ -110,7 +110,7 @@ The installer can provision project-level instruction files for multiple AI codi
 | JetBrains Junie | `.junie/AGENTS.md` |
 | Aider | `CONVENTIONS.md` + `.aider.conf.yml` |
 
-Cursor project rules use `.mdc` files, Cline uses `.clinerules/`, Windsurf uses `.windsurf/rules/`, Continue uses `.continue/rules/`, and Junie supports `.junie/AGENTS.md` or the project `AGENTS.md`. Aider can always load a conventions file through its `read` configuration. citeturn288560search0turn371326search5turn226223search1turn226223search5turn371326search3turn226223search0
+The installed adapters follow each tool's documented project-rule location and format while pointing back to the common project standard.
 
 ## Usage
 
@@ -179,6 +179,18 @@ The installer selects either the English or Korean document set and copies it to
 The standard is environment-agnostic. `LLM/environment.py` measures the real execution environment and calculates a conservative starting configuration instead of assuming a particular machine.
 
 Recommended settings are treated as starting points only. The workload-specific Memory Smoke Test is the final gate before a long training run.
+
+The optimization policy may use, where supported and justified:
+
+- small batch sizes with gradient accumulation
+- mixed precision
+- gradient checkpointing
+- quantization
+- CPU offload
+- controlled DataLoader workers/prefetching
+- streaming/chunking/memory mapping
+- explicit CPU thread limits
+- inference mode for evaluation/inference
 
 ## ML / LLM Training Principles
 
