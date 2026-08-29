@@ -24,4 +24,4 @@ jobs:
         run: '$PSVersionTable | Format-List'
 
       - name: Run Windows installer integration tests
-        run: '& "$PWD/scripts/test_installers_windows.ps1" -RepositoryRoot "$PWD"'
+        run: '& "$PWD/scripts/installers/test_installers_windows.ps1" -RepositoryRoot "$PWD"'
