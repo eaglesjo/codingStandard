@@ -12,7 +12,7 @@ REQUIRED_LOCALIZED = {
     "AGENTS.md", "CLAUDE.md", "GEMINI.md", "INSTALL.md",
     ".github/copilot-instructions.md", ".github/instructions/llm.instructions.md", ".github/instructions/vision.instructions.md",
     ".cursor/rules/coding-standard.mdc", ".windsurf/rules/coding-standard.md", ".clinerules/01-coding-standard.md", ".continue/rules/01-coding-standard.md", ".junie/AGENTS.md", ".amazonq/rules/coding-standard.md",
-    "docs/development/CONVENTIONS.md", ".aider.conf.yml",
+    ".aider.conf.yml",
     "core/common/AGENT.md", "core/common/SKILL.md", "core/common/ENVIRONMENT.md", "core/common/environment.py", "core/common/experiment.py",
     "domains/llm/AGENT.md", "domains/llm/SKILL.md", "domains/llm/ENVIRONMENT.md", "domains/llm/README.md", "domains/llm/environment.py", "domains/llm/experiment.py", "domains/llm/memory_smoke_test.py",
     "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/README.md", "domains/vision/memory_smoke_test.py", "domains/vision/config/training.yaml", "domains/vision/config/ablation.yaml",
