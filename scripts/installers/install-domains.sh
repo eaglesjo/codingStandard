@@ -6,7 +6,7 @@ LANGUAGE="${2:-en}"
 DOMAIN="${3:-all}"
 POLICY="${4:-ask}"
 DRY_RUN="${5:-false}"
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 mkdir -p "$TARGET"
 TARGET="$(cd "$TARGET" && pwd)"
 SRC="$ROOT"
@@ -35,17 +35,17 @@ files=(
   .cursor/rules/coding-standard.mdc .windsurf/rules/coding-standard.md
   .clinerules/01-coding-standard.md .continue/rules/01-coding-standard.md
   .junie/AGENTS.md .amazonq/rules/coding-standard.md
-  CONVENTIONS.md .aider.conf.yml
-  COMMON/AGENT.md COMMON/SKILL.md COMMON/ENVIRONMENT.md COMMON/environment.py COMMON/experiment.py
-  MANUS/PROJECT_INSTRUCTIONS.md MANUS/SKILL.md MANUS/README.md
+  docs/development/CONVENTIONS.md .aider.conf.yml
+  core/common/AGENT.md core/common/SKILL.md core/common/ENVIRONMENT.md core/common/environment.py core/common/experiment.py
+  domains/manus/PROJECT_INSTRUCTIONS.md domains/manus/SKILL.md domains/manus/README.md
 )
 if [[ "$DOMAIN" == llm || "$DOMAIN" == all ]]; then
-  files+=(.github/instructions/llm.instructions.md LLM/AGENT.md LLM/SKILL.md LLM/ENVIRONMENT.md LLM/environment.py LLM/experiment.py LLM/memory_smoke_test.py LLM/README.md LLM/config/training.yaml LLM/config/ablation.yaml)
-  while IFS= read -r f; do files+=("${f#$SRC/}"); done < <(find "$SRC/LLM/skills" -type f -name SKILL.md 2>/dev/null | sort)
+  files+=(.github/instructions/llm.instructions.md domains/llm/AGENT.md domains/llm/SKILL.md domains/llm/ENVIRONMENT.md domains/llm/environment.py domains/llm/experiment.py domains/llm/memory_smoke_test.py domains/llm/README.md domains/llm/config/training.yaml domains/llm/config/ablation.yaml)
+  while IFS= read -r f; do files+=("${f#$SRC/}"); done < <(find "$SRC/domains/llm/skills" -type f -name SKILL.md 2>/dev/null | sort)
 fi
 if [[ "$DOMAIN" == vision || "$DOMAIN" == all ]]; then
-  files+=(.github/instructions/vision.instructions.md VISION/AGENT.md VISION/SKILL.md VISION/ENVIRONMENT.md VISION/memory_smoke_test.py VISION/README.md VISION/config/training.yaml VISION/config/ablation.yaml)
-  while IFS= read -r f; do files+=("${f#$SRC/}"); done < <(find "$SRC/VISION/skills" -type f -name SKILL.md 2>/dev/null | sort)
+  files+=(.github/instructions/vision.instructions.md domains/vision/AGENT.md domains/vision/SKILL.md domains/vision/ENVIRONMENT.md domains/vision/memory_smoke_test.py domains/vision/README.md domains/vision/config/training.yaml domains/vision/config/ablation.yaml)
+  while IFS= read -r f; do files+=("${f#$SRC/}"); done < <(find "$SRC/domains/vision/skills" -type f -name SKILL.md 2>/dev/null | sort)
 fi
 
 conflict_action() {
@@ -63,19 +63,8 @@ merge_text() {
   start='<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->'; end='<!-- END CODINGSTANDARD MANAGED BLOCK -->'
   [[ "$rel" =~ \.(py|ya?ml|sh|bash)$ ]] && { start='# BEGIN CODINGSTANDARD MANAGED BLOCK'; end='# END CODINGSTANDARD MANAGED BLOCK'; }
   if grep -Fq "$start" <<< "$old"; then
-    tmp="$(mktemp)"
-    printf '%s\n' "$new" > "$tmp"
-    awk -v s="$start" -v e="$end" -v nf="$tmp" '
-      BEGIN {
-        while ((getline line < nf) > 0) {
-          new = new line ORS
-        }
-        close(nf)
-      }
-      $0 == s { print; printf "%s", new; inside=1; next }
-      $0 == e { print; inside=0; next }
-      !inside { print }
-    ' <<< "$old"
+    tmp="$(mktemp)"; printf '%s\n' "$new" > "$tmp"
+    awk -v s="$start" -v e="$end" -v nf="$tmp" 'BEGIN { while ((getline line < nf) > 0) new = new line ORS; close(nf) } $0 == s { print; printf "%s", new; inside=1; next } $0 == e { print; inside=0; next } !inside { print }' <<< "$old"
     rm -f "$tmp"
   else
     printf '%s\n\n%s\n%s\n%s\n' "${old%$'\n'}" "$start" "$new" "$end"
@@ -86,17 +75,12 @@ for rel in "${files[@]}"; do
   src="$SRC/$rel"; dst="$TARGET/$rel"
   [[ -f "$src" ]] || { echo "Missing template: $rel" >&2; exit 1; }
   if [[ "$DRY_RUN" == true ]]; then
-    [[ -e "$dst" ]] && echo "[DRY-RUN] EXIST $rel" || echo "[DRY-RUN] CREATE $rel"
-    continue
+    [[ -e "$dst" ]] && echo "[DRY-RUN] EXIST $rel" || echo "[DRY-RUN] CREATE $rel"; continue
   fi
   mkdir -p "$(dirname "$dst")"
   if [[ ! -e "$dst" ]]; then cp "$src" "$dst"; continue; fi
   action="$(conflict_action "$rel")"
-  case "$action" in
-    skip) ;;
-    overwrite) cp "$src" "$dst" ;;
-    merge) old="$(cat "$dst")"; new="$(cat "$src")"; merge_text "$old" "$new" "$rel" > "$dst" ;;
-  esac
+  case "$action" in skip) ;; overwrite) cp "$src" "$dst" ;; merge) old="$(cat "$dst")"; new="$(cat "$src")"; merge_text "$old" "$new" "$rel" > "$dst" ;; esac
 done
 
 echo "Installed: language=$LANGUAGE domain=$DOMAIN dry_run=$DRY_RUN"

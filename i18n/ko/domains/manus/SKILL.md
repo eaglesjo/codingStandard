@@ -13,8 +13,8 @@ description: Manus 프로젝트에 codingStandard의 Common, LLM, Vision 개발 
 ## 작업 흐름
 
 1. 저장소를 분석하고 설치된 도메인을 확인합니다.
-2. `COMMON/AGENT.md`, `COMMON/SKILL.md`, `COMMON/ENVIRONMENT.md`를 적용합니다.
-3. 관련 `LLM/` 또는 `VISION/` 규칙을 적용합니다.
+2. `core/common/AGENT.md`, `core/common/SKILL.md`, `core/common/ENVIRONMENT.md`를 적용합니다.
+3. 관련 `domains/llm/` 또는 `domains/vision/` 규칙을 적용합니다.
 4. 실제 runtime과 자원을 측정하고 안전한 설정을 계산합니다.
 5. 장시간 ML 작업 전에 적절한 Memory Smoke Test를 실행합니다.
 6. 필요한 최소 변경을 구현합니다.

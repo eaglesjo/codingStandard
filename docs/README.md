@@ -1,13 +1,10 @@
 # Documentation
 
-This directory contains human-facing documentation that is not required to live at the repository root.
+This directory contains human-facing project documentation that is not required to live at the repository root.
 
 ## Sections
 
-- `releases/` — public release history, release notes, and release-specific documentation.
+- `development/` — development workflow and coding conventions.
+- `releases/` — release process and release-specific notes.
 
-Development-only documentation is maintained in the private development repository and is not part of the public distribution.
-
-## Public distribution boundary
-
-The public repository contains the validated distribution of `codingStandard`. Private development instructions, CI configuration, agent resources, and release staging artifacts are intentionally excluded from public releases.
+AI-agent entrypoints and tool-specific configuration remain in their required root or dot-directories.

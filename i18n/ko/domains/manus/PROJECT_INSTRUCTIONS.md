@@ -4,8 +4,8 @@
 
 ## 지침 적용 순서
 
-1. 저장소에 설치된 `COMMON/AGENT.md`, `COMMON/SKILL.md`, `COMMON/ENVIRONMENT.md`를 적용합니다.
-2. 설치된 도메인 중 관련 영역을 확인합니다: `LLM/`, `VISION/`.
+1. 저장소에 설치된 `core/common/AGENT.md`, `core/common/SKILL.md`, `core/common/ENVIRONMENT.md`를 적용합니다.
+2. 설치된 도메인 중 관련 영역을 확인합니다: `domains/llm/`, `domains/vision/`.
 3. 관련 도메인의 `AGENT.md`, `SKILL.md`, `ENVIRONMENT.md`를 적용합니다.
 4. 현재 작업과 관련된 Skill만 적용합니다.
 5. 수정하기 전에 README, 의존성, lock 파일, 테스트, 보안 제약, 기존 프로젝트 규칙을 확인합니다.

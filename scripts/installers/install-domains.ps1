@@ -6,7 +6,7 @@ param(
   [switch]$DryRun
 )
 $ErrorActionPreference='Stop'
-$Root=Split-Path -Parent $PSScriptRoot
+$Root=Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 if(-not $Language){
   Write-Host 'Language: 1) English  2) Korean'
@@ -39,17 +39,16 @@ function Conflict($path){
 }
 function AddFiles([System.Collections.Generic.List[string]]$list,[string]$domain){
   if($domain -eq 'common'){
-    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.cursor/rules/coding-standard.mdc','.windsurf/rules/coding-standard.md','.clinerules/01-coding-standard.md','.continue/rules/01-coding-standard.md','.junie/AGENTS.md','.amazonq/rules/coding-standard.md','CONVENTIONS.md','.aider.conf.yml','COMMON/AGENT.md','COMMON/SKILL.md','COMMON/ENVIRONMENT.md','COMMON/environment.py','COMMON/experiment.py','MANUS/PROJECT_INSTRUCTIONS.md','MANUS/SKILL.md','MANUS/README.md'))
+    $list.AddRange([string[]]@('AGENTS.md','CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.cursor/rules/coding-standard.mdc','.windsurf/rules/coding-standard.md','.clinerules/01-coding-standard.md','.continue/rules/01-coding-standard.md','.junie/AGENTS.md','.amazonq/rules/coding-standard.md','docs/development/CONVENTIONS.md','.aider.conf.yml','core/common/AGENT.md','core/common/SKILL.md','core/common/ENVIRONMENT.md','core/common/environment.py','core/common/experiment.py','domains/manus/PROJECT_INSTRUCTIONS.md','domains/manus/SKILL.md','domains/manus/README.md'))
   } elseif($domain -eq 'llm'){
-    $list.AddRange([string[]]@('.github/instructions/llm.instructions.md','LLM/AGENT.md','LLM/SKILL.md','LLM/ENVIRONMENT.md','LLM/environment.py','LLM/experiment.py','LLM/memory_smoke_test.py','LLM/README.md','LLM/config/training.yaml','LLM/config/ablation.yaml'))
-    Get-ChildItem "$SrcRoot/LLM/skills" -Recurse -Filter SKILL.md | ForEach-Object {$list.Add($_.FullName.Substring($SrcRoot.Length+1))}
+    $list.AddRange([string[]]@('.github/instructions/llm.instructions.md','domains/llm/AGENT.md','domains/llm/SKILL.md','domains/llm/ENVIRONMENT.md','domains/llm/environment.py','domains/llm/experiment.py','domains/llm/memory_smoke_test.py','domains/llm/README.md','domains/llm/config/training.yaml','domains/llm/config/ablation.yaml'))
+    Get-ChildItem "$SrcRoot/domains/llm/skills" -Recurse -Filter SKILL.md | ForEach-Object {$list.Add($_.FullName.Substring($SrcRoot.Length+1))}
   } elseif($domain -eq 'vision'){
-    $list.AddRange([string[]]@('.github/instructions/vision.instructions.md','VISION/AGENT.md','VISION/SKILL.md','VISION/ENVIRONMENT.md','VISION/memory_smoke_test.py','VISION/README.md','VISION/config/training.yaml','VISION/config/ablation.yaml'))
-    Get-ChildItem "$SrcRoot/VISION/skills" -Recurse -Filter SKILL.md | ForEach-Object {$list.Add($_.FullName.Substring($SrcRoot.Length+1))}
+    $list.AddRange([string[]]@('.github/instructions/vision.instructions.md','domains/vision/AGENT.md','domains/vision/SKILL.md','domains/vision/ENVIRONMENT.md','domains/vision/memory_smoke_test.py','domains/vision/README.md','domains/vision/config/training.yaml','domains/vision/config/ablation.yaml'))
+    Get-ChildItem "$SrcRoot/domains/vision/skills" -Recurse -Filter SKILL.md | ForEach-Object {$list.Add($_.FullName.Substring($SrcRoot.Length+1))}
   }
 }
-$files=[System.Collections.Generic.List[string]]::new()
-AddFiles $files 'common'
+$files=[System.Collections.Generic.List[string]]::new(); AddFiles $files 'common'
 if($Domain -eq 'llm'){AddFiles $files 'llm'}elseif($Domain -eq 'vision'){AddFiles $files 'vision'}elseif($Domain -eq 'all'){AddFiles $files 'llm';AddFiles $files 'vision'}
 foreach($rel in $files){
   $src=Join-Path $SrcRoot $rel;$dst=Join-Path $Target $rel
@@ -59,9 +58,7 @@ foreach($rel in $files){
   $new=[IO.File]::ReadAllText($src,[Text.UTF8Encoding]::new($false))
   if(!(Test-Path $dst)){[IO.File]::WriteAllText($dst,$new,[Text.UTF8Encoding]::new($false));continue}
   $a=Conflict $rel
-  if($a -eq 'Skip'){continue}
-  if($a -eq 'Overwrite'){[IO.File]::WriteAllText($dst,$new,[Text.UTF8Encoding]::new($false));continue}
-  $old=[IO.File]::ReadAllText($dst)
-  [IO.File]::WriteAllText($dst,(MergeText $old $new $rel),[Text.UTF8Encoding]::new($false))
+  if($a -eq 'Skip'){continue}; if($a -eq 'Overwrite'){[IO.File]::WriteAllText($dst,$new,[Text.UTF8Encoding]::new($false));continue}
+  $old=[IO.File]::ReadAllText($dst); [IO.File]::WriteAllText($dst,(MergeText $old $new $rel),[Text.UTF8Encoding]::new($false))
 }
 Write-Host "Installed: language=$Language domain=$Domain dryRun=$DryRun"
