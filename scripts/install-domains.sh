@@ -53,16 +53,30 @@ conflict_action() {
   [[ "$POLICY" != "ask" ]] && { printf '%s' "$action"; return; }
   while true; do
     read -r -p "Existing $rel [m]erge [o]verwrite [s]kip: " c
-    case "${c,,}" in m) echo merge; return;; o) echo overwrite; return;; s) echo skip; return;; esac
+    c="$(printf '%s' "$c" | tr '[:upper:]' '[:lower:]')"
+    case "$c" in m) echo merge; return;; o) echo overwrite; return;; s) echo skip; return;; esac
   done
 }
 
 merge_text() {
-  local old="$1" new="$2" rel="$3" start end
+  local old="$1" new="$2" rel="$3" start end tmp
   start='<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->'; end='<!-- END CODINGSTANDARD MANAGED BLOCK -->'
   [[ "$rel" =~ \.(py|ya?ml|sh|bash)$ ]] && { start='# BEGIN CODINGSTANDARD MANAGED BLOCK'; end='# END CODINGSTANDARD MANAGED BLOCK'; }
   if grep -Fq "$start" <<< "$old"; then
-    awk -v s="$start" -v e="$end" -v n="$new" '$0==s{print;print n;inside=1;next}$0==e{print;inside=0;next}!inside{print}' <<< "$old"
+    tmp="$(mktemp)"
+    printf '%s\n' "$new" > "$tmp"
+    awk -v s="$start" -v e="$end" -v nf="$tmp" '
+      BEGIN {
+        while ((getline line < nf) > 0) {
+          new = new line ORS
+        }
+        close(nf)
+      }
+      $0 == s { print; printf "%s", new; inside=1; next }
+      $0 == e { print; inside=0; next }
+      !inside { print }
+    ' <<< "$old"
+    rm -f "$tmp"
   else
     printf '%s\n\n%s\n%s\n%s\n' "${old%$'\n'}" "$start" "$new" "$end"
   fi

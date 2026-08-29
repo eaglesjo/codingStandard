@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-STANDARD_VERSION = "1.4.1"
+STANDARD_VERSION = "1.5.0"
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,8 @@ class EnvironmentProfile:
     python: str
     executable: str
     ide: str
+    execution_environment: str
+    execution_type: str
     jupyter: bool
     colab: bool
     cpu_count: int | None
@@ -51,17 +53,45 @@ class EnvironmentProfile:
     profile: str
 
 
-def _detect_ide() -> str:
+def _is_colab() -> bool:
     env = os.environ
-    if env.get("COLAB_RELEASE_TAG") or env.get("COLAB_GPU"):
+    return bool(
+        env.get("COLAB_RELEASE_TAG")
+        or env.get("COLAB_GPU")
+        or "google.colab" in sys.modules
+    )
+
+
+def _is_jupyter() -> bool:
+    return "ipykernel" in sys.modules or bool(os.environ.get("JPY_PARENT_PID"))
+
+
+def _is_vscode() -> bool:
+    env = os.environ
+    return bool(env.get("VSCODE_PID") or env.get("TERM_PROGRAM") == "vscode")
+
+
+def _detect_ide() -> str:
+    if _is_colab():
         return "colab"
-    if env.get("VSCODE_PID") or env.get("TERM_PROGRAM") == "vscode":
+    if _is_vscode():
         return "vscode"
-    if "JPY_PARENT_PID" in env:
+    if _is_jupyter():
         return "jupyter"
-    if env.get("JETBRAINS_IDE"):
+    if os.environ.get("JETBRAINS_IDE"):
         return "jetbrains"
     return "unknown"
+
+
+def _detect_execution_environment() -> tuple[str, str]:
+    """Return (environment, type) without conflating OS with runtime."""
+    if _is_colab():
+        return "colab", "cloud"
+    if _is_jupyter():
+        return "jupyter", "local"
+    if _is_vscode():
+        return "vscode", "local"
+    return "local", "local"
 
 
 def _ram_info() -> tuple[float | None, float | None]:
@@ -169,10 +199,12 @@ def inspect_environment() -> EnvironmentProfile:
     acc = _detect_accelerator()
     device = _resolve_device(acc)
     runtime = _resolve_runtime(device, ram_available, acc["vram_free_gb"], acc["fp16"], acc["bf16"], os.cpu_count())
+    execution_environment, execution_type = _detect_execution_environment()
     return EnvironmentProfile(
         standard_version=STANDARD_VERSION,
         os=platform.system(), architecture=platform.machine(), python=platform.python_version(), executable=sys.executable,
-        ide=_detect_ide(), jupyter="ipykernel" in sys.modules, colab="google.colab" in sys.modules,
+        ide=_detect_ide(), execution_environment=execution_environment, execution_type=execution_type,
+        jupyter=_is_jupyter(), colab=_is_colab(),
         cpu_count=os.cpu_count(), ram_total_gb=ram_total, ram_available_gb=ram_available,
         disk_total_gb=disk_total, disk_free_gb=disk_free,
         accelerator_vendor=acc["vendor"], accelerator_name=acc["name"], vram_total_gb=acc["vram_total_gb"], vram_free_gb=acc["vram_free_gb"],
@@ -189,6 +221,8 @@ def to_runtime_config(profile: EnvironmentProfile) -> dict[str, Any]:
     return {
         "standard_version": profile.standard_version,
         "device": profile.device,
+        "execution_environment": profile.execution_environment,
+        "execution_type": profile.execution_type,
         "batch_size": profile.recommended_batch_size,
         "gradient_accumulation_steps": profile.recommended_gradient_accumulation_steps,
         "num_workers": profile.recommended_num_workers,

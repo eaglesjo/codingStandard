@@ -26,7 +26,7 @@ REQUIRED_FILES = [
     "VISION/AGENT.md", "VISION/SKILL.md", "VISION/ENVIRONMENT.md",
     "VISION/memory_smoke_test.py", "VISION/README.md",
     "scripts/install-domains.ps1", "scripts/install-domains.sh",
-    "scripts/check_i18n.py", "scripts/test_installers.py",
+    "scripts/check_i18n.py", "scripts/test_installers.py", "scripts/test_environment.py",
     "scripts/test_installers_windows.ps1",
     ".github/workflows/windows-install-test.yml",
     "tests/colab/README.md", "tests/colab/codingstandard_colab_test.ipynb",
@@ -57,6 +57,23 @@ def check_python() -> None:
             ast.parse(path.read_text(encoding="utf-8"))
         except SyntaxError as exc:
             fail(f"Python syntax error in {path}: {exc}")
+
+
+def run_environment_tests() -> None:
+    test_script = ROOT / "scripts" / "test_environment.py"
+    proc = subprocess.run(
+        [sys.executable, str(test_script)],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.stdout:
+        print(proc.stdout, end="")
+    if proc.returncode != 0:
+        if proc.stderr:
+            print(proc.stderr, file=sys.stderr, end="")
+        fail("Environment detection tests failed")
 
 
 def check_notebook() -> None:
@@ -142,6 +159,7 @@ def check_version_consistency() -> None:
 def main() -> None:
     check_required_files()
     check_python()
+    run_environment_tests()
     check_notebook()
     check_hardware_neutrality()
     check_no_legacy_installer()

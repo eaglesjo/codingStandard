@@ -6,16 +6,17 @@
 
 <p align="center">
   <a href="https://github.com/eaglesjo/codingStandard/releases"><img src="https://img.shields.io/github/v/release/eaglesjo/codingStandard?label=public%20release" alt="Public release"></a>
-  <a href="https://github.com/eaglesjo/codingStandard-private/actions/workflows/validate-coding-standard.yml"><img src="https://github.com/eaglesjo/codingStandard-private/actions/workflows/validate-coding-standard.yml/badge.svg?branch=main" alt="CI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
   <a href="https://github.com/eaglesjo/codingStandard"><img src="https://img.shields.io/github/stars/eaglesjo/codingStandard?style=flat" alt="GitHub stars"></a>
 </p>
 
 > **Language:** English (default) · [한국어 README](README.ko.md) · [한국어 설치 가이드](i18n/ko/INSTALL.md)
-
-AI Engineering Standard is a reusable engineering standard for AI-assisted development, model training, experimentation, LLM/Vision workflows, and AI coding agents.
+>
+> **Repository model:** `codingStandard-private` is the development source of truth. Validated releases are published to the public [`eaglesjo/codingStandard`](https://github.com/eaglesjo/codingStandard) repository.
 
 ## ✨ What is AI Engineering Standard?
+
+`codingStandard` is a reusable engineering standard for AI-assisted development, model training, experimentation, LLM/Vision workflows, and AI coding agents.
 
 It provides:
 
@@ -70,6 +71,8 @@ AI Engineering Standard is designed to work across local Python development, int
 
 The repository includes a runnable Google Colab validation notebook and runtime/resource detection designed to account for notebook and Colab environments.
 
+For VS Code, the standard can be used alongside the Python and Jupyter extensions. VS Code supports Python environments, testing, debugging, and Jupyter notebooks, making it a natural development environment for this standard. citeturn0search0turn0search1
+
 > **Support scope:** Python, Jupyter, Colab, and VS Code are development/runtime environments rather than AI-agent adapters. Their support means that the standard's rules, installers, runtime detection, validation, and documented workflows are designed to work in those environments.
 
 ### Manus
@@ -88,6 +91,8 @@ Copy `MANUS/PROJECT_INSTRUCTIONS.md` into the Manus Project Instructions for the
 See [Manus Integration](MANUS/README.md) for details.
 
 ## 🚀 Quick Start
+
+Clone the public distribution repository in the project you want to configure:
 
 ### Windows / PowerShell
 
@@ -243,4 +248,8 @@ This project is released under the [MIT License](LICENSE).
 
 ## 🔗 Public Distribution
 
-This repository is the public distribution of AI Engineering Standard. Development and validation are maintained separately in the private source repository.
+The validated public distribution is maintained separately:
+
+**[`eaglesjo/codingStandard`](https://github.com/eaglesjo/codingStandard)**
+
+Releases are published from this private development repository after validation.
