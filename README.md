@@ -1,16 +1,95 @@
-# codingStandard
+# AI Engineering Standard
+
+<p align="center">
+  <strong>AI Development, Training & Agent Engineering Standards</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/eaglesjo/codingStandard/releases"><img src="https://img.shields.io/github/v/release/eaglesjo/codingStandard?label=public%20release" alt="Public release"></a>
+  <a href="https://github.com/eaglesjo/codingStandard-private/actions/workflows/validate-coding-standard.yml"><img src="https://github.com/eaglesjo/codingStandard-private/actions/workflows/validate-coding-standard.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
+  <a href="https://github.com/eaglesjo/codingStandard"><img src="https://img.shields.io/github/stars/eaglesjo/codingStandard?style=flat" alt="GitHub stars"></a>
+</p>
 
 > **Language:** English (default) · [한국어 README](README.ko.md) · [한국어 설치 가이드](i18n/ko/INSTALL.md)
 
-An AI-oriented development standard for projects that use AI coding agents, LLM/ML workflows, and computer-vision workloads.
+AI Engineering Standard is a reusable engineering standard for AI-assisted development, model training, experimentation, LLM/Vision workflows, and AI coding agents.
 
-## Installation
+## ✨ What is AI Engineering Standard?
 
-Clone the repository, then run the domain installer from the project you want to configure.
+It provides:
+
+- shared project instructions and coding rules;
+- LLM and Vision domain guidance;
+- task-specific Skills;
+- environment and resource detection;
+- cross-platform installers;
+- English/Korean localization;
+- validation and installer test suites;
+- Manus Project Instructions and Skills;
+- reproducible training and experiment guidance.
+
+## 🤖 Supported AI Development Tools
+
+The repository provides project-level adapters, instruction files, Skills, or documented integration paths for a broad set of AI development tools.
+
+<table>
+  <tr>
+    <td align="center">🧑‍💻<br><strong>OpenAI Codex</strong></td>
+    <td align="center">🤖<br><strong>Claude Code</strong></td>
+    <td align="center">✨<br><strong>Gemini CLI</strong></td>
+    <td align="center">🐙<br><strong>GitHub Copilot</strong></td>
+  </tr>
+  <tr>
+    <td align="center">⌨️<br><strong>Cursor</strong></td>
+    <td align="center">🌊<br><strong>Windsurf</strong></td>
+    <td align="center">🐙<br><strong>Cline</strong></td>
+    <td align="center">🔄<br><strong>Continue</strong></td>
+  </tr>
+  <tr>
+    <td align="center">🧩<br><strong>JetBrains Junie</strong></td>
+    <td align="center">☁️<br><strong>Amazon Q Developer</strong></td>
+    <td align="center">🛠️<br><strong>Aider</strong></td>
+    <td align="center">🧠<br><strong>Manus</strong></td>
+  </tr>
+</table>
+
+> Support means that the repository contains a documented adapter, instruction file, Skill, or integration path for the tool. Tool capabilities and integration details can differ by client and version.
+
+## 🐍 Supported Development Environments
+
+AI Engineering Standard is designed to work across local Python development, interactive notebook workflows, cloud notebooks, and AI-assisted IDE workflows.
+
+| Environment / Tool | Support | Use case |
+|---|---|---|
+| 🐍 **Python** | ✅ Core | Runtime detection, environment configuration, training, inference, validation, and automation |
+| 📓 **Jupyter Notebook** | ✅ Supported | Interactive experiments, analysis, training, debugging, and reproducible notebook workflows |
+| ☁️ **Google Colab** | ✅ Validated | Cloud-based Python/Jupyter execution, resource-aware experiments, and GPU/accelerator workflows |
+| 💻 **Visual Studio Code** | ✅ Supported | Python development, Jupyter notebooks, debugging, testing, and AI-assisted development |
+| 🧪 **VS Code + Jupyter** | ✅ Supported | Notebook editing/execution, Python interactive workflows, and remote Jupyter workflows |
+
+The repository includes a runnable Google Colab validation notebook and runtime/resource detection designed to account for notebook and Colab environments.
+
+> **Support scope:** Python, Jupyter, Colab, and VS Code are development/runtime environments rather than AI-agent adapters. Their support means that the standard's rules, installers, runtime detection, validation, and documented workflows are designed to work in those environments.
+
+### Manus
+
+Manus uses a different integration model from repository-root `AGENTS.md`-style agents. The repository provides:
+
+```text
+MANUS/
+├── PROJECT_INSTRUCTIONS.md
+├── SKILL.md
+└── README.md
+```
+
+Copy `MANUS/PROJECT_INSTRUCTIONS.md` into the Manus Project Instructions for the target project. Import `MANUS/SKILL.md` as a Manus Skill when appropriate. Review Skills and bundled scripts before importing or executing them.
+
+See [Manus Integration](MANUS/README.md) for details.
+
+## 🚀 Quick Start
 
 ### Windows / PowerShell
-
-The installer creates the target directory when it does not exist. Omit language/domain to choose interactively.
 
 ```powershell
 git clone https://github.com/eaglesjo/codingStandard.git
@@ -23,8 +102,6 @@ Explicit installation:
 powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target . -Language en -Domain all
 powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target . -Language ko -Domain vision
 ```
-
-Preview changes with `-DryRun`. Existing files use `-ConflictAction Ask|Merge|Overwrite|Skip`.
 
 ### Linux / macOS
 
@@ -40,38 +117,26 @@ bash ./codingStandard/scripts/install-domains.sh . en all ask false
 bash ./codingStandard/scripts/install-domains.sh . ko vision overwrite false
 ```
 
-Arguments are: `target language domain conflict-policy dry-run`.
+Arguments are:
+
+```text
+target language domain conflict-policy dry-run
+```
+
+Use `-DryRun` on PowerShell to preview changes. Existing files can use `-ConflictAction Ask|Merge|Overwrite|Skip`.
 
 For the full Korean installation instructions, see [`i18n/ko/INSTALL.md`](i18n/ko/INSTALL.md).
 
-## Installation Domains
+## 📦 Installation Domains
 
-```text
-common = Common only
-llm    = Common + LLM
-vision = Common + Vision
-all    = Common + LLM + Vision
-```
+| Domain | Installs |
+|---|---|
+| `common` | Common only |
+| `llm` | Common + LLM |
+| `vision` | Common + Vision |
+| `all` | Common + LLM + Vision |
 
-## Supported AI Development Tools
-
-The installer provisions project-level adapters for common coding agents and AI development tools, including OpenAI Codex-compatible agents, Claude Code, Gemini CLI, GitHub Copilot, Cursor, Windsurf, Cline, Continue, JetBrains Junie, Amazon Q Developer, and Aider.
-
-### Manus
-
-Manus uses a different integration model. It currently documents Project Instructions and file-system-based Skills rather than a repository-root `AGENTS.md`-style automatic instruction file.
-
-The installer therefore also provides:
-
-```text
-MANUS/PROJECT_INSTRUCTIONS.md
-MANUS/SKILL.md
-MANUS/README.md
-```
-
-Copy `MANUS/PROJECT_INSTRUCTIONS.md` into the Manus Project Instructions for the project. Import `MANUS/SKILL.md` using Manus Skills when appropriate. Review Skills and bundled scripts before importing or executing them.
-
-## AI Development Workflow
+## 🧭 AI Development Workflow
 
 ```text
 Load project instructions
@@ -99,19 +164,21 @@ Ablation / Experiment Metadata
 Final clean run
 ```
 
-## Environment and Resource Optimization
+## 🧠 Environment and Resource Optimization
 
 Runtime decisions are based on measured capabilities rather than a named machine profile. The shared profiler considers OS, Python/runtime, CPU, RAM, disk, accelerators, VRAM, CUDA/ROCm/MPS/DirectML, precision capability, and Jupyter/Colab state.
 
-Use `COMMON/environment.py` as the shared environment source. LLM and Vision expose adapters/policies on top of it.
+Use `COMMON/environment.py` as the shared environment source. LLM and Vision expose adapters and policies on top of it.
 
-## Common / LLM / Vision
+For long-running ML work, use conservative runtime settings, Memory Smoke Tests, Early Stopping where meaningful, best Checkpoint, Resume, controlled Ablation Study, seed control, resource tracking, and staged recovery from resource failures.
 
-`COMMON/` provides shared rules and runtime utilities. `LLM/` provides language-model and NLP workflows. `VISION/` provides computer-vision workflows including classification, detection, segmentation, OCR, pose estimation, image generation, and VLM.
+## 🧩 Common / LLM / Vision
 
-## Skills
+- `COMMON/` — shared rules and runtime utilities.
+- `LLM/` — language-model and NLP workflows.
+- `VISION/` — computer-vision workflows including classification, detection, segmentation, OCR, pose estimation, image generation, and VLM.
 
-Skills are task-specific and should be loaded only when relevant.
+### Skills
 
 ```text
 LLM/skills/
@@ -132,23 +199,11 @@ VISION/skills/
 └── vlm/
 ```
 
-## Training and Experiments
+Skills are task-specific and should be loaded only when relevant.
 
-Long-running training should use validation, Early Stopping where meaningful, best Checkpoint, Resume, controlled Ablation Study, seed control, resource tracking, Git/environment/config metadata, and staged recovery from resource failures.
+## 🧪 Validation
 
-Shared experiment metadata is implemented in `COMMON/experiment.py` and exposed through the LLM adapter.
-
-## Platform Validation
-
-GitHub Actions validates the installer on a real `windows-latest` runner using Windows PowerShell and PowerShell 7. The test matrix covers English/Korean, Common/LLM/Vision/All, dry-run, merge preservation, Unicode/space paths, and removal of legacy installers.
-
-Google Colab validation is provided as a runnable notebook:
-
-[Open the Colab validation notebook](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb)
-
-The notebook can validate the original repository or a fork/moved copy. Enter a full GitHub URL, `owner/repository`, or just a GitHub owner name; an owner name automatically uses the `codingStandard` repository name. Private repositories can use a `GITHUB_TOKEN` Colab Secret or secure token prompt.
-
-## Validation
+Run the relevant checks before publishing a release:
 
 ```bash
 python scripts/validate.py
@@ -156,13 +211,17 @@ python scripts/check_i18n.py
 python scripts/test_installers.py
 ```
 
-Run the relevant LLM/Vision Memory Smoke Test before long training.
+For ML workloads, run the relevant LLM/Vision Memory Smoke Test before long-running training.
 
-## License
+### Platform validation
 
-This project is released under the MIT License. See `LICENSE`.
+GitHub Actions validates installers on Windows using both Windows PowerShell and PowerShell 7. The test matrix covers English/Korean, Common/LLM/Vision/All, dry-run, merge preservation, Unicode/space paths, and legacy-installer removal.
 
-## Documentation
+Google Colab validation is provided as a runnable notebook:
+
+[Open the Colab validation notebook](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb)
+
+## 📚 Documentation
 
 - [Installation Guide](INSTALL.md)
 - [Korean Installation Guide](i18n/ko/INSTALL.md)
@@ -177,3 +236,11 @@ This project is released under the MIT License. See `LICENSE`.
 - [Windows Installer Test](scripts/test_installers_windows.ps1)
 - [Colab Validation](tests/colab/README.md)
 - [Korean README](README.ko.md)
+
+## 📄 License
+
+This project is released under the [MIT License](LICENSE).
+
+## 🔗 Public Distribution
+
+This repository is the public distribution of AI Engineering Standard. Development and validation are maintained separately in the private source repository.
