@@ -11,7 +11,6 @@ REQUIRED_DIRECTORIES = (
     "domains/llm",
     "domains/manus",
     "domains/vision",
-    "docs/development",
     "docs/releases",
     "scripts/development",
     "scripts/installers",
