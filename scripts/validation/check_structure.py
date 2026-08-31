@@ -9,7 +9,6 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_DIRECTORIES = (
     "core/common",
     "domains/llm",
-    "domains/manus",
     "domains/vision",
     "docs/releases",
     "scripts/development",
@@ -25,6 +24,7 @@ LEGACY_PATHS = (
     "VERSION-1.4.0", "scripts/validate.py", "scripts/check_i18n.py",
     "scripts/test_environment.py", "scripts/test_installers.py",
     "scripts/install-domains.sh", "scripts/install-domains.ps1",
+    "domains/manus",
 )
 
 
