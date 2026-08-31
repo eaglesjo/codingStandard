@@ -11,8 +11,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-STANDARD_VERSION = "1.5.0"
-
+STANDARD_VERSION = "1.6.0"
 
 @dataclass(frozen=True)
 class EnvironmentProfile:
