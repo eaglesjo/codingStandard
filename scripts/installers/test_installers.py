@@ -16,7 +16,6 @@ COMMON = [
     ".clinerules/01-coding-standard.md", ".continue/rules/01-coding-standard.md",
     ".junie/AGENTS.md", ".amazonq/rules/coding-standard.md", ".aider.conf.yml",
     "core/common/AGENT.md", "core/common/SKILL.md", "core/common/ENVIRONMENT.md", "core/common/environment.py", "core/common/experiment.py",
-    "domains/manus/PROJECT_INSTRUCTIONS.md", "domains/manus/SKILL.md", "domains/manus/README.md",
 ]
 LLM = [".github/instructions/llm.instructions.md", "domains/llm/AGENT.md", "domains/llm/SKILL.md", "domains/llm/ENVIRONMENT.md", "domains/llm/environment.py", "domains/llm/experiment.py", "domains/llm/memory_smoke_test.py", "domains/llm/README.md"]
 VISION = [".github/instructions/vision.instructions.md", "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/memory_smoke_test.py", "domains/vision/README.md"]

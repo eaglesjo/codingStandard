@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 FORBIDDEN_HARDWARE_PATTERNS = [re.compile(r"RTX\s*3050", re.I), re.compile(r"3050\s*Ti", re.I), re.compile(r"4\s*GB\s*VRAM", re.I), re.compile(r"16\s*GB\s*(RAM|System RAM)", re.I)]
-REQUIRED_FILES = ["VERSION", "AGENTS.md", "CLAUDE.md", "GEMINI.md", "INSTALL.md", "core/common/AGENT.md", "core/common/SKILL.md", "core/common/ENVIRONMENT.md", "core/common/environment.py", "core/common/experiment.py", "domains/manus/PROJECT_INSTRUCTIONS.md", "domains/manus/SKILL.md", "domains/manus/README.md", "domains/llm/AGENT.md", "domains/llm/SKILL.md", "domains/llm/ENVIRONMENT.md", "domains/llm/environment.py", "domains/llm/memory_smoke_test.py", "domains/llm/experiment.py", "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/memory_smoke_test.py", "domains/vision/README.md", "scripts/installers/install-domains.ps1", "scripts/installers/install-domains.sh", "scripts/validation/check_i18n.py", "scripts/validation/check_structure.py", "scripts/installers/test_installers.py", "scripts/development/test_environment.py", "scripts/installers/test_installers_windows.ps1", ".github/workflows/windows-install-test.yml", "tests/colab/README.md", "tests/colab/codingstandard_colab_test.ipynb", "LICENSE"]
+REQUIRED_FILES = ["VERSION", "AGENTS.md", "CLAUDE.md", "GEMINI.md", "INSTALL.md", "core/common/AGENT.md", "core/common/SKILL.md", "core/common/ENVIRONMENT.md", "core/common/environment.py", "core/common/experiment.py", "domains/llm/AGENT.md", "domains/llm/SKILL.md", "domains/llm/ENVIRONMENT.md", "domains/llm/environment.py", "domains/llm/memory_smoke_test.py", "domains/llm/experiment.py", "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/memory_smoke_test.py", "domains/vision/README.md", "scripts/installers/install-domains.ps1", "scripts/installers/install-domains.sh", "scripts/validation/check_i18n.py", "scripts/validation/check_structure.py", "scripts/installers/test_installers.py", "scripts/development/test_environment.py", "scripts/installers/test_installers_windows.ps1", ".github/workflows/windows-install-test.yml", "tests/colab/README.md", "tests/colab/codingstandard_colab_test.ipynb", "LICENSE"]
 
 
 def fail(message: str) -> None:
@@ -28,8 +28,7 @@ def run_checker(path: Path, label: str) -> None:
 
 def check_required_files() -> None:
     missing = [p for p in REQUIRED_FILES if not (ROOT / p).is_file()]
-    for p in ("i18n/ko/INSTALL.md", "i18n/ko/domains/manus/PROJECT_INSTRUCTIONS.md", "i18n/ko/domains/manus/SKILL.md", "i18n/ko/domains/manus/README.md"):
-        if not (ROOT / p).is_file(): missing.append(p)
+    if not (ROOT / "i18n/ko/INSTALL.md").is_file(): missing.append("i18n/ko/INSTALL.md")
     if missing: fail("Missing required files: " + ", ".join(missing))
 
 

@@ -16,9 +16,8 @@ REQUIRED_LOCALIZED = {
     "core/common/AGENT.md", "core/common/SKILL.md", "core/common/ENVIRONMENT.md", "core/common/environment.py", "core/common/experiment.py",
     "domains/llm/AGENT.md", "domains/llm/SKILL.md", "domains/llm/ENVIRONMENT.md", "domains/llm/README.md", "domains/llm/environment.py", "domains/llm/experiment.py", "domains/llm/memory_smoke_test.py",
     "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/README.md", "domains/vision/memory_smoke_test.py", "domains/vision/config/training.yaml", "domains/vision/config/ablation.yaml",
-    "domains/manus/PROJECT_INSTRUCTIONS.md", "domains/manus/SKILL.md", "domains/manus/README.md",
 }
-SEMANTIC_DOCUMENTS = {p for p in REQUIRED_LOCALIZED if p.endswith(".md") and p not in {"domains/llm/README.md", "domains/vision/README.md", "domains/manus/README.md"}}
+SEMANTIC_DOCUMENTS = {p for p in REQUIRED_LOCALIZED if p.endswith(".md") and p not in {"domains/llm/README.md", "domains/vision/README.md"}}
 CONCEPT_ALTERNATIVES = {
     "environment": {"en": ("environment", "runtime"), "ko": ("환경", "실행환경", "런타임")},
     "memory": {"en": ("memory", "ram", "vram"), "ko": ("메모리", "램", "브이램")},
