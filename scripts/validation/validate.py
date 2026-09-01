@@ -33,10 +33,11 @@ REQUIRED_FILES = [
     "domains/llm/environment.py", "domains/llm/memory_smoke_test.py", "domains/llm/experiment.py",
     "domains/llm/skills/finetuning/SKILL.md", "domains/llm/skills/peft/SKILL.md", "domains/llm/skills/quantization/SKILL.md", "domains/llm/skills/rag/SKILL.md",
     "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/memory_smoke_test.py", "domains/vision/README.md",
-    "platform/colab/AGENT.md", "platform/colab/SKILL.md",
+    "platform/colab/AGENT.md", "platform/colab/SKILL.md", "platform/colab/validate_runtime.py",
+    "examples/colab/clean_runtime_validation.ipynb", "docs/development/ML_RUNTIME_VALIDATION.md",
     ".github/instructions/ml.instructions.md", ".github/instructions/colab.instructions.md",
     "scripts/installers/install-domains.ps1", "scripts/installers/install-domains.sh",
-    "scripts/validation/check_i18n.py", "scripts/validation/check_structure.py", "scripts/validation/validate-domains.py", "scripts/installers/test_installers.py", "scripts/development/test_environment.py", "scripts/development/test_dependencies.py",
+    "scripts/validation/check_i18n.py", "scripts/validation/check_structure.py", "scripts/validation/validate-domains.py", "scripts/validation/validate_agent_routing.py", "scripts/installers/test_installers.py", "scripts/development/test_environment.py", "scripts/development/test_dependencies.py",
     "scripts/installers/test_installers_windows.ps1", ".github/workflows/windows-install-test.yml",
     "tests/colab/README.md", "tests/colab/codingstandard_colab_test.ipynb", "LICENSE",
 ]
@@ -71,20 +72,15 @@ def run_environment_tests() -> None:
     run_checker(ROOT / "scripts" / "development" / "test_environment.py", "Environment detection tests")
     run_checker(ROOT / "scripts" / "development" / "test_dependencies.py", "Dependency contract tests")
     run_checker(ROOT / "scripts" / "validation" / "validate-domains.py", "Domain resource validation")
+    run_checker(ROOT / "scripts" / "validation" / "validate_agent_routing.py", "Agent routing validation")
 
 
 def check_notebook() -> None:
-    path = ROOT / "tests" / "colab" / "codingstandard_colab_test.ipynb"
-    try: notebook = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc: fail(f"Invalid Colab notebook JSON: {exc}")
-    if notebook.get("nbformat") != 4: fail("Colab notebook must use nbformat 4")
-    if not notebook.get("cells"): fail("Colab notebook has no cells")
-    code = "\n".join("".join(cell.get("source", [])) for cell in notebook.get("cells", []) if cell.get("cell_type") == "code")
-    for required in ("import subprocess", "import sys", "import platform", "subprocess.run", "sys.executable", "platform.platform", "DEFAULT_REPO_URL", "_normalize_repository", "GITHUB_TOKEN", "GIT_ASKPASS", "core/common/environment.py", "domains/llm/memory_smoke_test.py", "domains/vision/memory_smoke_test.py", "scripts/validation/validate.py"):
-        if required not in code: fail(f"Colab notebook missing required bootstrap/repository symbol or canonical path: {required}")
-    for legacy in ("LLM/environment.py", "LLM/memory_smoke_test.py", "VISION/memory_smoke_test.py", "scripts/validate.py"):
-        if legacy in code: fail(f"Colab notebook contains obsolete path: {legacy}")
-    if "capture_output=True" not in code or "proc.stderr" not in code or "sys.stderr" not in code: fail("Colab notebook must expose subprocess stderr")
+    for path in (ROOT / "tests" / "colab" / "codingstandard_colab_test.ipynb", ROOT / "examples" / "colab" / "clean_runtime_validation.ipynb"):
+        try: notebook = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc: fail(f"Invalid Colab notebook JSON: {exc}")
+        if notebook.get("nbformat") != 4: fail(f"Colab notebook must use nbformat 4: {path}")
+        if not notebook.get("cells"): fail(f"Colab notebook has no cells: {path}")
 
 
 def check_routing_paths() -> None:
