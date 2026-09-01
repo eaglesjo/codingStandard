@@ -35,6 +35,7 @@ REQUIRED_FILES = [
     "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/memory_smoke_test.py", "domains/vision/README.md",
     "platform/colab/AGENT.md", "platform/colab/SKILL.md", "platform/colab/validate_runtime.py",
     "examples/colab/clean_runtime_validation.ipynb", "docs/development/ML_RUNTIME_VALIDATION.md",
+    "tests/integration/ml_classification_smoke.py",
     ".github/instructions/ml.instructions.md", ".github/instructions/colab.instructions.md",
     "scripts/installers/install-domains.ps1", "scripts/installers/install-domains.sh",
     "scripts/validation/check_i18n.py", "scripts/validation/check_structure.py", "scripts/validation/validate-domains.py", "scripts/validation/validate_agent_routing.py", "scripts/installers/test_installers.py", "scripts/development/test_environment.py", "scripts/development/test_dependencies.py",
