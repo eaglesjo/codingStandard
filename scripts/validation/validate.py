@@ -34,8 +34,8 @@ REQUIRED_FILES = [
     "domains/llm/skills/finetuning/SKILL.md", "domains/llm/skills/peft/SKILL.md", "domains/llm/skills/quantization/SKILL.md", "domains/llm/skills/rag/SKILL.md",
     "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/memory_smoke_test.py", "domains/vision/README.md",
     "platform/colab/AGENT.md", "platform/colab/SKILL.md", "platform/colab/validate_runtime.py",
-    "examples/colab/clean_runtime_validation.ipynb", "docs/development/ML_RUNTIME_VALIDATION.md",
-    "tests/integration/ml_classification_smoke.py",
+    "examples/colab/clean_runtime_validation.ipynb", "examples/colab/llm_qlora_validation.ipynb", "docs/development/ML_RUNTIME_VALIDATION.md",
+    "tests/integration/ml_classification_smoke.py", "tests/integration/llm_qlora_strategy_smoke.py",
     ".github/instructions/ml.instructions.md", ".github/instructions/colab.instructions.md",
     "scripts/installers/install-domains.ps1", "scripts/installers/install-domains.sh",
     "scripts/validation/check_i18n.py", "scripts/validation/check_structure.py", "scripts/validation/validate-domains.py", "scripts/validation/validate_agent_routing.py", "scripts/installers/test_installers.py", "scripts/development/test_environment.py", "scripts/development/test_dependencies.py",
@@ -77,7 +77,11 @@ def run_environment_tests() -> None:
 
 
 def check_notebook() -> None:
-    for path in (ROOT / "tests" / "colab" / "codingstandard_colab_test.ipynb", ROOT / "examples" / "colab" / "clean_runtime_validation.ipynb"):
+    for path in (
+        ROOT / "tests" / "colab" / "codingstandard_colab_test.ipynb",
+        ROOT / "examples" / "colab" / "clean_runtime_validation.ipynb",
+        ROOT / "examples" / "colab" / "llm_qlora_validation.ipynb",
+    ):
         try: notebook = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc: fail(f"Invalid Colab notebook JSON: {exc}")
         if notebook.get("nbformat") != 4: fail(f"Colab notebook must use nbformat 4: {path}")
