@@ -1,7 +1,38 @@
-# Vision AI Skill
+# Vision Domain Skill
 
-이미지 기반 AI 구현·학습·추론·평가에 사용합니다.
+`domains/ml/`과 함께 사용하며 이미지/영상 기반 AI 구현·학습·추론·평가에 적용합니다.
 
-환경 확인 → 가속기/메모리 측정 → 이미지 크기/배치 설정 → 데이터 파이프라인 설정 → Memory Smoke Test → Environment Lock → 구현/학습 → 평가 → Early Stopping/Checkpoint → Ablation → 자원/재현성 기록 순으로 작업합니다.
+## 공통 lifecycle
 
-분류/검출/세그멘테이션/OCR/자세 추정/이미지 생성/VLM별 전용 Skill을 우선 적용합니다. 이미지 해상도와 feature-map 메모리를 주요 자원 변수로 취급하며 worker, prefetch, cache를 보수적으로 시작합니다.
+필요한 `domains/ml/` Skill을 먼저 적용합니다.
+
+```text
+Data Validation
+Experiment Design
+Evaluation
+Training
+Inference
+Distributed Training
+HPO
+MLOps
+```
+
+## Vision task routing
+
+필요한 task Skill을 추가합니다.
+
+```text
+Classification
+Detection
+Segmentation
+OCR
+Pose Estimation
+Image Generation
+VLM
+```
+
+## Environment / Memory
+
+실제 실행환경과 메모리를 기준으로 image resolution, channels, batch, feature-map/activation memory, augmentation worker, cache, prefetch를 결정합니다. 대표 Vision workload의 Memory Smoke Test 통과 후 configuration을 lock합니다.
+
+장시간 학습에는 validation, best checkpoint, Resume, 필요한 경우 Early Stopping과 재현성/자원 metadata를 사용합니다.

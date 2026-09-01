@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the canonical public repository layout and reject legacy paths."""
+"""Validate the canonical repository layout and reject known legacy paths."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,8 +8,11 @@ ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED_DIRECTORIES = (
     "core/common",
+    "domains/ml",
     "domains/llm",
     "domains/vision",
+    "platform/colab",
+    "docs/development",
     "docs/releases",
     "scripts/development",
     "scripts/installers",
@@ -18,18 +21,30 @@ REQUIRED_DIRECTORIES = (
 )
 
 LEGACY_PATHS = (
-    "COMMON", "LLM", "MANUS", "VISION",
-    "DEVELOPMENT.md", "RELEASE.md", "RELEASE_CANDIDATE.md",
-    "RELEASE_NOTES.md", "RELEASE_STATUS.md", "FINAL_VERSION.txt",
-    "VERSION-1.4.0", "scripts/validate.py", "scripts/check_i18n.py",
-    "scripts/test_environment.py", "scripts/test_installers.py",
-    "scripts/install-domains.sh", "scripts/install-domains.ps1",
+    "COMMON",
+    "LLM",
+    "MANUS",
+    "VISION",
     "domains/manus",
+    "i18n/ko/domains/manus",
+    "DEVELOPMENT.md",
+    "RELEASE.md",
+    "RELEASE_CANDIDATE.md",
+    "RELEASE_NOTES.md",
+    "RELEASE_STATUS.md",
+    "FINAL_VERSION.txt",
+    "VERSION-1.4.0",
+    "scripts/validate.py",
+    "scripts/check_i18n.py",
+    "scripts/test_environment.py",
+    "scripts/test_installers.py",
+    "scripts/install-domains.sh",
+    "scripts/install-domains.ps1",
 )
 
 
 def main() -> int:
-    errors = []
+    errors: list[str] = []
     for rel in REQUIRED_DIRECTORIES:
         if not (ROOT / rel).is_dir():
             errors.append(f"Missing canonical directory: {rel}")

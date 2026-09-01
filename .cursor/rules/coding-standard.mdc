@@ -5,8 +5,15 @@ alwaysApply: true
 
 # codingStandard
 
-Follow the project instructions in `AGENTS.md`, `LLM/AGENT.md`, `LLM/SKILL.md`, and `LLM/ENVIRONMENT.md`.
+Follow the canonical project instructions in `AGENTS.md` and `core/common/`. Detect and apply only the relevant installed domain/platform resources:
 
-Before implementation, detect and measure the real development/runtime environment. Resolve resource settings from measured CPU, RAM, GPU, VRAM, accelerator, Python runtime, and workload requirements. Run a memory smoke test before long training. After the environment is locked, remove unused platform/device branches unless the code is intentionally multi-platform.
+- `domains/ml/` for general machine learning and deep learning.
+- `domains/llm/` for LLM/NLP/RAG/fine-tuning.
+- `domains/vision/` for computer vision.
+- `platform/colab/` for Google Colab or other ephemeral hosted notebook runtimes.
 
-For training, use validation metrics, Early Stopping, best checkpoints, resume support, controlled ablation studies, and reproducibility/resource metadata.
+Use shared ML Skills for data validation, experiment design, evaluation, training, inference, distributed training, HPO, and MLOps. Apply task-specific Skills only when relevant.
+
+Before implementation or resource-sensitive execution, inspect and measure the actual runtime, resolve conservative settings, and run the smallest meaningful smoke test. Before long-running training, lock the validated configuration and ensure checkpoint/resume and reproducibility metadata are available.
+
+Never hard-code a named machine, GPU, RAM capacity, OS, or IDE. Keep train/validation/test boundaries explicit and record model/dataset revisions and resource usage.

@@ -24,9 +24,11 @@ bash ./codingStandard/scripts/installers/install-domains.sh . ko all overwrite f
 
 ```text
 common = Common만
-all    = Common + LLM + Vision
+ml     = Common + 일반 ML/DL lifecycle
 llm    = Common + LLM
 vision = Common + Vision
+colab  = Common + Colab runtime 정책
+all    = Common + ML + LLM + Vision + Colab
 ```
 
 기존 파일은 `Ask`, `Merge`, `Overwrite`, `Skip` 정책으로 처리할 수 있습니다.
@@ -52,26 +54,29 @@ i18n/ko/
 ├── core/
 │   └── common/
 ├── domains/
+│   ├── ml/
 │   ├── llm/
-│   ├── vision/
-│   └── manus/
+│   └── vision/
+├── platform/
+│   └── colab/
 └── docs/
     └── development/
         └── CONVENTIONS.md
 ```
 
-한국어 리소스는 영문 저장소의 구조를 가능한 한 그대로 미러링하여 설치기와 i18n 검사가 동일한 상대 경로를 사용할 수 있도록 합니다.
+한국어 리소스는 영문 저장소의 구조를 가능한 한 그대로 미러링합니다. 새 리소스 중 아직 한국어 전용 번역이 없는 기술 task Skill은 설치기에서 영문 원본으로 안전하게 fallback합니다.
 
 ## 주요 문서
 
 - `INSTALL.md` — 한국어 설치 가이드
 - `AGENT.md` / `AGENTS.md` — AI Agent 규칙
 - `core/common/` — 공통 실행환경 및 재현성 규칙
+- `domains/ml/` — 일반 ML/DL lifecycle과 공통 Skills
 - `domains/llm/` — LLM/ML 규칙과 Skills
 - `domains/vision/` — Computer Vision 규칙과 Skills
-- `domains/manus/` — Manus Project Instructions와 Skill
+- `platform/colab/` — Colab ephemeral runtime 정책
 - `docs/development/CONVENTIONS.md` — 개발 규칙
 
 ## Google Colab
 
-Colab 검증 Notebook은 `tests/colab/codingstandard_colab_test.ipynb`에 있습니다. Notebook은 실제 Colab runtime을 기준으로 환경을 감지하며, 로컬 클라이언트의 OS와 혼동하지 않습니다.
+Colab 검증 Notebook은 `tests/colab/codingstandard_colab_test.ipynb`에 있습니다. Notebook은 실제 Colab runtime을 기준으로 환경을 감지하며, 로컬 클라이언트의 OS와 혼동하지 않습니다. 장시간 작업은 durable checkpoint와 Resume을 전제로 합니다.

@@ -1,7 +1,14 @@
 # codingStandard
 
-Follow `AGENTS.md`, `LLM/AGENT.md`, `LLM/SKILL.md`, and `LLM/ENVIRONMENT.md` as the project coding standard.
+Follow the canonical project instructions in `AGENTS.md` and `core/common/`. Detect and apply only the relevant installed resources:
 
-Always measure the real execution environment before implementation. Resolve runtime settings from CPU, RAM, GPU, VRAM, accelerator, Python/runtime, and workload. Run a Memory Smoke Test before long training. After environment lock, remove unused platform/device branches unless multi-platform support is required.
+- `domains/ml/` for general ML/DL lifecycle work.
+- `domains/llm/` for LLM/NLP/RAG/fine-tuning.
+- `domains/vision/` for computer vision.
+- `platform/colab/` for ephemeral Google Colab/cloud notebook execution.
 
-Training must use validation metrics, Early Stopping, best checkpoint, resume support, controlled ablation studies, and reproducibility/resource metadata.
+Use shared ML Skills for data validation, experiment design, evaluation, training, inference, distributed training, HPO, and MLOps. Apply task-specific Skills only when relevant.
+
+Measure the real runtime before resource-sensitive work. Resolve conservative settings, run a representative smoke test, lock the configuration, and preserve checkpoint/resume and reproducibility metadata for long-running training.
+
+Never hard-code a named machine, GPU, RAM capacity, OS, or IDE. Keep train/validation/test boundaries explicit.

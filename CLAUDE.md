@@ -5,15 +5,18 @@ This file is the Claude Code project entrypoint.
 Apply rules in this order:
 
 @AGENTS.md
-@COMMON/AGENT.md
-@COMMON/SKILL.md
-@COMMON/ENVIRONMENT.md
+@core/common/AGENT.md
+@core/common/SKILL.md
+@core/common/ENVIRONMENT.md
 
-Then inspect the installed domain directories:
+Then detect and apply the installed, relevant domain resources:
 
-- `LLM/` for language-model and NLP work.
-- `VISION/` for image/video/OCR/detection/segmentation/generation/VLM work.
+- `domains/ml/` for general ML/DL work.
+- `domains/llm/` for language-model, NLP, RAG, and LLM fine-tuning work.
+- `domains/vision/` for image/video/OCR/detection/segmentation/generation/VLM work.
 
-Apply the relevant domain and task-specific Skills only when they are installed and applicable.
+For Google Colab or another ephemeral hosted notebook runtime, also apply `platform/colab/AGENT.md` and `platform/colab/SKILL.md`.
 
-Before resource-sensitive work, inspect the actual runtime and use the available environment profiler. Before long-running training, run an appropriate Memory Smoke Test and lock the validated configuration.
+Apply only relevant task Skills. Shared ML Skills own cross-domain data, evaluation, experiment, training, inference, distributed training, HPO, and MLOps policy.
+
+Before resource-sensitive work, inspect the actual runtime and use the available profiler. Before long-running training, run an appropriate Memory Smoke Test, lock the validated configuration, and record reproducibility/resource metadata.

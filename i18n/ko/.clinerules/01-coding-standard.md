@@ -1,7 +1,7 @@
 # codingStandard
 
-`AGENTS.md`, `LLM/AGENT.md`, `LLM/SKILL.md`, `LLM/ENVIRONMENT.md`를 따른다.
+`AGENTS.md`와 `core/common/`을 기준으로 하며, 작업에 해당하는 `domains/ml/`, `domains/llm/`, `domains/vision/`, `platform/colab/`만 적용한다.
 
-코드 작성 전에 실제 환경을 측정하고 CPU, RAM, GPU, VRAM, 가속기, Python/runtime, workload에 맞춰 설정한다. 장시간 학습 전 Memory Smoke Test를 수행하여 메모리 사용량을 검증한다. 환경 확정 후 미사용 platform/device branch와 dead code를 제거한다. 단, 공식 다중 플랫폼 코드는 유지한다.
+공통 ML lifecycle은 Data Validation, Experiment Design, Evaluation, Training, Inference, Distributed Training, HPO, MLOps Skill로 관리한다.
 
-학습에는 validation metric, Early Stopping, best checkpoint, Resume, 통제된 Ablation Study, 재현성/자원 사용량 기록을 적용한다.
+실제 runtime을 측정하고 smoke test 후 configuration을 lock한다. 장시간 학습은 validation, checkpoint/resume, 필요한 경우 Early Stopping과 reproducibility/resource metadata를 사용한다.

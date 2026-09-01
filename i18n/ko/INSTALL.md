@@ -12,7 +12,7 @@ git clone https://github.com/eaglesjo/codingStandard.git
 
 ## 2. 언어와 도메인 선택
 
-설치기는 영문/한글과 다음 네 가지 도메인을 지원합니다.
+설치기는 영문/한글과 다음 여섯 가지 도메인을 지원합니다.
 
 ```text
 언어
@@ -21,9 +21,11 @@ git clone https://github.com/eaglesjo/codingStandard.git
 
 도메인
   common = 공통 규칙만
+  ml     = Common + 일반 ML/DL lifecycle
   llm    = Common + LLM
   vision = Common + Vision
-  all    = Common + LLM + Vision
+  colab  = Common + Colab runtime 정책
+  all    = Common + ML + LLM + Vision + Colab
 ```
 
 ### Windows / PowerShell
@@ -31,13 +33,13 @@ git clone https://github.com/eaglesjo/codingStandard.git
 대화형 설치:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target .
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\install-domains.ps1 -Target .
 ```
 
 명시적 설치:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target . -Language ko -Domain vision
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\install-domains.ps1 -Target . -Language ko -Domain ml
 ```
 
 ### Linux / macOS
@@ -45,13 +47,13 @@ powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domain
 대화형 설치:
 
 ```bash
-bash ./codingStandard/scripts/install-domains.sh .
+bash ./codingStandard/scripts/installers/install-domains.sh .
 ```
 
 명시적 설치:
 
 ```bash
-bash ./codingStandard/scripts/install-domains.sh . ko vision ask false
+bash ./codingStandard/scripts/installers/install-domains.sh . ko ml overwrite false
 ```
 
 인자 순서는 다음과 같습니다.
@@ -71,7 +73,7 @@ PowerShell:
 Bash:
 
 ```bash
-bash ./codingStandard/scripts/install-domains.sh . ko all ask true
+bash ./codingStandard/scripts/installers/install-domains.sh . ko all ask true
 ```
 
 Dry-run은 대상 프로젝트를 변경하지 않습니다.
@@ -106,89 +108,110 @@ GEMINI.md
 .amazonq/*
 CONVENTIONS.md
 .aider.conf.yml
-COMMON/*
+core/common/*
 ```
 
-## 6. LLM 추가 내용
+## 6. ML 추가 내용
+
+ML 도메인을 선택하면 다음 lifecycle과 Skill이 추가됩니다.
+
+```text
+.github/instructions/ml.instructions.md
+domains/ml/AGENT.md
+domains/ml/SKILL.md
+domains/ml/ENVIRONMENT.md
+domains/ml/skills/*
+```
+
+Skill은 Data Validation, Experiment Design, Evaluation, Training, Distributed Training, HPO, Inference, MLOps를 다룹니다.
+
+## 7. LLM 추가 내용
 
 LLM 도메인을 선택하면 다음이 추가됩니다.
 
 ```text
-LLM/AGENT.md
-LLM/SKILL.md
-LLM/ENVIRONMENT.md
-LLM/environment.py
-LLM/memory_smoke_test.py
-LLM/experiment.py
-LLM/config/*
-LLM/skills/*
+domains/llm/AGENT.md
+domains/llm/SKILL.md
+domains/llm/ENVIRONMENT.md
+domains/llm/environment.py
+domains/llm/memory_smoke_test.py
+domains/llm/skills/*
 ```
 
-LLM 규칙에는 환경 최적화, 메모리 안전 실행, Early Stopping, Best Checkpoint, Resume, Ablation Study, 재현성 및 자원 사용량 기록이 포함됩니다.
+LLM에는 기존 규칙과 함께 Fine-Tuning, PEFT, Quantization Skill이 포함됩니다.
 
-## 7. Vision 추가 내용
+## 8. Vision 추가 내용
 
 Vision 도메인을 선택하면 다음이 추가됩니다.
 
 ```text
-VISION/AGENT.md
-VISION/SKILL.md
-VISION/ENVIRONMENT.md
-VISION/memory_smoke_test.py
-VISION/README.md
-VISION/config/*
-VISION/skills/*
+domains/vision/AGENT.md
+domains/vision/SKILL.md
+domains/vision/ENVIRONMENT.md
+domains/vision/memory_smoke_test.py
+domains/vision/skills/*
 ```
 
 Vision Skill은 Classification, Detection, Segmentation, OCR, Pose Estimation, Image Generation, VLM을 다룹니다.
 
-## 8. 설치 후 검증
+## 9. Colab 추가 내용
 
-공통 환경 확인:
+Colab 도메인을 선택하면 다음 실행 정책이 추가됩니다.
+
+```text
+platform/colab/AGENT.md
+platform/colab/SKILL.md
+```
+
+Google Colab을 ephemeral runtime으로 취급하고 dependency bootstrap, 실제 자원 측정, smoke test, durable checkpoint/artifact, Resume 검증을 적용합니다.
+
+## 10. 설치 후 검증
+
+공통 검증:
 
 ```bash
-python COMMON/environment.py
+python scripts/validation/validate.py
+python scripts/installers/test_installers.py
 ```
 
 LLM이 설치된 경우:
 
 ```bash
-python LLM/environment.py
-python LLM/memory_smoke_test.py --cpu --steps 2
+python domains/llm/memory_smoke_test.py --cpu --steps 2
 ```
 
 Vision이 설치된 경우:
 
 ```bash
-python VISION/memory_smoke_test.py --device auto --image-size 224 --batch-size 1 --steps 2
+python domains/vision/memory_smoke_test.py --device auto --image-size 224 --batch-size 1 --steps 2
 ```
 
-저장소 검증:
+Colab에서는 `tests/colab/`의 검증 Notebook을 fresh runtime에서 실행하고 checkpoint persistence/resume을 확인합니다.
 
-```bash
-python scripts/validate.py
-python scripts/check_i18n.py
-```
+## 11. Windows / Colab 검증
 
-## 9. Windows / Colab 검증
-
-Windows 설치 동작은 GitHub Actions의 실제 `windows-latest` runner에서 자동 검증합니다. PowerShell 5.1과 PowerShell 7, 언어/도메인 조합, Dry-run, Merge, Unicode 및 공백 경로를 확인합니다.
+Windows 설치 동작은 GitHub Actions에서 자동 검증합니다. PowerShell 5.1과 PowerShell 7, 언어/도메인 조합, Dry-run, Merge, Unicode 및 공백 경로를 확인합니다.
 
 Google Colab에서는 저장소의 검증 Notebook을 실행할 수 있습니다.
 
 [Colab 검증 Notebook](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb)
 
-## 10. 권장 작업 흐름
+## 12. 권장 작업 흐름
 
 ```text
 설치
-→ AI 지침 자동 로딩
+→ Agent adapter
+→ 공통 정책
+→ 관련 ML/LLM/Vision domain
+→ Colab이면 ephemeral runtime 정책
+→ Data 검증
 → 실제 환경 측정
 → Runtime 설정 계산
+→ Baseline / Experiment
 → Memory Smoke Test
 → 환경 확정
-→ 관련 Skill 적용
 → 개발 / 학습 / 추론
+→ Evaluation
 → Early Stopping / Checkpoint / Resume
 → Ablation / Experiment 기록
 → 최종 검증

@@ -1,22 +1,19 @@
-# Vision AI Agent Rules
+# Vision Domain Agent Rules
 
-Apply these rules to computer-vision and image-based AI projects.
+Apply on top of `domains/ml/` for computer-vision and image-based AI projects.
 
-1. Inspect the real runtime before choosing device, image size, batch size, workers, precision, or cache behavior.
-2. Reuse the shared environment profile and memory safety rules; never hard-code a named machine.
-3. Treat image resolution, channels, batch size, feature-map/activation memory, augmentation workers, cache, and prefetch as resource controls.
-4. Run a representative Memory Smoke Test before long training.
-5. Use validation metrics, Early Stopping, best checkpoint, and Resume for long-running training by default.
-6. Define baseline and controlled ablation variants explicitly.
-7. Record model/dataset revision, configuration, seed, metrics, runtime, peak VRAM/RAM, image size, and resolved environment profile.
-8. After the environment is locked, remove unused platform/device branches from project execution code unless the component officially supports multiple platforms.
-9. Prefer lazy image loading, streaming/chunking, bounded caches, conservative workers, and controlled prefetching.
-10. On memory failure, reduce image size/batch/workers before retrying and never loop indefinitely on the same failing configuration.
+## Vision-specific rules
 
-## Task flow
+1. Treat image/video resolution, channels, batch size, activation/feature-map memory, augmentation workers, cache, and prefetch as primary resource variables.
+2. Select the smallest vision pipeline that satisfies the requirement: classification, detection, segmentation, OCR/document vision, pose estimation, image generation, or VLM.
+3. Prefer lazy decoding, bounded caches, streaming/chunking, conservative workers, and controlled prefetching for large datasets.
+4. Run a representative vision Memory Smoke Test before long-running training.
+5. For evaluation, use task-appropriate metrics and retain image-level/error-slice analysis where meaningful.
+6. Record model/dataset revision, preprocessing/augmentation, image size, configuration, seed, metrics, runtime, peak VRAM/RAM, and environment profile.
+7. For generation/VLM work, record the evaluation prompt/template and benchmark/task configuration.
 
-```text
-Repository → Environment → Capability/Resource Profile → Vision Task → Runtime Config
-→ Memory Smoke Test → Environment Lock → Implement → Train/Infer → Evaluate
-→ Early Stopping/Checkpoint → Ablation → Resource/Reproducibility Record → Clean Run
-```
+## Shared policy
+
+Use `domains/ml/` for data validation, experiment design, evaluation, training, inference, distributed execution, HPO, MLOps, environment resolution, checkpoint/resume, and reproducibility.
+
+For Google Colab or other ephemeral hosted notebooks, also apply `platform/colab/`.

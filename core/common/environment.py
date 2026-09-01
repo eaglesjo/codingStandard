@@ -11,7 +11,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-STANDARD_VERSION = "1.6.0"
+STANDARD_VERSION = "1.7.0"
+
 
 @dataclass(frozen=True)
 class EnvironmentProfile:
@@ -57,28 +58,13 @@ def _is_colab() -> bool:
     return bool(env.get("COLAB_RELEASE_TAG") or env.get("COLAB_GPU") or "google.colab" in sys.modules)
 
 
-def _is_jupyter() -> bool:
-    return "ipykernel" in sys.modules or bool(os.environ.get("JPY_PARENT_PID"))
-
-
-def _is_vscode() -> bool:
-    env = os.environ
-    return bool(env.get("VSCODE_PID") or env.get("TERM_PROGRAM") == "vscode")
-
-
 def _detect_ide() -> str:
+    env = os.environ
     if _is_colab(): return "colab"
-    if _is_vscode(): return "vscode"
-    if _is_jupyter(): return "jupyter"
-    if os.environ.get("JETBRAINS_IDE"): return "jetbrains"
+    if env.get("VSCODE_PID") or env.get("TERM_PROGRAM") == "vscode": return "vscode"
+    if "JPY_PARENT_PID" in env or "ipykernel" in sys.modules: return "jupyter"
+    if env.get("JETBRAINS_IDE"): return "jetbrains"
     return "unknown"
-
-
-def _detect_execution_environment() -> tuple[str, str]:
-    if _is_colab(): return "colab", "cloud"
-    if _is_jupyter(): return "jupyter", "local"
-    if _is_vscode(): return "vscode", "local"
-    return "local", "local"
 
 
 def _ram_info() -> tuple[float | None, float | None]:
@@ -86,16 +72,14 @@ def _ram_info() -> tuple[float | None, float | None]:
         import psutil
         m = psutil.virtual_memory()
         return round(m.total / 1024**3, 2), round(m.available / 1024**3, 2)
-    except ImportError:
-        return None, None
+    except ImportError: return None, None
 
 
 def _disk_info() -> tuple[float | None, float | None]:
     try:
         u = shutil.disk_usage(Path.cwd())
         return round(u.total / 1024**3, 2), round(u.free / 1024**3, 2)
-    except OSError:
-        return None, None
+    except OSError: return None, None
 
 
 def _detect_accelerator() -> dict[str, Any]:
@@ -107,25 +91,16 @@ def _detect_accelerator() -> dict[str, Any]:
         result["cuda_version"] = getattr(torch.version, "cuda", None)
         if result["cuda"]:
             free, total = torch.cuda.mem_get_info()
-            result["vram_total_gb"] = round(total / 1024**3, 2)
-            result["vram_free_gb"] = round(free / 1024**3, 2)
-            result["name"] = torch.cuda.get_device_name(0)
-            result["vendor"] = "amd" if result["rocm"] else "nvidia"
-            major, minor = torch.cuda.get_device_capability(0)
-            cap = major + minor / 10
-            result["fp16"] = cap >= 5.3
-            result["bf16"] = cap >= 8.0
-        if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-            result["mps"] = True
-            result["vendor"] = "apple"
-    except (ImportError, RuntimeError, AttributeError):
-        pass
+            result["vram_total_gb"] = round(total / 1024**3, 2); result["vram_free_gb"] = round(free / 1024**3, 2)
+            result["name"] = torch.cuda.get_device_name(0); result["vendor"] = "amd" if result["rocm"] else "nvidia"
+            major, minor = torch.cuda.get_device_capability(0); cap = major + minor / 10
+            result["fp16"] = cap >= 5.3; result["bf16"] = cap >= 8.0
+        if hasattr(torch.backends, "mps") and torch.backends.mps.is_available(): result["mps"] = True; result["vendor"] = "apple"
+    except (ImportError, RuntimeError, AttributeError): pass
     try:
         import torch_directml  # type: ignore
-        result["directml"] = True
-        result["vendor"] = result["vendor"] or "directml"
-    except ImportError:
-        pass
+        result["directml"] = True; result["vendor"] = result["vendor"] or "directml"
+    except ImportError: pass
     return result
 
 
@@ -137,19 +112,14 @@ def _resolve_device(a: dict[str, Any]) -> str:
 
 
 def _resolve_runtime(device: str, ram: float | None, vram: float | None, fp16: bool, bf16: bool, cpu_count: int | None) -> dict[str, Any]:
-    available_ram = ram or 0.0
-    available_vram = vram or 0.0
+    available_ram, available_vram = ram or 0.0, vram or 0.0
     if device == "cuda":
         if available_vram <= 2.5: batch, accum, seq = 1, 16, 128
         elif available_vram <= 4.5: batch, accum, seq = 1, 8, 256
         elif available_vram <= 8.5: batch, accum, seq = 2, 4, 512
         else: batch, accum, seq = 4, 2, 512
-        precision = "bf16" if bf16 else "fp16" if fp16 else "fp32"
-        checkpointing = available_vram <= 8.5
-        pin_memory = available_ram >= 4.0
-    elif device == "mps":
-        batch, accum, seq = 1, 8, 256; precision = "fp16" if fp16 else "fp32"; checkpointing, pin_memory = True, False
-    elif device == "directml":
+        precision = "bf16" if bf16 else "fp16" if fp16 else "fp32"; checkpointing = available_vram <= 8.5; pin_memory = available_ram >= 4.0
+    elif device in {"mps", "directml"}:
         batch, accum, seq = 1, 8, 256; precision = "fp16" if fp16 else "fp32"; checkpointing, pin_memory = True, False
     else:
         batch, accum, seq = 1, 8, 128; precision = "fp32"; checkpointing, pin_memory = False, False
@@ -169,12 +139,16 @@ def _profile_name(device: str, vram: float | None, ram: float | None, disk: floa
 def inspect_environment() -> EnvironmentProfile:
     ram_total, ram_available = _ram_info(); disk_total, disk_free = _disk_info(); acc = _detect_accelerator(); device = _resolve_device(acc)
     runtime = _resolve_runtime(device, ram_available, acc["vram_free_gb"], acc["fp16"], acc["bf16"], os.cpu_count())
-    execution_environment, execution_type = _detect_execution_environment()
-    return EnvironmentProfile(standard_version=STANDARD_VERSION, os=platform.system(), architecture=platform.machine(), python=platform.python_version(), executable=sys.executable, ide=_detect_ide(), execution_environment=execution_environment, execution_type=execution_type, jupyter=_is_jupyter(), colab=_is_colab(), cpu_count=os.cpu_count(), ram_total_gb=ram_total, ram_available_gb=ram_available, disk_total_gb=disk_total, disk_free_gb=disk_free, accelerator_vendor=acc["vendor"], accelerator_name=acc["name"], vram_total_gb=acc["vram_total_gb"], vram_free_gb=acc["vram_free_gb"], cuda_available=acc["cuda"], cuda_version=acc["cuda_version"], rocm_available=acc["rocm"], mps_available=acc["mps"], directml_available=acc["directml"], fp16_supported=acc["fp16"], bf16_supported=acc["bf16"], device=device, recommended_batch_size=runtime["batch"], recommended_gradient_accumulation_steps=runtime["accum"], recommended_num_workers=runtime["workers"], recommended_pin_memory=runtime["pin_memory"], recommended_mixed_precision=runtime["precision"], recommended_gradient_checkpointing=runtime["checkpointing"], recommended_max_seq_length=runtime["seq"], profile=_profile_name(device, acc["vram_total_gb"], ram_total, disk_free))
+    colab = _is_colab(); jupyter = "ipykernel" in sys.modules; ide = _detect_ide()
+    if colab: execution_environment, execution_type = "colab", "cloud"
+    elif jupyter: execution_environment, execution_type = "jupyter", "local"
+    elif ide == "vscode": execution_environment, execution_type = "vscode", "local"
+    else: execution_environment, execution_type = "local", "local"
+    return EnvironmentProfile(standard_version=STANDARD_VERSION, os=platform.system(), architecture=platform.machine(), python=platform.python_version(), executable=sys.executable, ide=ide, execution_environment=execution_environment, execution_type=execution_type, jupyter=jupyter, colab=colab, cpu_count=os.cpu_count(), ram_total_gb=ram_total, ram_available_gb=ram_available, disk_total_gb=disk_total, disk_free_gb=disk_free, accelerator_vendor=acc["vendor"], accelerator_name=acc["name"], vram_total_gb=acc["vram_total_gb"], vram_free_gb=acc["vram_free_gb"], cuda_available=acc["cuda"], cuda_version=acc["cuda_version"], rocm_available=acc["rocm"], mps_available=acc["mps"], directml_available=acc["directml"], fp16_supported=acc["fp16"], bf16_supported=acc["bf16"], device=device, recommended_batch_size=runtime["batch"], recommended_gradient_accumulation_steps=runtime["accum"], recommended_num_workers=runtime["workers"], recommended_pin_memory=runtime["pin_memory"], recommended_mixed_precision=runtime["precision"], recommended_gradient_checkpointing=runtime["checkpointing"], recommended_max_seq_length=runtime["seq"], profile=_profile_name(device, acc["vram_total_gb"], ram_total, disk_free))
 
 
 def to_runtime_config(profile: EnvironmentProfile) -> dict[str, Any]:
-    return {"standard_version": profile.standard_version, "device": profile.device, "execution_environment": profile.execution_environment, "execution_type": profile.execution_type, "batch_size": profile.recommended_batch_size, "gradient_accumulation_steps": profile.recommended_gradient_accumulation_steps, "num_workers": profile.recommended_num_workers, "pin_memory": profile.recommended_pin_memory, "mixed_precision": profile.recommended_mixed_precision, "gradient_checkpointing": profile.recommended_gradient_checkpointing, "max_seq_length": profile.recommended_max_seq_length}
+    return {"standard_version": profile.standard_version, "device": profile.device, "batch_size": profile.recommended_batch_size, "gradient_accumulation_steps": profile.recommended_gradient_accumulation_steps, "num_workers": profile.recommended_num_workers, "pin_memory": profile.recommended_pin_memory, "mixed_precision": profile.recommended_mixed_precision, "gradient_checkpointing": profile.recommended_gradient_checkpointing, "max_seq_length": profile.recommended_max_seq_length}
 
 
 def save_profile(profile: EnvironmentProfile, path: str | Path) -> None:

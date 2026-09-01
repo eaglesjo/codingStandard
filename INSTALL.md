@@ -12,7 +12,7 @@ Run the installer from the repository root of the project you want to configure.
 
 ## 2. Choose Language and Domain
 
-The installer supports English and Korean and four domains:
+The installer supports English and Korean and six install domains:
 
 ```text
 Language
@@ -21,9 +21,11 @@ Language
 
 Domain
   common = common rules only
+  ml     = common + general ML/DL lifecycle
   llm    = common + LLM
   vision = common + Vision
-  all    = common + LLM + Vision
+  colab  = common + Colab runtime policy
+  all    = common + ML + LLM + Vision + Colab
 ```
 
 ### Windows / PowerShell
@@ -31,13 +33,13 @@ Domain
 Interactive mode:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target .
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\install-domains.ps1 -Target .
 ```
 
 Explicit mode:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domains.ps1 -Target . -Language ko -Domain vision
+powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\install-domains.ps1 -Target . -Language ko -Domain ml
 ```
 
 ### Linux / macOS
@@ -45,13 +47,13 @@ powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\install-domain
 Interactive mode:
 
 ```bash
-bash ./codingStandard/scripts/install-domains.sh .
+bash ./codingStandard/scripts/installers/install-domains.sh .
 ```
 
 Explicit mode:
 
 ```bash
-bash ./codingStandard/scripts/install-domains.sh . ko vision ask false
+bash ./codingStandard/scripts/installers/install-domains.sh . ko ml overwrite false
 ```
 
 Arguments are:
@@ -71,7 +73,7 @@ PowerShell:
 Bash:
 
 ```bash
-bash ./codingStandard/scripts/install-domains.sh . en all ask true
+bash ./codingStandard/scripts/installers/install-domains.sh . en all ask true
 ```
 
 Dry-run never writes installation files.
@@ -106,55 +108,81 @@ GEMINI.md
 .amazonq/*
 CONVENTIONS.md
 .aider.conf.yml
-COMMON/*
+core/common/*
 ```
 
-## 6. What LLM Adds
+## 6. What ML Adds
+
+ML installs the cross-domain machine-learning lifecycle contract:
+
+```text
+.github/instructions/ml.instructions.md
+domains/ml/AGENT.md
+domains/ml/SKILL.md
+domains/ml/ENVIRONMENT.md
+domains/ml/README.md
+domains/ml/skills/*
+```
+
+Skills cover data validation, experiments, evaluation, generic training, distributed training, HPO, inference, and MLOps.
+
+## 7. What LLM Adds
 
 LLM installs:
 
 ```text
-LLM/AGENT.md
-LLM/SKILL.md
-LLM/ENVIRONMENT.md
-LLM/environment.py
-LLM/memory_smoke_test.py
-LLM/experiment.py
-LLM/config/*
-LLM/skills/*
+domains/llm/AGENT.md
+domains/llm/SKILL.md
+domains/llm/ENVIRONMENT.md
+domains/llm/environment.py
+domains/llm/memory_smoke_test.py
+domains/llm/skills/*
 ```
 
-## 7. What Vision Adds
+LLM includes fine-tuning, PEFT, and quantization Skills in addition to its existing task Skills.
+
+## 8. What Vision Adds
 
 Vision installs:
 
 ```text
-VISION/AGENT.md
-VISION/SKILL.md
-VISION/ENVIRONMENT.md
-VISION/memory_smoke_test.py
-VISION/README.md
-VISION/config/*
-VISION/skills/*
+domains/vision/AGENT.md
+domains/vision/SKILL.md
+domains/vision/ENVIRONMENT.md
+domains/vision/memory_smoke_test.py
+domains/vision/skills/*
 ```
 
 Vision Skills cover classification, detection, segmentation, OCR, pose estimation, image generation, and VLM.
 
-## 8. Validation After Installation
+## 9. What Colab Adds
+
+Colab installs:
+
+```text
+platform/colab/AGENT.md
+platform/colab/SKILL.md
+```
+
+The policy treats hosted notebook sessions as ephemeral and requires runtime detection, resource profiling, reproducible dependency bootstrap, durable checkpoints/artifacts, and resume validation for long-running work.
+
+## 10. Validation After Installation
 
 ```bash
-python LLM/environment.py
-python scripts/validate.py
+python scripts/validation/validate.py
+python scripts/installers/test_installers.py
 ```
 
 For LLM:
 
 ```bash
-python LLM/memory_smoke_test.py --cpu --steps 2
+python domains/llm/memory_smoke_test.py --cpu --steps 2
 ```
 
 For Vision:
 
 ```bash
-python VISION/memory_smoke_test.py --device auto --image-size 224 --batch-size 1 --steps 2
+python domains/vision/memory_smoke_test.py --device auto --image-size 224 --batch-size 1 --steps 2
 ```
+
+For Colab, run the validation notebook under `tests/colab/` from a fresh runtime and verify checkpoint persistence/resume behavior.

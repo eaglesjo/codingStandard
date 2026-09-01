@@ -13,7 +13,7 @@ SRC="$ROOT"
 if [[ "$LANGUAGE" == "ko" && -d "$ROOT/i18n/ko" ]]; then SRC="$ROOT/i18n/ko"; fi
 
 case "$LANGUAGE" in en|ko) ;; *) echo 'language: en|ko' >&2; exit 1;; esac
-case "$DOMAIN" in common|llm|vision|all) ;; *) echo 'domain: common|llm|vision|all' >&2; exit 1;; esac
+case "$DOMAIN" in common|ml|llm|vision|colab|all) ;; *) echo 'domain: common|ml|llm|vision|colab|all' >&2; exit 1;; esac
 case "$POLICY" in ask|merge|overwrite|skip) ;; *) echo 'policy: ask|merge|overwrite|skip' >&2; exit 1;; esac
 case "$DRY_RUN" in true|false) ;; *) echo 'dry_run: true|false' >&2; exit 1;; esac
 
@@ -24,9 +24,9 @@ if [[ -z "${2:-}" ]]; then
   SRC="$ROOT"; [[ "$LANGUAGE" == "ko" && -d "$ROOT/i18n/ko" ]] && SRC="$ROOT/i18n/ko"
 fi
 if [[ -z "${3:-}" ]]; then
-  printf 'Domain: 1) Common  2) LLM  3) Vision  4) All\n'
-  read -r -p 'Domain [4]: ' choice
-  case "${choice:-4}" in 1) DOMAIN="common";; 2) DOMAIN="llm";; 3) DOMAIN="vision";; 4) DOMAIN="all";; *) echo 'Invalid domain' >&2; exit 1;; esac
+  printf 'Domain: 1) Common  2) ML  3) LLM  4) Vision  5) Colab  6) All\n'
+  read -r -p 'Domain [6]: ' choice
+  case "${choice:-6}" in 1) DOMAIN="common";; 2) DOMAIN="ml";; 3) DOMAIN="llm";; 4) DOMAIN="vision";; 5) DOMAIN="colab";; 6) DOMAIN="all";; *) echo 'Invalid domain' >&2; exit 1;; esac
 fi
 
 files=(
@@ -34,16 +34,24 @@ files=(
   .github/copilot-instructions.md
   .cursor/rules/coding-standard.mdc .windsurf/rules/coding-standard.md
   .clinerules/01-coding-standard.md .continue/rules/01-coding-standard.md
-  .junie/AGENTS.md .amazonq/rules/coding-standard.md .aider.conf.yml
-  core/common/AGENT.md core/common/SKILL.md core/common/ENVIRONMENT.md core/common/environment.py core/common/experiment.py
+  .junie/AGENTS.md .amazonq/rules/coding-standard.md
+  docs/development/CONVENTIONS.md .aider.conf.yml
+  core/common/AGENT.md core/common/SKILL.md core/common/ENVIRONMENT.md core/common/environment.py core/common/experiment.py core/common/dependencies.py
 )
+if [[ "$DOMAIN" == ml || "$DOMAIN" == all ]]; then
+  files+=(.github/instructions/ml.instructions.md domains/ml/AGENT.md domains/ml/SKILL.md domains/ml/ENVIRONMENT.md domains/ml/README.md)
+  while IFS= read -r f; do files+=("${f#$ROOT/}"); done < <(find "$ROOT/domains/ml/skills" -type f -name SKILL.md 2>/dev/null | sort)
+fi
 if [[ "$DOMAIN" == llm || "$DOMAIN" == all ]]; then
   files+=(.github/instructions/llm.instructions.md domains/llm/AGENT.md domains/llm/SKILL.md domains/llm/ENVIRONMENT.md domains/llm/environment.py domains/llm/experiment.py domains/llm/memory_smoke_test.py domains/llm/README.md domains/llm/config/training.yaml domains/llm/config/ablation.yaml)
-  while IFS= read -r f; do files+=("${f#$SRC/}"); done < <(find "$SRC/domains/llm/skills" -type f -name SKILL.md 2>/dev/null | sort)
+  while IFS= read -r f; do files+=("${f#$ROOT/}"); done < <(find "$ROOT/domains/llm/skills" -type f -name SKILL.md 2>/dev/null | sort)
 fi
 if [[ "$DOMAIN" == vision || "$DOMAIN" == all ]]; then
   files+=(.github/instructions/vision.instructions.md domains/vision/AGENT.md domains/vision/SKILL.md domains/vision/ENVIRONMENT.md domains/vision/memory_smoke_test.py domains/vision/README.md domains/vision/config/training.yaml domains/vision/config/ablation.yaml)
-  while IFS= read -r f; do files+=("${f#$SRC/}"); done < <(find "$SRC/domains/vision/skills" -type f -name SKILL.md 2>/dev/null | sort)
+  while IFS= read -r f; do files+=("${f#$ROOT/}"); done < <(find "$ROOT/domains/vision/skills" -type f -name SKILL.md 2>/dev/null | sort)
+fi
+if [[ "$DOMAIN" == colab || "$DOMAIN" == all ]]; then
+  files+=(platform/colab/AGENT.md platform/colab/SKILL.md)
 fi
 
 conflict_action() {
@@ -70,7 +78,9 @@ merge_text() {
 }
 
 for rel in "${files[@]}"; do
-  src="$SRC/$rel"; dst="$TARGET/$rel"
+  src="$SRC/$rel"
+  [[ -f "$src" ]] || src="$ROOT/$rel"
+  dst="$TARGET/$rel"
   [[ -f "$src" ]] || { echo "Missing template: $rel" >&2; exit 1; }
   if [[ "$DRY_RUN" == true ]]; then
     [[ -e "$dst" ]] && echo "[DRY-RUN] EXIST $rel" || echo "[DRY-RUN] CREATE $rel"; continue

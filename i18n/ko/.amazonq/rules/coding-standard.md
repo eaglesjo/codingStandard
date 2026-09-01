@@ -1,10 +1,9 @@
 # codingStandard 프로젝트 규칙
 
-공통 프로젝트 표준을 따릅니다.
+공통 정책의 원본은 `AGENTS.md`와 `core/common/`입니다.
 
-- 환경 의존 작업 전에 `AGENTS.md`, `LLM/AGENT.md`, `LLM/SKILL.md`, `LLM/ENVIRONMENT.md`를 확인합니다.
-- 실제 OS, Python/runtime, CPU, RAM, accelerator, VRAM을 측정한 후 실행 설정을 결정합니다.
-- 가능하면 `LLM/environment.py`를 실행하고 Memory Smoke Test로 메모리 사용량을 검증합니다.
-- 검증된 환경을 Lock하고 애플리케이션/Notebook에서 사용하지 않는 실행 branch를 제거합니다.
-- 장시간 학습에는 validation metric, Early Stopping, best checkpoint, Resume을 적용합니다.
-- Ablation Study를 명시적으로 구성하고 metric, seed, revision, runtime, peak resource, environment profile을 기록합니다.
+작업에 해당하는 `domains/ml/`, `domains/llm/`, `domains/vision/`을 적용하고, Google Colab/ephemeral runtime이면 `platform/colab/`을 추가 적용합니다.
+
+Data Validation, Experiment Design, Evaluation, Training, Inference, Distributed Training, HPO, MLOps는 `domains/ml/` 공통 Skill을 사용합니다.
+
+실제 OS, Python/runtime, CPU, RAM, accelerator, VRAM, disk를 측정하고 smoke test 후 runtime 설정을 lock합니다. 장시간 학습에는 validation, checkpoint/resume, 필요한 경우 Early Stopping과 reproducibility/resource metadata를 적용합니다.

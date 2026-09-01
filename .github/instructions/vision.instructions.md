@@ -1,11 +1,13 @@
 ---
-applyTo: "**/VISION/**,**/vision/**,**/cv/**,**/ocr/**,**/detection/**,**/segmentation/**"
+applyTo: "**/domains/vision/**,**/vision/**,**/cv/**,**/ocr/**,**/detection/**,**/segmentation/**"
 ---
-# Vision / Computer Vision Task Instructions
+# Vision Task Instructions
 
 @../../AGENTS.md
 
-For Vision tasks, apply the installed `VISION/AGENT.md`, `VISION/SKILL.md`, and `VISION/ENVIRONMENT.md`.
+For Vision tasks, apply the installed `domains/ml/` lifecycle rules plus `domains/vision/AGENT.md`, `domains/vision/SKILL.md`, and `domains/vision/ENVIRONMENT.md`.
+
+Select relevant shared ML Skills for data validation, experiment design, evaluation, training, inference, distributed training, HPO, and MLOps. Apply vision task Skills such as classification, detection, segmentation, OCR, pose estimation, image generation, or VLM when applicable.
 
 Before resource-sensitive work:
 
@@ -14,6 +16,4 @@ Before resource-sensitive work:
 - run a representative Vision Memory Smoke Test;
 - lock the validated configuration before long-running training.
 
-Do not hard-code a specific machine or fixed resource capacity. After validation, remove unused execution branches and obsolete code.
-
-Training should use validation, Early Stopping where meaningful, best Checkpoint, Resume, controlled Ablation Study, and reproducibility/resource tracking.
+Do not hard-code a specific machine or fixed resource capacity. Training should use validation, best checkpoints, Resume, controlled experiments, and reproducibility/resource tracking.

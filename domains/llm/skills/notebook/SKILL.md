@@ -1,9 +1,29 @@
 # Notebook Skill
 
-Use for Jupyter Notebook/JupyterLab/VS Code Jupyter/Colab work.
+Use for Jupyter Notebook, JupyterLab, VS Code Jupyter, and Colab work.
 
-Keep notebooks top-to-bottom runnable from a fresh kernel. Start with environment detection, hardware/resource profiling, runtime configuration, and Environment Lock.
+## Workflow
 
-Keep data/model/training logic in reusable modules when practical. Avoid repeated environment detection across cells. Use explicit UTF-8, `pathlib.Path`, active-kernel dependency installation, deterministic outputs, and cleanup of temporary state.
+Keep notebooks top-to-bottom runnable from a fresh kernel/runtime. Use this order:
 
-Before long training, run a Memory Smoke Test and verify checkpoint/restart behavior. Remove obsolete branches and commented-out experiments after the environment and execution path are finalized.
+```text
+Purpose
+→ Environment / Runtime Detection
+→ Resource Profile
+→ Data Contract
+→ Runtime Configuration
+→ Baseline / Experiment Configuration
+→ Data
+→ Model
+→ Training / Inference
+→ Evaluation
+→ Analysis / Visualization
+→ Export
+→ Reproducibility Metadata
+```
+
+Keep reusable data/model/training logic in modules when practical. Do not duplicate environment detection across cells.
+
+For Colab, also apply `platform/colab/AGENT.md` and `platform/colab/SKILL.md`, including durable checkpoint/artifact persistence and resume validation for long-running work.
+
+Use explicit UTF-8 paths, deterministic outputs, active-kernel dependency installation, bounded output, and cleanup of temporary state.

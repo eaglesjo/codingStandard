@@ -1,158 +1,31 @@
-# Environment Profile & Optimization
+# LLM Environment Contract
 
-This document defines environment detection, runtime configuration resolution, Environment Lock, memory safety, and execution optimization.
+The shared `core/common/environment.py` profiler is the source of truth for runtime detection and resource resolution. This document adds LLM-specific guidance only.
 
-## 1. Principle
-
-Always optimize for the actual execution environment, not a named or assumed machine.
-
-```text
-Detect → Measure → Resolve → Smoke Test → Lock → Optimize → Execute
-```
-
-## 2. Profiler
-
-Run:
+## Usage
 
 ```bash
-python LLM/environment.py
+python core/common/environment.py
+python core/common/environment.py .codingstandard/environment-profile.json
 ```
 
-Save a profile:
+Reuse the resolved profile/configuration throughout a run rather than re-detecting device settings in every cell.
 
-```bash
-python LLM/environment.py .codingstandard/environment-profile.json
-```
-
-Measure when available:
-
-- OS / architecture
-- Python version / executable
-- IDE / Jupyter / Colab
-- CPU core count
-- System RAM total / available
-- GPU name / VRAM total / free
-- CUDA / MPS availability
-- resolved device
-
-## 3. Runtime Resolution
-
-The profiler derives conservative starting values for:
-
-- device
-- batch size
-- gradient accumulation
-- DataLoader workers
-- pin memory
-- FP16 / BF16 candidates
-- gradient checkpointing
-- maximum sequence length
-
-Do not treat these recommendations as hard limits. The workload-specific smoke test determines the final configuration.
-
-## 4. Environment Lock
-
-```python
-from environment import inspect_environment, to_runtime_config
-
-PROFILE = inspect_environment()
-RUNTIME_CONFIG = to_runtime_config(PROFILE)
-```
-
-After validation, reuse the locked profile and runtime configuration throughout the run.
-
-## 5. Environment-Specific Code Cleanup
-
-After the environment is validated:
+## LLM resource controls
 
 ```text
-Detect
-→ Measure
-→ Resolve
-→ Smoke Test
-→ Lock
-→ remove unused branches
-→ execute
-```
-
-Remove unused OS/device branches, duplicate detection, obsolete code, and unused imports from application/notebook execution code.
-
-Keep multi-platform branches only when a reusable component officially supports them.
-
-## 6. GPU Optimization
-
-Choose based on measured free VRAM and workload:
-
-```text
-batch ↓
-sequence/input ↓
+model size
+context length
+batch size
 gradient accumulation
-mixed precision
-checkpointing
-quantization when justified
-offload when justified
-tensor/reference cleanup
+precision
+KV/cache behavior
+gradient checkpointing
+quantization/offload
 ```
 
-Leave VRAM headroom for the runtime and background allocations.
+Select settings from measured VRAM/RAM and the model workload. A representative load/forward/backward smoke test gates long-running training.
 
-## 7. CPU / RAM Optimization
+## Colab
 
-```text
-streaming / chunking / memory mapping
-conservative workers
-controlled prefetch
-avoid persistent workers unless justified
-avoid duplicate dataset copies
-control CPU/BLAS/OpenMP thread counts
-```
-
-Leave RAM headroom for the OS, IDE, runtime, and other processes.
-
-## 8. Memory Smoke Test
-
-Run a minimal representative workload before long training:
-
-```text
-load
-→ forward
-→ backward
-→ optimizer step
-→ validation
-→ checkpoint
-```
-
-Record peak VRAM, peak RAM, metrics, runtime, and resolved environment.
-
-A failed smoke test blocks the long run until configuration is reduced and the test passes.
-
-## 9. OOM Recovery
-
-```text
-record failure
-→ reduce batch
-→ reduce sequence/input
-→ reduce workers
-→ verify precision
-→ checkpointing
-→ quantization/offload
-→ repeat smoke test
-```
-
-Do not repeat the same failing configuration indefinitely.
-
-## 10. Reproducibility
-
-Persist the resolved environment profile with experiment results:
-
-```text
-environment profile
-runtime configuration
-device
-gpu / accelerator
-VRAM / RAM
-CPU count
-peak VRAM
-peak RAM
-runtime
-```
+When the runtime is Google Colab, additionally apply `platform/colab/AGENT.md` and `platform/colab/SKILL.md`. Treat the session as ephemeral and persist recovery artifacts durably.

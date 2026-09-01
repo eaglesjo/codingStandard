@@ -1,14 +1,17 @@
 # GitHub Copilot 프로젝트 지침
 
-이 파일은 저장소 전체에서 사용하는 Copilot 진입점입니다.
+이 파일은 저장소 전체에서 사용하는 Copilot adapter입니다.
 
 @../AGENTS.md
 
-공통 규칙을 먼저 적용한 뒤 현재 설치되어 있고 작업에 해당하는 도메인 규칙만 적용합니다.
+공통 규칙을 먼저 적용한 뒤 작업에 해당하는 설치 리소스만 적용합니다.
 
-- `LLM/AGENT.md`, `LLM/SKILL.md`, `LLM/ENVIRONMENT.md`: LLM/NLP/RAG/파인튜닝 작업
-- `VISION/AGENT.md`, `VISION/SKILL.md`, `VISION/ENVIRONMENT.md`: 이미지/비디오/OCR/검출/세그멘테이션/생성/VLM 작업
+- `core/common/`: 공통 정책과 environment validation
+- `domains/ml/`: 일반 ML/DL lifecycle
+- `domains/llm/`: LLM/NLP/RAG/fine-tuning
+- `domains/vision/`: Computer Vision/VLM
+- `platform/colab/`: Colab ephemeral runtime
 
-자원에 민감한 작업 전 실제 실행환경을 측정하고 runtime configuration을 결정합니다. 적절한 Memory Smoke Test를 통과하여 메모리 사용량을 확인한 뒤 확정된 설정을 장시간 실행에 사용합니다.
+Data Validation, Experiment Design, Evaluation, Training, Inference, Distributed Training, HPO, MLOps는 `domains/ml/`의 공통 Skill을 우선 사용하고, 필요한 domain/task Skill만 추가합니다.
 
-특정 장비, GPU, RAM, OS, IDE를 하드코딩하지 않습니다. 환경 확정 후 의도된 다중 플랫폼 지원이 아닌 미사용 branch와 dead code를 제거합니다.
+자원 민감한 작업 전 실제 runtime을 측정하고 smoke test 후 configuration을 lock합니다. 장시간 학습에는 checkpoint/resume, validation, 필요한 경우 Early Stopping, reproducibility/resource metadata를 적용합니다.

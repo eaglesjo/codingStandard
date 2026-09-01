@@ -1,18 +1,17 @@
-# Vision 실행환경 최적화
+# Vision 실행환경 계약
 
-비전 작업에서는 이미지 해상도, 채널, 배치, feature-map/activation 메모리, 이미지 디코드/augmentation worker, cache, prefetch가 주요 자원 변수입니다.
+공통 `core/common/environment.py` 프로파일러를 실제 실행환경과 자원 설정의 source of truth로 사용합니다.
+
+Vision에서는 이미지/영상 resolution, channels, batch, activation/feature-map memory, decode/augmentation workers, cache, prefetch를 주요 resource variable로 취급합니다.
 
 ```text
-해상도 ↓
-→ batch ↓
-→ worker/prefetch/cache ↓
-→ mixed precision
-→ checkpointing
-→ gradient accumulation
-→ model/optimizer memory reduction
-→ tiling/cropping/offload
+Detect → Measure → Resolve → Vision Smoke Test → Lock → Optimize → Execute
 ```
 
-장시간 학습 전 대표 이미지 크기와 배치로 `load → preprocess → forward → backward → optimizer → validation → checkpoint` 흐름을 검증하고 peak VRAM/RAM 및 throughput을 기록합니다.
+장시간 학습 전 대표 workload로 다음을 검증합니다.
 
-특정 GPU, CPU, RAM, OS, framework 버전을 가정하지 않고 실제 환경 profile과 workload 요구사항을 기준으로 결정합니다.
+```text
+load → preprocess → forward → backward → optimizer → validation → checkpoint
+```
+
+특정 GPU, CPU, RAM, OS, framework version을 prerequisite로 고정하지 않습니다. Colab이면 `platform/colab/`의 ephemeral runtime 정책도 적용합니다.

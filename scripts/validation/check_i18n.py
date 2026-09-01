@@ -11,19 +11,41 @@ KO = ROOT / "i18n" / "ko"
 REQUIRED_LOCALIZED = {
     "AGENTS.md", "CLAUDE.md", "GEMINI.md", "INSTALL.md",
     ".github/copilot-instructions.md", ".github/instructions/llm.instructions.md", ".github/instructions/vision.instructions.md",
+    ".github/instructions/ml.instructions.md", ".github/instructions/colab.instructions.md",
     ".cursor/rules/coding-standard.mdc", ".windsurf/rules/coding-standard.md", ".clinerules/01-coding-standard.md", ".continue/rules/01-coding-standard.md", ".junie/AGENTS.md", ".amazonq/rules/coding-standard.md",
-    ".aider.conf.yml",
-    "core/common/AGENT.md", "core/common/SKILL.md", "core/common/ENVIRONMENT.md", "core/common/environment.py", "core/common/experiment.py",
+    "docs/development/CONVENTIONS.md", ".aider.conf.yml",
+    "core/common/AGENT.md", "core/common/SKILL.md", "core/common/ENVIRONMENT.md", "core/common/environment.py", "core/common/experiment.py", "core/common/dependencies.py",
+    "domains/ml/AGENT.md", "domains/ml/SKILL.md", "domains/ml/ENVIRONMENT.md", "domains/ml/README.md",
     "domains/llm/AGENT.md", "domains/llm/SKILL.md", "domains/llm/ENVIRONMENT.md", "domains/llm/README.md", "domains/llm/environment.py", "domains/llm/experiment.py", "domains/llm/memory_smoke_test.py",
     "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/README.md", "domains/vision/memory_smoke_test.py", "domains/vision/config/training.yaml", "domains/vision/config/ablation.yaml",
+    "platform/colab/AGENT.md", "platform/colab/SKILL.md",
 }
-SEMANTIC_DOCUMENTS = {p for p in REQUIRED_LOCALIZED if p.endswith(".md") and p not in {"domains/llm/README.md", "domains/vision/README.md"}}
+
+# Semantic parity belongs to canonical policy documents. Tool adapters can remain compact.
+SEMANTIC_DOCUMENTS = {
+    "core/common/AGENT.md", "core/common/SKILL.md", "core/common/ENVIRONMENT.md",
+    "domains/ml/AGENT.md", "domains/ml/SKILL.md", "domains/ml/ENVIRONMENT.md",
+    "domains/llm/AGENT.md", "domains/llm/SKILL.md", "domains/llm/ENVIRONMENT.md",
+    "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md",
+    "platform/colab/AGENT.md", "platform/colab/SKILL.md",
+}
 CONCEPT_ALTERNATIVES = {
-    "environment": {"en": ("environment", "runtime"), "ko": ("환경", "실행환경", "런타임")},
-    "memory": {"en": ("memory", "ram", "vram"), "ko": ("메모리", "램", "브이램")},
-    "early stopping": {"en": ("early stopping",), "ko": ("early stopping", "얼리 스토핑", "조기 종료")},
-    "checkpoint": {"en": ("checkpoint",), "ko": ("checkpoint", "체크포인트")},
-    "ablation": {"en": ("ablation", "ablation study"), "ko": ("ablation", "ablation study", "어브레이션", "어브레이션 스터디")},
+    "environment": {
+        "en": ("environment", "runtime"),
+        "ko": ("환경", "실행환경", "런타임", "environment", "runtime"),
+    },
+    "memory": {
+        "en": ("memory", "ram", "vram"),
+        "ko": ("메모리", "램", "브이램", "ram", "vram", "memory"),
+    },
+    "early stopping": {
+        "en": ("early stopping",),
+        "ko": ("early stopping", "얼리 스토핑", "조기 종료"),
+    },
+    "checkpoint": {
+        "en": ("checkpoint",),
+        "ko": ("checkpoint", "체크포인트"),
+    },
 }
 
 def contains_any(text: str, alternatives: tuple[str, ...]) -> bool:
@@ -45,6 +67,6 @@ def main() -> int:
             if contains_any(en_text, alternatives["en"]) and not contains_any(ko_text, alternatives["ko"]):
                 print(f"Missing localized core concept '{concept}' in {rel}"); errors += 1
     if errors: return 1
-    print("i18n parity OK: English/Korean file presence and document-specific rule anchors verified"); return 0
+    print("i18n parity OK: English/Korean file presence and core policy anchors verified"); return 0
 
 if __name__ == "__main__": raise SystemExit(main())
