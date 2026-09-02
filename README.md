@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/eaglesjo/codingStandard/releases"><img src="https://img.shields.io/github/v/release/eaglesjo/codingStandard?label=public%20release" alt="Public release"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
 </p>
 
 > **Language:** English (default) · [한국어 README](i18n/ko/README.md) · [한국어 설치 가이드](i18n/ko/INSTALL.md)
@@ -154,6 +154,8 @@ The repository uses a canonical layered structure. Tool-specific entrypoints are
 │   └── vision/
 ├── platform/
 │   └── colab/
+├── examples/
+│   └── colab/
 ├── docs/
 │   ├── development/
 │   └── releases/
@@ -209,15 +211,24 @@ python scripts/validation/check_i18n.py
 python scripts/installers/test_installers.py
 ```
 
-For ML workloads, run the relevant domain Memory Smoke Test before long-running training. For Colab, run the notebook validation in `tests/colab/` from a fresh runtime.
+For ML workloads, run the relevant domain Memory Smoke Test before long-running training. For Colab, use the one-click notebooks below from a fresh runtime.
+
+### ☁️ Google Colab — one-click validation
+
+Open the notebook directly from GitHub in Google Colab. No private-repository credentials are required for the public distribution repository.
+
+| Validation | Purpose | Colab |
+|---|---|---|
+| Full codingStandard | Runtime, environment, LLM/Vision smoke tests and repository validation | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb) |
+| Clean runtime | Fresh-runtime environment and checkpoint/restore smoke test | [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/examples/colab/clean_runtime_validation.ipynb) |
+| LLM QLoRA | 4-bit/NF4 + PEFT/LoRA runtime validation | [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/examples/colab/llm_qlora_validation.ipynb) |
+| RAG | Dense embeddings + top-k retrieval + grounded prompt + generation | [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/examples/colab/rag_validation.ipynb) |
+
+> Recommended first test: **Full codingStandard**. For the RAG capability specifically, run **RAG** in a fresh Colab runtime.
 
 ### Platform validation
 
 GitHub Actions validates the repository on macOS and Ubuntu 24.04 LTS. Windows installer integration is validated using both Windows PowerShell and PowerShell 7. Installer tests cover English/Korean, Common/ML/LLM/Vision/Colab/All, dry-run, merge preservation, Unicode/space paths, and legacy-installer removal.
-
-Google Colab validation is provided as a runnable notebook:
-
-[Open the Colab validation notebook](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb)
 
 ## 📚 Documentation
 
