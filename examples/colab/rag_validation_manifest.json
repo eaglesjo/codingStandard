@@ -1,0 +1,8 @@
+{
+  "notebook": "examples/colab/rag_validation.ipynb",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "generation_model": "sshleifer/tiny-gpt2",
+  "retrieval": "cosine similarity over normalized dense embeddings",
+  "top_k": 2,
+  "ci_policy": "validate notebook JSON only; execute real embedding/generation in Colab"
+}
