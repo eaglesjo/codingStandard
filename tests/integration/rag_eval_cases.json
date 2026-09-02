@@ -1,0 +1,34 @@
+{
+  "dataset_id": "rag-eval-v1",
+  "dataset_revision": "2026-09-02",
+  "cases": [
+    {
+      "id": "colab-runtime",
+      "query": "How should Colab handle ephemeral runtimes?",
+      "relevant_chunk_ids": ["colab:chunk-000"],
+      "required_evidence_terms": ["ephemeral", "persisted"],
+      "required_citation_ids": ["colab:chunk-000"]
+    },
+    {
+      "id": "git-history",
+      "query": "What records project history?",
+      "relevant_chunk_ids": ["git:chunk-000"],
+      "required_evidence_terms": ["commits", "history"],
+      "required_citation_ids": ["git:chunk-000"]
+    },
+    {
+      "id": "python-environments",
+      "query": "What does Python use for isolated environments?",
+      "relevant_chunk_ids": ["python:chunk-000"],
+      "required_evidence_terms": ["virtual environments"],
+      "required_citation_ids": ["python:chunk-000"]
+    },
+    {
+      "id": "git-branches",
+      "query": "How can development lines be isolated?",
+      "relevant_chunk_ids": ["git:chunk-000"],
+      "required_evidence_terms": ["branches", "development"],
+      "required_citation_ids": ["git:chunk-000"]
+    }
+  ]
+}
