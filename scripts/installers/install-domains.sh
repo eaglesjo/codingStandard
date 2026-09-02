@@ -10,23 +10,29 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 mkdir -p "$TARGET"
 TARGET="$(cd "$TARGET" && pwd)"
 SRC="$ROOT"
-if [[ "$LANGUAGE" == "ko" && -d "$ROOT/i18n/ko" ]]; then SRC="$ROOT/i18n/ko"; fi
+if [[ -d "$ROOT/i18n/$LANGUAGE" ]]; then SRC="$ROOT/i18n/$LANGUAGE"; fi
 
-case "$LANGUAGE" in en|ko) ;; *) echo 'language: en|ko' >&2; exit 1;; esac
+case "$LANGUAGE" in en|ko|zh-CN|ja|ru) ;; *) echo 'language: en|ko|zh-CN|ja|ru' >&2; exit 1;; esac
 case "$DOMAIN" in common|ml|llm|vision|colab|all) ;; *) echo 'domain: common|ml|llm|vision|colab|all' >&2; exit 1;; esac
 case "$POLICY" in ask|merge|overwrite|skip) ;; *) echo 'policy: ask|merge|overwrite|skip' >&2; exit 1;; esac
 case "$DRY_RUN" in true|false) ;; *) echo 'dry_run: true|false' >&2; exit 1;; esac
 
 if [[ -z "${2:-}" ]]; then
-  printf 'Language: 1) English  2) Korean\n'
+  printf 'Language: 1) English  2) Korean  3) Simplified Chinese  4) Japanese  5) Russian\n'
   read -r -p 'Language [1]: ' choice
-  [[ "${choice:-1}" == 2 ]] && LANGUAGE="ko" || LANGUAGE="en"
-  SRC="$ROOT"; [[ "$LANGUAGE" == "ko" && -d "$ROOT/i18n/ko" ]] && SRC="$ROOT/i18n/ko"
+  case "${choice:-1}" in
+    1|en) LANGUAGE="en";; 2|ko) LANGUAGE="ko";; 3|zh-CN) LANGUAGE="zh-CN";; 4|ja) LANGUAGE="ja";; 5|ru) LANGUAGE="ru";; *) echo 'Invalid language' >&2; exit 1;;
+  esac
+  SRC="$ROOT"; [[ -d "$ROOT/i18n/$LANGUAGE" ]] && SRC="$ROOT/i18n/$LANGUAGE"
 fi
 if [[ -z "${3:-}" ]]; then
   printf 'Domain: 1) Common  2) ML  3) LLM  4) Vision  5) Colab  6) All\n'
   read -r -p 'Domain [6]: ' choice
   case "${choice:-6}" in 1) DOMAIN="common";; 2) DOMAIN="ml";; 3) DOMAIN="llm";; 4) DOMAIN="vision";; 5) DOMAIN="colab";; 6) DOMAIN="all";; *) echo 'Invalid domain' >&2; exit 1;; esac
+fi
+
+if [[ "$LANGUAGE" != "en" ]]; then
+  echo "Language resource mode: $LANGUAGE (translated locale with English fallback for missing domain resources)"
 fi
 
 files=(

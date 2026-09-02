@@ -33,7 +33,14 @@ def chunk_documents(documents: Iterable[Document], max_words: int = 18) -> list[
         words = document.text.split()
         for index in range(0, len(words), max_words):
             text = " ".join(words[index : index + max_words])
-            chunks.append(Chunk(chunk_id=f"{document.doc_id}:chunk-{index // max_words:03d}", doc_id=document.doc_id, title=document.title, text=text))
+            chunks.append(
+                Chunk(
+                    chunk_id=f"{document.doc_id}:chunk-{index // max_words:03d}",
+                    doc_id=document.doc_id,
+                    title=document.title,
+                    text=text,
+                )
+            )
     return chunks
 
 
@@ -44,6 +51,7 @@ def tfidf_vectors(chunks: list[Chunk]) -> tuple[list[dict[str, float]], dict[str
     for term in vocabulary:
         document_frequency = sum(term in tokens for tokens in tokenized)
         idf[term] = math.log((1 + len(chunks)) / (1 + document_frequency)) + 1.0
+
     vectors: list[dict[str, float]] = []
     for tokens in tokenized:
         length = max(len(tokens), 1)
@@ -66,7 +74,13 @@ def cosine(left: dict[str, float], right: dict[str, float]) -> float:
     return numerator / (left_norm * right_norm) if left_norm and right_norm else 0.0
 
 
-def retrieve(query: str, chunks: list[Chunk], vectors: list[dict[str, float]], idf: dict[str, float], top_k: int = 2) -> list[tuple[Chunk, float]]:
+def retrieve(
+    query: str,
+    chunks: list[Chunk],
+    vectors: list[dict[str, float]],
+    idf: dict[str, float],
+    top_k: int = 2,
+) -> list[tuple[Chunk, float]]:
     query_vector = vectorize_query(query, idf)
     ranked = [(chunk, cosine(query_vector, vector)) for chunk, vector in zip(chunks, vectors)]
     return sorted(ranked, key=lambda item: (-item[1], item[0].chunk_id))[:top_k]
@@ -74,7 +88,11 @@ def retrieve(query: str, chunks: list[Chunk], vectors: list[dict[str, float]], i
 
 def assemble_prompt(question: str, retrieved: list[tuple[Chunk, float]]) -> str:
     evidence = "\n".join(f"[{chunk.chunk_id}] {chunk.text}" for chunk, _ in retrieved)
-    return "Answer using only the evidence below. Cite chunk IDs. If the evidence is insufficient, say so.\n\n" f"Question: {question}\n\nEvidence:\n{evidence}"
+    return (
+        "Answer using only the evidence below. Cite chunk IDs. "
+        "If the evidence is insufficient, say so.\n\n"
+        f"Question: {question}\n\nEvidence:\n{evidence}"
+    )
 
 
 def recall_at_k(results: list[tuple[Chunk, float]], relevant_ids: set[str]) -> float:
@@ -84,22 +102,41 @@ def recall_at_k(results: list[tuple[Chunk, float]], relevant_ids: set[str]) -> f
 
 def main() -> None:
     documents = [
-        Document("python", "Python", "Python is a programming language. Python uses indentation to delimit blocks. Python supports virtual environments."),
-        Document("git", "Git", "Git is a distributed version control system. Git commits record project history. Branches isolate lines of development."),
-        Document("colab", "Colab", "Google Colab provides hosted notebook runtimes. Colab runtimes are ephemeral, so checkpoints and artifacts should be persisted."),
+        Document(
+            "python",
+            "Python",
+            "Python is a programming language. Python uses indentation to delimit blocks. Python supports virtual environments.",
+        ),
+        Document(
+            "git",
+            "Git",
+            "Git is a distributed version control system. Git commits record project history. Branches isolate lines of development.",
+        ),
+        Document(
+            "colab",
+            "Colab",
+            "Google Colab provides hosted notebook runtimes. Colab runtimes are ephemeral, so checkpoints and artifacts should be persisted.",
+        ),
     ]
     chunks = chunk_documents(documents)
-    assert [chunk.chunk_id for chunk in chunks] == ["python:chunk-000", "git:chunk-000", "colab:chunk-000"]
+    assert [chunk.chunk_id for chunk in chunks] == [
+        "python:chunk-000", "git:chunk-000", "colab:chunk-000"
+    ]
+
     vectors, idf = tfidf_vectors(chunks)
     results = retrieve("How should Colab handle ephemeral runtimes?", chunks, vectors, idf, top_k=2)
     assert recall_at_k(results, {"colab:chunk-000"}) == 1.0
+
     prompt = assemble_prompt("How should Colab handle ephemeral runtimes?", results)
     assert "colab:chunk-000" in prompt
     assert "persisted" in prompt
     assert "database" not in prompt.lower()
+
     unknown = retrieve("What orbital quasar calibration protocol does this corpus define?", chunks, vectors, idf, top_k=2)
     assert unknown[0][1] == 0.0
-    assert "insufficient" in assemble_prompt("What orbital quasar calibration protocol does this corpus define?", unknown).lower()
+    assert "insufficient" in assemble_prompt(
+        "What orbital quasar calibration protocol does this corpus define?", unknown
+    ).lower()
     print("RAG integration smoke test passed")
 
 

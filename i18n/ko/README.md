@@ -1,5 +1,9 @@
 # codingStandard 한국어 안내
 
+> **Language:** [English](../../README.md) · 한국어 · [简体中文](../zh-CN/README.md) · [日本語](../ja/README.md) · [Русский](../ru/README.md)
+>
+> **Runtime resource languages:** English / Korean. 中文・日本語・Русский 문서는 먼저 제공되며, runtime 정책 리소스는 번역 및 검증 완료 후 installer 지원에 추가합니다.
+
 `codingStandard`의 한국어 문서와 설치 리소스를 제공합니다.
 
 ## 설치
@@ -35,36 +39,7 @@ all    = Common + ML + LLM + Vision + Colab
 
 ## 한국어 리소스 구조
 
-```text
-i18n/ko/
-├── README.md
-├── INSTALL.md
-├── AGENT.md
-├── AGENTS.md
-├── CLAUDE.md
-├── GEMINI.md
-├── .github/
-├── .cursor/
-├── .clinerules/
-├── .continue/
-├── .junie/
-├── .amazonq/
-├── .windsurf/
-├── .aider.conf.yml
-├── core/
-│   └── common/
-├── domains/
-│   ├── ml/
-│   ├── llm/
-│   └── vision/
-├── platform/
-│   └── colab/
-└── docs/
-    └── development/
-        └── CONVENTIONS.md
-```
-
-한국어 리소스는 영문 저장소의 구조를 가능한 한 그대로 미러링합니다. 새 리소스 중 아직 한국어 전용 번역이 없는 기술 task Skill은 설치기에서 영문 원본으로 안전하게 fallback합니다.
+`i18n/ko/`는 영문 저장소 구조를 미러링하는 실제 runtime 번역 리소스 트리입니다. 새 언어의 README가 존재한다는 사실만으로 해당 언어가 installer/runtime resource까지 지원된다는 의미는 아닙니다.
 
 ## 주요 문서
 
@@ -87,5 +62,3 @@ i18n/ko/
 - Clean runtime: [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/examples/colab/clean_runtime_validation.ipynb)
 - LLM QLoRA: [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/examples/colab/llm_qlora_validation.ipynb)
 - RAG: [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/examples/colab/rag_validation.ipynb)
-
-기본 종합 Notebook은 실제 Colab runtime을 기준으로 환경을 감지하며, 로컬 클라이언트의 OS와 혼동하지 않습니다. 장시간 작업은 durable checkpoint와 Resume을 전제로 합니다.

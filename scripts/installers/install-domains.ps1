@@ -1,6 +1,6 @@
 param(
   [string]$Target='.',
-  [ValidateSet('en','ko')][string]$Language,
+  [ValidateSet('en','ko','zh-CN','ja','ru')][string]$Language,
   [ValidateSet('common','ml','llm','vision','colab','all')][string]$Domain,
   [ValidateSet('Ask','Merge','Overwrite','Skip')][string]$ConflictAction='Ask',
   [switch]$DryRun
@@ -9,9 +9,9 @@ $ErrorActionPreference='Stop'
 $Root=Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 if(-not $Language){
-  Write-Host 'Language: 1) English  2) Korean'
+  Write-Host 'Language: 1) English  2) Korean  3) Simplified Chinese  4) Japanese  5) Russian'
   $choice=Read-Host 'Language [1]'
-  $Language=if([string]::IsNullOrWhiteSpace($choice)-or $choice -in @('1','en')){'en'}elseif($choice -in @('2','ko')){'ko'}else{throw 'Invalid language'}
+  $Language=switch($choice){'2'{'ko'}'3'{'zh-CN'}'4'{'ja'}'5'{'ru'}default{'en'}}
 }
 if(-not $Domain){
   Write-Host 'Domain: 1) Common  2) ML  3) LLM  4) Vision  5) Colab  6) All'
@@ -22,7 +22,8 @@ $resolvedTarget=[System.IO.Path]::GetFullPath($Target)
 if(-not (Test-Path -LiteralPath $resolvedTarget)){ New-Item -ItemType Directory -Force -Path $resolvedTarget | Out-Null }
 $Target=$resolvedTarget
 $SrcRoot=$Root
-if($Language -eq 'ko' -and (Test-Path "$Root/i18n/ko")){ $SrcRoot="$Root/i18n/ko" }
+if($Language -ne 'en' -and (Test-Path "$Root/i18n/$Language")){ $SrcRoot="$Root/i18n/$Language" }
+if($Language -ne 'en'){ Write-Host "Language resource mode: $Language (translated locale with English fallback for missing domain resources)" }
 $script:Policy=$ConflictAction
 
 function MergeText($old,$new,$path){

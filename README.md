@@ -6,12 +6,14 @@
 
 <p align="center">
   <a href="https://github.com/eaglesjo/codingStandard/releases"><img src="https://img.shields.io/github/v/release/eaglesjo/codingStandard?label=public%20release" alt="Public release"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
 </p>
 
-> **Language:** English (default) · [한국어 README](i18n/ko/README.md) · [한국어 설치 가이드](i18n/ko/INSTALL.md)
+> **Language:** English (default) · [한국어](i18n/ko/README.md) · [简体中文](i18n/zh-CN/README.md) · [日本語](i18n/ja/README.md) · [Русский](i18n/ru/README.md)
 >
 > **Repository model:** `codingStandard-private` is the development source of truth. Validated releases are published to the public [`eaglesjo/codingStandard`](https://github.com/eaglesjo/codingStandard) repository.
+>
+> **Runtime resource languages:** English and Korean. Additional languages currently provide documentation entrypoints and will be added to installer/runtime-resource support only after translation and validation parity is complete.
 
 ## ✨ What is AI Engineering Standard?
 
@@ -26,7 +28,7 @@ It provides:
 - environment and resource detection;
 - Google Colab execution/recovery policy;
 - cross-platform installers;
-- English/Korean localization;
+- multilingual documentation entrypoints;
 - validation and installer test suites;
 - reproducible training and experiment guidance.
 
@@ -160,7 +162,10 @@ The repository uses a canonical layered structure. Tool-specific entrypoints are
 │   ├── development/
 │   └── releases/
 ├── i18n/
-│   └── ko/
+│   ├── ko/
+│   ├── zh-CN/
+│   ├── ja/
+│   └── ru/
 ├── scripts/
 │   ├── development/
 │   ├── installers/
@@ -251,6 +256,9 @@ GitHub Actions validates the repository on macOS and Ubuntu 24.04 LTS. Windows i
 - [Windows Installer Test](scripts/installers/test_installers_windows.ps1)
 - [Colab Validation](tests/colab/README.md)
 - [Korean README](i18n/ko/README.md)
+- [Simplified Chinese README](i18n/zh-CN/README.md)
+- [Japanese README](i18n/ja/README.md)
+- [Russian README](i18n/ru/README.md)
 
 ## 📄 License
 

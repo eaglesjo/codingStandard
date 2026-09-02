@@ -1,0 +1,17 @@
+{
+  "default": "en",
+  "documentation": [
+    {"locale": "en", "name": "English", "path": "README.md"},
+    {"locale": "ko", "name": "한국어", "path": "i18n/ko/README.md"},
+    {"locale": "zh-CN", "name": "简体中文", "path": "i18n/zh-CN/README.md"},
+    {"locale": "ja", "name": "日本語", "path": "i18n/ja/README.md"},
+    {"locale": "ru", "name": "Русский", "path": "i18n/ru/README.md"}
+  ],
+  "runtime_resources": [
+    {"locale": "en", "name": "English", "path": ".", "fallback": null},
+    {"locale": "ko", "name": "한국어", "path": "i18n/ko", "fallback": "en"},
+    {"locale": "zh-CN", "name": "简体中文", "path": "i18n/zh-CN", "fallback": "en"},
+    {"locale": "ja", "name": "日本語", "path": "i18n/ja", "fallback": "en"},
+    {"locale": "ru", "name": "Русский", "path": "i18n/ru", "fallback": "en"}
+  ]
+}
