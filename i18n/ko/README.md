@@ -79,4 +79,13 @@ i18n/ko/
 
 ## Google Colab
 
-Colab 검증 Notebook은 `tests/colab/codingstandard_colab_test.ipynb`에 있습니다. Notebook은 실제 Colab runtime을 기준으로 환경을 감지하며, 로컬 클라이언트의 OS와 혼동하지 않습니다. 장시간 작업은 durable checkpoint와 Resume을 전제로 합니다.
+공개 배포 저장소에서는 GitHub README에서 Colab Notebook을 직접 열어 검증할 수 있습니다. Private repository 자격증명 없이 공개 `eaglesjo/codingStandard`에서 테스트하는 것을 기본 시나리오로 합니다.
+
+### 원클릭 검증
+
+- 종합 검증: [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/tests/colab/codingstandard_colab_test.ipynb)
+- Clean runtime: [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/examples/colab/clean_runtime_validation.ipynb)
+- LLM QLoRA: [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/examples/colab/llm_qlora_validation.ipynb)
+- RAG: [Open in Colab](https://colab.research.google.com/github/eaglesjo/codingStandard/blob/main/examples/colab/rag_validation.ipynb)
+
+기본 종합 Notebook은 실제 Colab runtime을 기준으로 환경을 감지하며, 로컬 클라이언트의 OS와 혼동하지 않습니다. 장시간 작업은 durable checkpoint와 Resume을 전제로 합니다.
