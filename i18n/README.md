@@ -27,6 +27,22 @@ The installer currently provides validated runtime resources for five locale cod
 
 The documentation-only locales `fr`, `es`, and `tr` are intentionally not advertised as runtime-resource languages yet. Domain resources that have not been translated are resolved from the English source tree, and the installer reports fallback mode explicitly.
 
+## Colab documentation
+
+The public Colab validation flow is documented in locale-specific guides:
+
+| Locale | Colab guide |
+|---|---|
+| `ko` | [`ko/COLAB.md`](ko/COLAB.md) |
+| `fr` | [`fr/COLAB.md`](fr/COLAB.md) |
+| `es` | [`es/COLAB.md`](es/COLAB.md) |
+| `zh-CN` | [`zh-CN/COLAB.md`](zh-CN/COLAB.md) |
+| `ja` | [`ja/COLAB.md`](ja/COLAB.md) |
+| `ru` | [`ru/COLAB.md`](ru/COLAB.md) |
+| `tr` | [`tr/COLAB.md`](tr/COLAB.md) |
+
+The English canonical Colab guide remains [`tests/colab/README.md`](../tests/colab/README.md).
+
 ## Localization rules
 
 1. English remains the canonical source of truth.
