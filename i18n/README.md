@@ -43,6 +43,22 @@ The public Colab validation flow is documented in locale-specific guides:
 
 The English canonical Colab guide remains [`tests/colab/README.md`](../tests/colab/README.md).
 
+## ML/DL runtime validation
+
+Locale-specific ML/DL runtime validation guides are available for the seven non-English documentation locales:
+
+| Locale | Runtime validation guide |
+|---|---|
+| `ko` | [`ko/ML_RUNTIME_VALIDATION.md`](ko/ML_RUNTIME_VALIDATION.md) |
+| `fr` | [`fr/ML_RUNTIME_VALIDATION.md`](fr/ML_RUNTIME_VALIDATION.md) |
+| `es` | [`es/ML_RUNTIME_VALIDATION.md`](es/ML_RUNTIME_VALIDATION.md) |
+| `zh-CN` | [`zh-CN/ML_RUNTIME_VALIDATION.md`](zh-CN/ML_RUNTIME_VALIDATION.md) |
+| `ja` | [`ja/ML_RUNTIME_VALIDATION.md`](ja/ML_RUNTIME_VALIDATION.md) |
+| `ru` | [`ru/ML_RUNTIME_VALIDATION.md`](ru/ML_RUNTIME_VALIDATION.md) |
+| `tr` | [`tr/ML_RUNTIME_VALIDATION.md`](tr/ML_RUNTIME_VALIDATION.md) |
+
+The English canonical guide remains [`docs/development/ML_RUNTIME_VALIDATION.md`](../docs/development/ML_RUNTIME_VALIDATION.md) in the private source tree; the public distribution receives the public-safe documentation set selected by the release workflow.
+
 ## Localization rules
 
 1. English remains the canonical source of truth.
