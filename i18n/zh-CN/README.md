@@ -2,7 +2,7 @@
 
 <p align="center"><strong>AI 开发、训练与智能体工程标准</strong></p>
 
-> **Language:** [English](../../README.md) · [한국어](../ko/README.md) · 简体中文 · [日本語](../ja/README.md) · [Русский](../ru/README.md)
+> **Language:** [English](../../README.md) · [한국어](../ko/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · 简体中文 · [日本語](../ja/README.md) · [Русский](../ru/README.md) · [Türkçe](../tr/README.md)
 >
 > 本页面是 codingStandard 的简体中文文档入口。运行时 Agent / Skill / Environment 资源目前正式本地化到 English 与 Korean；其他语言会在资源完成并通过验证后加入 installer 支持。
 
@@ -34,4 +34,4 @@ powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\ins
 
 ## 多语言支持
 
-文档入口提供 English、한국어、简体中文、日本語、Русский。运行时策略资源仍按实际翻译完成度标记，避免误导使用者。
+文档入口提供 English、한국어、Français、Español、简体中文、日本語、Русский、Türkçe。运行时策略资源仍按实际翻译完成度标记，避免误导使用者。

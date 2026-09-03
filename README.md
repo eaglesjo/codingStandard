@@ -9,8 +9,8 @@
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
 </p>
 
-> **Language:** English (default) · [한국어](i18n/ko/README.md) · [简体中文](i18n/zh-CN/README.md) · [日本語](i18n/ja/README.md) · [Русский](i18n/ru/README.md)
->
+**Language:** English · [한국어](i18n/ko/README.md) · [Français](i18n/fr/README.md) · [Español](i18n/es/README.md) · [简体中文](i18n/zh-CN/README.md) · [日本語](i18n/ja/README.md) · [Русский](i18n/ru/README.md) · [Türkçe](i18n/tr/README.md)
+
 > **Repository model:** `codingStandard-private` is the development source of truth. Validated releases are published to the public [`eaglesjo/codingStandard`](https://github.com/eaglesjo/codingStandard) repository.
 >
 > **Runtime resource languages:** English and Korean. Additional languages currently provide documentation entrypoints and will be added to installer/runtime-resource support only after translation and validation parity is complete.
@@ -163,9 +163,12 @@ The repository uses a canonical layered structure. Tool-specific entrypoints are
 │   └── releases/
 ├── i18n/
 │   ├── ko/
+│   ├── fr/
+│   ├── es/
 │   ├── zh-CN/
 │   ├── ja/
-│   └── ru/
+│   ├── ru/
+│   └── tr/
 ├── scripts/
 │   ├── development/
 │   ├── installers/
@@ -240,7 +243,7 @@ GitHub Actions validates the repository on macOS and Ubuntu 24.04 LTS. Windows i
 - [Installation Guide](INSTALL.md)
 - [Korean Installation Guide](i18n/ko/INSTALL.md)
 - [Repository Structure](docs/development/REPOSITORY_STRUCTURE.md)
-- [Development Guide](docs/development/DEVELOPMENT.md)
+- [Public Development Guide](docs/development/DEVELOPMENT_PUBLIC.md)
 - [Common Agent Rules](core/common/AGENT.md)
 - [ML Agent Rules](domains/ml/AGENT.md)
 - [ML Skill](domains/ml/SKILL.md)
@@ -256,9 +259,12 @@ GitHub Actions validates the repository on macOS and Ubuntu 24.04 LTS. Windows i
 - [Windows Installer Test](scripts/installers/test_installers_windows.ps1)
 - [Colab Validation](tests/colab/README.md)
 - [Korean README](i18n/ko/README.md)
+- [French README](i18n/fr/README.md)
+- [Spanish README](i18n/es/README.md)
 - [Simplified Chinese README](i18n/zh-CN/README.md)
 - [Japanese README](i18n/ja/README.md)
 - [Russian README](i18n/ru/README.md)
+- [Turkish README](i18n/tr/README.md)
 
 ## 📄 License
 

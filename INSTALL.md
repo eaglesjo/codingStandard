@@ -1,6 +1,6 @@
 # Installation Guide
 
-`install-domains.ps1` and `install-domains.sh` are the only supported installers before the first public release.
+`install-domains.ps1` and `install-domains.sh` are the supported installers for the public `codingStandard` distribution.
 
 ## 1. Clone
 
@@ -12,14 +12,27 @@ Run the installer from the repository root of the project you want to configure.
 
 ## 2. Choose Language and Domain
 
-The installer supports English and Korean and six install domains:
+Documentation is available in eight languages. Validated runtime resources are currently available for English, Korean, Simplified Chinese, Japanese, and Russian. French, Spanish, and Turkish are documentation-only until their runtime resources complete translation and validation.
 
 ```text
-Language
-  en = English
-  ko = Korean
+Documentation languages
+  en      = English
+  ko      = Korean
+  fr      = French
+  es      = Spanish
+  zh-CN   = Simplified Chinese
+  ja      = Japanese
+  ru      = Russian
+  tr      = Turkish
 
-Domain
+Validated runtime resource languages
+  en      = English canonical resources
+  ko      = Korean localized resources
+  zh-CN   = Simplified Chinese localized common policy resources
+  ja      = Japanese localized common policy resources
+  ru      = Russian localized common policy resources
+
+Install domains
   common = common rules only
   ml     = common + general ML/DL lifecycle
   llm    = common + LLM
@@ -27,6 +40,8 @@ Domain
   colab  = common + Colab runtime policy
   all    = common + ML + LLM + Vision + Colab
 ```
+
+For documentation-only locales, use their localized README as the language-specific entrypoint. Runtime installation falls back to English for domain resources that are not translated and validated.
 
 ### Windows / PowerShell
 
@@ -186,3 +201,14 @@ python domains/vision/memory_smoke_test.py --device auto --image-size 224 --batc
 ```
 
 For Colab, run the validation notebook under `tests/colab/` from a fresh runtime and verify checkpoint persistence/resume behavior.
+
+## Language-specific documentation
+
+- [English README](README.md)
+- [한국어 README](i18n/ko/README.md)
+- [Français README](i18n/fr/README.md)
+- [Español README](i18n/es/README.md)
+- [简体中文 README](i18n/zh-CN/README.md)
+- [日本語 README](i18n/ja/README.md)
+- [Русский README](i18n/ru/README.md)
+- [Türkçe README](i18n/tr/README.md)

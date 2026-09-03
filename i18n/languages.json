@@ -3,9 +3,12 @@
   "documentation": [
     {"locale": "en", "name": "English", "path": "README.md"},
     {"locale": "ko", "name": "한국어", "path": "i18n/ko/README.md"},
+    {"locale": "fr", "name": "Français", "path": "i18n/fr/README.md"},
+    {"locale": "es", "name": "Español", "path": "i18n/es/README.md"},
     {"locale": "zh-CN", "name": "简体中文", "path": "i18n/zh-CN/README.md"},
     {"locale": "ja", "name": "日本語", "path": "i18n/ja/README.md"},
-    {"locale": "ru", "name": "Русский", "path": "i18n/ru/README.md"}
+    {"locale": "ru", "name": "Русский", "path": "i18n/ru/README.md"},
+    {"locale": "tr", "name": "Türkçe", "path": "i18n/tr/README.md"}
   ],
   "runtime_resources": [
     {"locale": "en", "name": "English", "path": ".", "fallback": null},

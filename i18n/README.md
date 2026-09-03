@@ -8,13 +8,16 @@
 |---|---|---|
 | `en` | English | [`README.md`](../README.md) |
 | `ko` | 한국어 | [`ko/README.md`](ko/README.md) |
+| `fr` | Français | [`fr/README.md`](fr/README.md) |
+| `es` | Español | [`es/README.md`](es/README.md) |
 | `zh-CN` | 简体中文 | [`zh-CN/README.md`](zh-CN/README.md) |
 | `ja` | 日本語 | [`ja/README.md`](ja/README.md) |
 | `ru` | Русский | [`ru/README.md`](ru/README.md) |
+| `tr` | Türkçe | [`tr/README.md`](tr/README.md) |
 
 ## Runtime resource languages
 
-The installer currently accepts five locale codes:
+The installer currently provides validated runtime resources for five locale codes:
 
 - `en` — English canonical resources
 - `ko` — Korean localized resources
@@ -22,7 +25,7 @@ The installer currently accepts five locale codes:
 - `ja` — Japanese localized common policy resources
 - `ru` — Russian localized common policy resources
 
-All five locales can be installed through the common domain. Domain resources that have not yet been translated are resolved from the English source tree, and the installer reports this fallback mode explicitly.
+The documentation-only locales `fr`, `es`, and `tr` are intentionally not advertised as runtime-resource languages yet. Domain resources that have not been translated are resolved from the English source tree, and the installer reports fallback mode explicitly.
 
 ## Localization rules
 

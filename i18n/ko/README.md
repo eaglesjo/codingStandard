@@ -1,8 +1,8 @@
 # codingStandard 한국어 안내
 
-> **Language:** [English](../../README.md) · 한국어 · [简体中文](../zh-CN/README.md) · [日本語](../ja/README.md) · [Русский](../ru/README.md)
+> **Language:** [English](../../README.md) · 한국어 · [Français](../fr/README.md) · [Español](../es/README.md) · [简体中文](../zh-CN/README.md) · [日本語](../ja/README.md) · [Русский](../ru/README.md) · [Türkçe](../tr/README.md)
 >
-> **Runtime resource languages:** English / Korean. 中文・日本語・Русский 문서는 먼저 제공되며, runtime 정책 리소스는 번역 및 검증 완료 후 installer 지원에 추가합니다.
+> **Runtime resource languages:** English / Korean. 中文・日本語・Русский・Français・Español・Türkçe 문서는 먼저 제공되며, runtime 정책 리소스는 번역 및 검증 완료 후 installer 지원에 추가합니다.
 
 `codingStandard`의 한국어 문서와 설치 리소스를 제공합니다.
 
