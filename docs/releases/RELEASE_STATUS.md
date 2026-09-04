@@ -1,11 +1,13 @@
-Release development target: 1.7.0.
+Release development target: 1.12.0.
 
-Status: implementation in progress; complete repository, installer, localization, platform, and Colab validation before tagging.
+Status: final pre-release validation; complete repository, installer, localization, platform, and RAG quality-gate checks before tagging.
 
 Validation focus:
 - canonical Agent adapter routing
-- ML domain resource completeness
-- Colab runtime policy
-- English/Korean installer parity with safe English fallback for newly introduced technical Skills
-- installer dry-run/merge behavior
+- multilingual runtime resource parity
+- ML/LLM/Vision domain resource completeness
+- Colab runtime policy and notebook validation
+- installer dry-run/merge/overwrite/skip behavior
+- fresh-project installer E2E across runtime locales
+- deterministic RAG regression and quality gate
 - existing LLM/Vision regression coverage

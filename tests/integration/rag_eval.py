@@ -25,6 +25,13 @@ INDEX_REVISION = "in-memory-tfidf-v1"
 RETRIEVAL_CONFIG = {"top_k": 2}
 PROMPT_REVISION = "grounding-rubric-v1"
 GENERATION_CONFIG = {"mode": "reference-fixture"}
+QUALITY_GATE_POLICY = "rag-eval-quality-gate-v1"
+QUALITY_METRICS = (
+    "retrieval_recall_at_1",
+    "retrieval_recall_at_2",
+    "retrieval_mrr",
+    "grounding_pass_rate",
+)
 
 DOCUMENTS = [
     Document(
@@ -62,6 +69,29 @@ def load_answers(path: Path | None) -> dict[str, str]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_thresholds(path: Path) -> tuple[str, dict[str, float]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    policy_id = payload.get("policy_id")
+    minimums = payload.get("minimums")
+    if not isinstance(policy_id, str) or not policy_id.strip():
+        raise ValueError("RAG quality gate policy_id must be a non-empty string")
+    if not isinstance(minimums, dict):
+        raise ValueError("RAG quality gate minimums must be an object")
+    if set(minimums) != set(QUALITY_METRICS):
+        expected = ", ".join(QUALITY_METRICS)
+        raise ValueError(f"RAG quality gate metrics must exactly match: {expected}")
+
+    thresholds: dict[str, float] = {}
+    for metric in QUALITY_METRICS:
+        value = minimums[metric]
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError(f"RAG quality gate threshold must be numeric: {metric}")
+        if not 0.0 <= float(value) <= 1.0:
+            raise ValueError(f"RAG quality gate threshold must be within [0, 1]: {metric}={value}")
+        thresholds[metric] = float(value)
+    return policy_id, thresholds
+
+
 def first_relevant_rank(results, relevant_ids: set[str]) -> int | None:
     for rank, (chunk, _) in enumerate(results, start=1):
         if chunk.chunk_id in relevant_ids:
@@ -80,6 +110,16 @@ def evaluate_grounding(answer: str, required_citation_ids: list[str], required_t
     return "pass"
 
 
+def evaluate_quality_gate(metrics: dict[str, float], thresholds: dict[str, float]) -> list[str]:
+    failures = []
+    for metric in QUALITY_METRICS:
+        actual = metrics[metric]
+        minimum = thresholds[metric]
+        if actual < minimum:
+            failures.append(f"{metric}: actual={actual:.6f} < minimum={minimum:.6f}")
+    return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -94,6 +134,12 @@ def main() -> int:
         help="Optional JSON mapping case IDs to generated answers.",
     )
     parser.add_argument(
+        "--thresholds",
+        type=Path,
+        default=Path(__file__).with_name("rag_eval_thresholds.json"),
+        help="Versioned quality-gate thresholds JSON.",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=Path("artifacts/rag_eval_results.json"),
@@ -103,6 +149,7 @@ def main() -> int:
 
     dataset = load_cases(args.cases)
     answers = load_answers(args.answers)
+    policy_id, thresholds = load_thresholds(args.thresholds)
     chunks = chunk_documents(DOCUMENTS, **CHUNKING_CONFIG)
     vectors, idf = tfidf_vectors(chunks)
 
@@ -132,10 +179,38 @@ def main() -> int:
         )
 
     count = len(results)
-    recall_at_1 = sum(item["first_relevant_rank"] == 1 for item in results) / count
-    recall_at_2 = sum(item["first_relevant_rank"] is not None and item["first_relevant_rank"] <= 2 for item in results) / count
-    mrr = sum((1 / item["first_relevant_rank"]) if item["first_relevant_rank"] else 0.0 for item in results) / count
-    grounding_pass_rate = sum(item["grounding_status"] == "pass" for item in results) / count
+    if count == 0:
+        raise ValueError("RAG evaluation dataset contains no cases")
+
+    metrics = {
+        "retrieval_recall_at_1": round(
+            sum(item["first_relevant_rank"] == 1 for item in results) / count, 6
+        ),
+        "retrieval_recall_at_2": round(
+            sum(
+                item["first_relevant_rank"] is not None
+                and item["first_relevant_rank"] <= 2
+                for item in results
+            )
+            / count,
+            6,
+        ),
+        "retrieval_mrr": round(
+            sum(
+                (1 / item["first_relevant_rank"])
+                if item["first_relevant_rank"]
+                else 0.0
+                for item in results
+            )
+            / count,
+            6,
+        ),
+        "grounding_pass_rate": round(
+            sum(item["grounding_status"] == "pass" for item in results) / count,
+            6,
+        ),
+    }
+    gate_failures = evaluate_quality_gate(metrics, thresholds)
 
     artifact = {
         "evaluation": "rag-eval-v1",
@@ -151,18 +226,28 @@ def main() -> int:
             "prompt_template_revision": PROMPT_REVISION,
             "generation_settings": GENERATION_CONFIG,
         },
-        "metrics": {
-            "retrieval_recall_at_1": round(recall_at_1, 6),
-            "retrieval_recall_at_2": round(recall_at_2, 6),
-            "retrieval_mrr": round(mrr, 6),
-            "grounding_pass_rate": round(grounding_pass_rate, 6),
+        "metrics": metrics,
+        "quality_gate": {
+            "policy_id": policy_id,
+            "status": "fail" if gate_failures else "pass",
+            "minimums": thresholds,
+            "failures": gate_failures,
         },
         "results": results,
     }
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(artifact, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(json.dumps(artifact["metrics"], indent=2))
+    args.output.write_text(
+        json.dumps(artifact, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    print(json.dumps(metrics, indent=2))
+    if gate_failures:
+        print("RAG quality gate failed:")
+        for failure in gate_failures:
+            print(f"- {failure}")
+        return 1
+
     print(f"RAG evaluation passed: {args.output}")
     return 0
 

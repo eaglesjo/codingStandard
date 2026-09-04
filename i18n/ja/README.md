@@ -4,7 +4,7 @@
 
 > **Language:** [English](../../README.md) · [한국어](../ko/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [简体中文](../zh-CN/README.md) · 日本語 · [Русский](../ru/README.md) · [Türkçe](../tr/README.md)
 >
-> このページは codingStandard の日本語ドキュメント入口です。実行時の Agent / Skill / Environment リソースは現在 English と Korean が正式対応で、他言語は翻訳と検証が完了した後に installer 対応へ追加します。
+> このページは codingStandard の日本語ドキュメント入口です。実行時の Agent / Skill / Environment リソースは現在 English、Korean、Simplified Chinese、Japanese、Russian に正式対応しています。Français、Español、Türkçe は文書入口のみで、リソースの翻訳と検証が完了した後に installer 対応へ追加します。
 
 ## AI Engineering Standard とは？
 

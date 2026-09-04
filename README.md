@@ -13,7 +13,7 @@
 
 > **Repository model:** `codingStandard-private` is the development source of truth. Validated releases are published to the public [`eaglesjo/codingStandard`](https://github.com/eaglesjo/codingStandard) repository.
 >
-> **Runtime resource languages:** English and Korean. Additional languages currently provide documentation entrypoints and will be added to installer/runtime-resource support only after translation and validation parity is complete.
+> **Runtime resource languages:** English, Korean, Simplified Chinese, Japanese, and Russian. French, Spanish, and Turkish currently provide documentation entrypoints only and will be added to installer/runtime-resource support only after translation and validation parity is complete.
 
 ## ✨ What is AI Engineering Standard?
 

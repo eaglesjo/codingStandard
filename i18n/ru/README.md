@@ -4,7 +4,7 @@
 
 > **Language:** [English](../../README.md) · [한국어](../ko/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [简体中文](../zh-CN/README.md) · [日本語](../ja/README.md) · Русский · [Türkçe](../tr/README.md)
 >
-> Эта страница является русской точкой входа в документацию codingStandard. Runtime-ресурсы Agent / Skill / Environment официально локализованы только на English и Korean; новые языки будут добавлены в installer после завершения перевода и валидации.
+> Эта страница является русской точкой входа в документацию codingStandard. Runtime-ресурсы Agent / Skill / Environment официально локализованы на English, Korean, Simplified Chinese, Japanese и Russian. Français, Español и Türkçe пока предоставляют только документационные точки входа и будут добавлены в поддержку installer после завершения перевода и валидации ресурсов.
 
 ## Что такое AI Engineering Standard?
 
@@ -34,4 +34,4 @@ powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\ins
 
 ## Многоязычность
 
-Точки входа документации доступны на English, 한국어, Français, Español, 简体中文, 日本語, Русский и Türkçe. Runtime-политики считаются локализованными только после фактического перевода и прохождения валидации.
+Точки входа документации доступны на English, 한국어, Français, Español, 简体中文, 日本語, Русский и Türkçe. Runtime-политики считаются локализованными только после фактического перевода и прохождения валидации; текущие runtime-ресурсы поддерживают English, Korean, Simplified Chinese, Japanese и Russian.

@@ -131,7 +131,7 @@ def run_structure_check() -> None:
 
 
 def run_i18n_check() -> None:
-    run_checker(ROOT / "scripts" / "validation" / "check_i18n.py", "English/Korean localization check")
+    run_checker(ROOT / "scripts" / "validation" / "check_i18n.py", "Multilingual localization check")
 
 
 def main() -> None:

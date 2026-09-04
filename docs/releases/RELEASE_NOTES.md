@@ -1,23 +1,21 @@
-# 1.7.0 Development Release
+# 1.12.0 Release
 
-This release expands the coding standard from LLM/Vision-centric training guidance to a reusable ML/DL lifecycle and makes Google Colab an explicit ephemeral execution target.
+This release strengthens codingStandard's runtime quality gates, multilingual resource integrity, and installer reliability for fresh projects.
 
 ## Highlights
 
-- Add `domains/ml/` for cross-domain data validation, experiment design, evaluation, training, distributed training, HPO, inference, and MLOps policy.
-- Add `platform/colab/` for reproducible bootstrap, measured runtime configuration, durable checkpoints/artifacts, interruption recovery, and Resume validation.
-- Add LLM Fine-Tuning, PEFT, and Quantization Skills.
-- Normalize Claude, Gemini, Copilot, Cursor, Windsurf, Cline, Continue, Junie, and Amazon Q adapters to canonical `core/common` + `domains/*` paths.
-- Extend installers and installer tests for `ml` and `colab` domains.
-- Align Korean top-level Agent/installer documentation with the new canonical routing.
-- Bump development version to `1.7.0`.
+- Align README documentation with the actual five-locale runtime resource contract.
+- Add deterministic RAG evaluation thresholds and regression quality gating.
+- Expand multilingual i18n runtime resource parity validation across `en`, `ko`, `zh-CN`, `ja`, and `ru`.
+- Add fresh-project installer end-to-end coverage for all runtime locales and installer domains.
+- Validate installer fallback, reinstall idempotence, and merge/overwrite/skip conflict behavior.
+- Run installer E2E validation across Ubuntu, macOS, and Windows PowerShell CI paths.
+- Bump development version to `1.12.0`.
 
-## Validation intent
+## Validation
 
-Before tagging a release, repository validation, installer integration, localization checks, platform checks, and Colab notebook validation must pass. Long-running ML validation should also exercise the relevant data, smoke-test, evaluation, checkpoint/resume, and reproducibility contracts.
+Final validation covers repository structure, language catalog, multilingual parity, routing, Colab runtime/notebooks, installer integration and fresh-project E2E, deterministic RAG evaluation, LLM/Vision smoke tests, and Windows PowerShell installer validation.
 
-# 1.4.1 Release Candidate
+## Scope
 
-Patch release following the 1.4.0 baseline. This release includes installer and localization parity fixes, complete Korean executable mirrors, Windows PowerShell 5.1/7 validation, and strengthened i18n checks.
-
-Final pre-release validation covers repository checks, localization parity, installer integration, Windows PowerShell, LLM/Vision smoke tests, and Google Colab validation.
+No installer runtime behavior changes are included in this release preparation; the installer work is validation-focused.

@@ -27,6 +27,12 @@ The installer currently provides validated runtime resources for five locale cod
 
 The documentation-only locales `fr`, `es`, and `tr` are intentionally not advertised as runtime-resource languages yet. Domain resources that have not been translated are resolved from the English source tree, and the installer reports fallback mode explicitly.
 
+## Runtime i18n parity validation
+
+CI validates every locale declared under `runtime_resources` in [`languages.json`](languages.json). Non-English runtime locales must declare an explicit `fallback` to `en`, contain the required `core/common` policy resources, and keep every localized file paired with an English canonical source. The semantic-policy checks cover `AGENT.md`, `SKILL.md`, and `ENVIRONMENT.md` resources when those localized domain files exist, using locale-aware concept alternatives.
+
+Documentation-only locales are intentionally outside runtime parity checks. Adding a new runtime locale therefore requires a valid semantic-concept vocabulary in `scripts/validation/check_i18n.py`; adding only a README remains a documentation-only change.
+
 ## Colab documentation
 
 The public Colab validation flow is documented in locale-specific guides:

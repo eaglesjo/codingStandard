@@ -5,13 +5,14 @@ This file marks the repository as ready for final pre-release validation. Do not
 ## Required checks
 
 - repository validation
-- English/Korean localization parity
-- installer integration tests
+- multilingual i18n parity
+- installer integration and fresh-project E2E tests
 - Windows PowerShell validation on `windows-latest`
-- LLM memory smoke test
-- Vision memory smoke test
-- Google Colab validation notebook
+- deterministic RAG integration and quality gate
+- LLM QLoRA strategy and CPU memory smoke tests
+- Vision CPU memory smoke test
+- Google Colab runtime and notebook validation
 
 ## Release version
 
-1.4.1
+1.12.0
