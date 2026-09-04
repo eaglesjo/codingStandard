@@ -19,3 +19,12 @@ Final validation covers repository structure, language catalog, multilingual par
 ## Scope
 
 No installer runtime behavior changes are included in this release preparation; the installer work is validation-focused.
+
+## v1.13.0
+
+- Introduce a cross-platform installation manifest at `.codingstandard/installation.json`.
+- Record the installed version, locale, domain, source hashes, and installed file hashes.
+- Add installation state inspection with modified/missing file detection.
+- Add update commands that reapply the recorded installation configuration and refresh managed resources.
+- Add safe uninstall with modification protection and explicit `--force` recovery.
+- Keep the existing install CLI positional arguments compatible while routing both shell and PowerShell through one lifecycle engine.

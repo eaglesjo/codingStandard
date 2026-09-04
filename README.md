@@ -129,6 +129,34 @@ common | ml | llm | vision | colab | all
 
 Use `-DryRun` on PowerShell to preview changes. Existing files can use `-ConflictAction Ask|Merge|Overwrite|Skip`.
 
+### Installation lifecycle (v1.13.0)
+
+Every successful install records ownership and hashes in `.codingstandard/installation.json`.
+
+Inspect the installation:
+
+```bash
+bash ./codingStandard/scripts/installers/state-domains.sh .
+```
+
+Update the recorded language/domain installation to the current release:
+
+```bash
+bash ./codingStandard/scripts/installers/update-domains.sh .
+bash ./codingStandard/scripts/installers/update-domains.sh . --policy overwrite
+```
+
+Safely uninstall managed files. Modified files are preserved unless force mode is explicitly selected:
+
+```bash
+bash ./codingStandard/scripts/installers/uninstall-domains.sh .
+bash ./codingStandard/scripts/installers/uninstall-domains.sh . --force
+```
+
+PowerShell equivalents are available as `state-domains.ps1`, `update-domains.ps1`, and `uninstall-domains.ps1`.
+
+See [`docs/development/INSTALLER_LIFECYCLE.md`](docs/development/INSTALLER_LIFECYCLE.md) for manifest and lifecycle behavior.
+
 For the full Korean installation instructions, see [`i18n/ko/INSTALL.md`](i18n/ko/INSTALL.md).
 
 ## 📦 Installation Domains
@@ -236,11 +264,12 @@ Open the notebook directly from GitHub in Google Colab. No private-repository cr
 
 ### Platform validation
 
-GitHub Actions validates the repository on macOS and Ubuntu 24.04 LTS. Windows installer integration is validated using both Windows PowerShell and PowerShell 7. Installer tests cover English/Korean, Common/ML/LLM/Vision/Colab/All, dry-run, merge preservation, Unicode/space paths, and legacy-installer removal.
+GitHub Actions validates the repository on macOS and Ubuntu 24.04 LTS. Windows installer integration is validated using both Windows PowerShell and PowerShell 7. Installer tests cover English/Korean, Common/ML/LLM/Vision/Colab/All, dry-run, merge preservation, Unicode/space paths, manifest lifecycle, and protected uninstall behavior.
 
 ## 📚 Documentation
 
 - [Installation Guide](INSTALL.md)
+- [Installer Lifecycle](docs/development/INSTALLER_LIFECYCLE.md)
 - [Korean Installation Guide](i18n/ko/INSTALL.md)
 - [Repository Structure](docs/development/REPOSITORY_STRUCTURE.md)
 - [Public Development Guide](docs/development/DEVELOPMENT_PUBLIC.md)

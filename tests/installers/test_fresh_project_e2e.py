@@ -27,7 +27,11 @@ def run(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def snapshot(root: Path) -> dict[str, bytes]:
-    return {str(path.relative_to(root)): path.read_bytes() for path in sorted(root.rglob("*")) if path.is_file()}
+    return {
+        str(path.relative_to(root)): path.read_bytes()
+        for path in sorted(root.rglob("*"))
+        if path.is_file() and path.relative_to(root).as_posix() != ".codingstandard/installation.json"
+    }
 
 
 def assert_common(target: Path) -> None:
@@ -50,6 +54,7 @@ def test_empty_project_all_locales() -> None:
             assert_common(target)
             for domain in DOMAINS:
                 assert_domain(target, domain)
+            assert (target / ".codingstandard/installation.json").is_file()
 
 
 def test_locale_fallback_and_reinstall_idempotence() -> None:
@@ -60,7 +65,7 @@ def test_locale_fallback_and_reinstall_idempotence() -> None:
         assert (target / "platform/colab/AGENT.md").read_bytes() == english_source
         before = snapshot(target)
         run(str(target), "ru", "all", "overwrite", "false")
-        assert before == snapshot(target), "reinstall changed the installed project"
+        assert before == snapshot(target), "reinstall changed the installed project payload"
 
 
 def test_conflict_policies() -> None:

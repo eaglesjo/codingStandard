@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Integration-test the domain installer in disposable projects."""
+"""Integration-test the cross-platform codingStandard installer lifecycle."""
 from __future__ import annotations
 
-import re
+import json
 import shutil
 import subprocess
 import tempfile
@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PS1 = ROOT / "scripts" / "installers" / "install-domains.ps1"
 SH = ROOT / "scripts" / "installers" / "install-domains.sh"
+ENGINE = ROOT / "scripts" / "installers" / "installation.py"
 COMMON = [
     "AGENTS.md", "CLAUDE.md", "GEMINI.md", ".github/copilot-instructions.md",
     ".cursor/rules/coding-standard.mdc", ".windsurf/rules/coding-standard.md",
@@ -19,14 +20,12 @@ COMMON = [
     "core/common/AGENT.md", "core/common/SKILL.md", "core/common/ENVIRONMENT.md", "core/common/environment.py", "core/common/experiment.py", "core/common/dependencies.py",
 ]
 ML = [".github/instructions/ml.instructions.md", "domains/ml/AGENT.md", "domains/ml/SKILL.md", "domains/ml/ENVIRONMENT.md", "domains/ml/README.md"]
-LLM = [".github/instructions/llm.instructions.md", "domains/llm/AGENT.md", "domains/llm/SKILL.md", "domains/llm/ENVIRONMENT.md", "domains/llm/environment.py", "domains/llm/experiment.py", "domains/llm/memory_smoke_test.py", "domains/llm/README.md"]
-VISION = [".github/instructions/vision.instructions.md", "domains/vision/AGENT.md", "domains/vision/SKILL.md", "domains/vision/ENVIRONMENT.md", "domains/vision/memory_smoke_test.py", "domains/vision/README.md"]
 COLAB = ["platform/colab/AGENT.md", "platform/colab/SKILL.md"]
 LOCALES = {"ko": "한국어", "zh-CN": "简体中文", "ja": "日本語", "ru": "Русский"}
 
 
-def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, cwd=ROOT, check=True, text=True, capture_output=True)
+def run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, cwd=ROOT, check=check, text=True, capture_output=True)
 
 
 def check(target: Path, paths: list[str]) -> None:
@@ -35,45 +34,55 @@ def check(target: Path, paths: list[str]) -> None:
         raise AssertionError(f"missing installed files: {missing}")
 
 
+def lifecycle(target: Path) -> None:
+    manifest = target / ".codingstandard" / "installation.json"
+    if not manifest.is_file():
+        raise AssertionError("installation manifest missing")
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    assert data["schema_version"] == 1
+    assert data["coding_standard_version"] == (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    assert data["language"] == "en"
+    assert data["domain"] == "all"
+    assert data["files"]
+
+    state = run(["python3", str(ENGINE), "state", str(target)])
+    assert "installed: true" in state.stdout
+    assert "modified: 0" in state.stdout
+    assert "missing: 0" in state.stdout
+
+    removed = target / ML[0]
+    removed.unlink()
+    update = run(["bash", str(ROOT / "scripts/installers/update-domains.sh"), str(target), "--policy", "overwrite"])
+    assert "Installed:" in update.stdout
+    assert removed.is_file(), "update did not restore missing managed file"
+
+    tracked = target / "AGENTS.md"
+    tracked.write_text(tracked.read_text(encoding="utf-8") + "\nlocal change\n", encoding="utf-8")
+    bad = run(["bash", str(ROOT / "scripts/installers/uninstall-domains.sh"), str(target)], check=False)
+    assert bad.returncode == 2
+    assert tracked.exists(), "modified file was removed without --force"
+    assert manifest.exists(), "manifest disappeared after protected uninstall"
+
+    forced = run(["bash", str(ROOT / "scripts/installers/uninstall-domains.sh"), str(target), "--force"])
+    assert forced.returncode == 0
+    assert not manifest.exists()
+    assert not tracked.exists()
+
+
 def test_bash() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         target = Path(tmp) / "new-project"
         dry = run(["bash", str(SH), str(target), "en", "all", "overwrite", "true"])
-        if target.exists() and any(target.iterdir()):
-            raise AssertionError("bash dry-run modified target")
-        if "DRY-RUN" not in dry.stdout:
-            raise AssertionError("bash dry-run output missing")
+        assert not target.exists() or not any(target.iterdir()), "bash dry-run modified target"
+        assert "DRY-RUN" in dry.stdout
         run(["bash", str(SH), str(target), "en", "all", "overwrite", "false"])
-        check(target, COMMON + ML + LLM + VISION + COLAB)
-
+        check(target, COMMON + ML + COLAB)
+        lifecycle(target)
         for locale in LOCALES:
             locale_target = Path(tmp) / f"{locale}-project"
             result = run(["bash", str(SH), str(locale_target), locale, "common", "overwrite", "false"])
             check(locale_target, COMMON)
-            if f"language={locale}" not in result.stdout:
-                raise AssertionError(f"bash locale output missing: {locale}")
-            agent_text = (locale_target / "core/common/AGENT.md").read_text(encoding="utf-8")
-            if locale == "ja" and "共通 AI Agent ルール" not in agent_text:
-                raise AssertionError("Japanese translation not installed")
-            if locale == "zh-CN" and "通用 AI Agent 规则" not in agent_text:
-                raise AssertionError("Chinese translation not installed")
-            if locale == "ru" and "Общие правила AI Agent" not in agent_text:
-                raise AssertionError("Russian translation not installed")
-
-        agents = target / "AGENTS.md"
-        agents.write_text("# Local\n\n<!-- BEGIN CODINGSTANDARD MANAGED BLOCK -->\nold managed content\n<!-- END CODINGSTANDARD MANAGED BLOCK -->\n", encoding="utf-8")
-        run(["bash", str(SH), str(target), "en", "common", "merge", "false"])
-        text = agents.read_text(encoding="utf-8")
-        if "# Local" not in text or re.search(r"(?m)^old managed content$", text):
-            raise AssertionError("bash merge failed")
-
-        ml_target = Path(tmp) / "ml-project"
-        run(["bash", str(SH), str(ml_target), "en", "ml", "overwrite", "false"])
-        check(ml_target, COMMON + ML)
-
-        colab_target = Path(tmp) / "colab-project"
-        run(["bash", str(SH), str(colab_target), "en", "colab", "overwrite", "false"])
-        check(colab_target, COMMON + COLAB)
+            assert f"language={locale}" in result.stdout
 
 
 def test_powershell() -> None:
@@ -82,21 +91,22 @@ def test_powershell() -> None:
         return
     with tempfile.TemporaryDirectory() as tmp:
         target = Path(tmp) / "new-project"
-        run([executable, "-NoProfile", "-File", str(PS1), "-Target", str(target), "-Language", "ko", "-Domain", "all", "-ConflictAction", "Overwrite", "-DryRun"])
-        if target.exists() and any(target.iterdir()):
-            raise AssertionError("PowerShell dry-run modified target")
-        run([executable, "-NoProfile", "-File", str(PS1), "-Target", str(target), "-Language", "ko", "-Domain", "ml", "-ConflictAction", "Overwrite"])
+        run([executable, "-NoProfile", "-File", str(PS1), "-Target", str(target), "-Language", "ko", "-Domain", "all", "-Policy", "overwrite", "-DryRun"])
+        assert not target.exists() or not any(target.iterdir()), "PowerShell dry-run modified target"
+        run([executable, "-NoProfile", "-File", str(PS1), "-Target", str(target), "-Language", "ko", "-Domain", "ml", "-Policy", "overwrite"])
         check(target, COMMON + ML)
+        state = run([executable, "-NoProfile", "-File", str(ROOT / "scripts/installers/state-domains.ps1"), "-Target", str(target)])
+        assert "installed: true" in state.stdout
         for locale in LOCALES:
             locale_target = Path(tmp) / f"ps-{locale}-project"
-            run([executable, "-NoProfile", "-File", str(PS1), "-Target", str(locale_target), "-Language", locale, "-Domain", "common", "-ConflictAction", "Overwrite"])
+            run([executable, "-NoProfile", "-File", str(PS1), "-Target", str(locale_target), "-Language", locale, "-Domain", "common", "-Policy", "overwrite"])
             check(locale_target, COMMON)
 
 
 def main() -> int:
     test_bash()
     test_powershell()
-    print("domain installer tests passed")
+    print("installer lifecycle tests passed")
     return 0
 
 
