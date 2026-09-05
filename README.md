@@ -11,9 +11,9 @@
 
 **Language:** English · [한국어](i18n/ko/README.md) · [Français](i18n/fr/README.md) · [Español](i18n/es/README.md) · [简体中文](i18n/zh-CN/README.md) · [日本語](i18n/ja/README.md) · [Русский](i18n/ru/README.md) · [Türkçe](i18n/tr/README.md) · [Deutsch](i18n/de/README.md) · [Italiano](i18n/it/README.md) · [Português](i18n/pt/README.md) · [العربية](i18n/ar/README.md) · [हिन्दी](i18n/hi/README.md) · [Bahasa Indonesia](i18n/id/README.md) · [Tiếng Việt](i18n/vi/README.md) · [ไทย](i18n/th/README.md) · [Nederlands](i18n/nl/README.md) · [Polski](i18n/pl/README.md) · [Svenska](i18n/sv/README.md) · [Українська](i18n/uk/README.md)
 
-> **v1.15.0:** codingStandard now provides validated runtime resources for **20 locales**. Non-English runtime locales use English as the fallback language when a localized resource is unavailable.
+> **v1.15.0:** Stable public release with validated runtime resources for **20 locales**. Non-English runtime locales use English as the fallback language when a localized resource is unavailable.
 >
-> **Repository model:** `codingStandard-private` is the development source of truth. Validated releases are promoted through `codingStandard-dev` to the stable public [`eaglesjo/codingStandard`](https://github.com/eaglesjo/codingStandard) repository.
+> **Repository model:** `codingStandard-private` is the development source of truth. Validated releases are promoted through `codingStandard-dev` to the stable public `codingStandard` repository.
 
 ## ✨ What is AI Engineering Standard?
 
@@ -31,35 +31,6 @@ It provides:
 - multilingual documentation and runtime resources;
 - validation and installer test suites;
 - reproducible training and experiment guidance.
-
-## 🌍 Language support
-
-The v1.15 runtime resource set contains 20 locales:
-
-| Locale | Language | Runtime |
-|---|---|---|
-| `en` | English | ✅ |
-| `ko` | 한국어 | ✅ |
-| `fr` | Français | ✅ |
-| `es` | Español | ✅ |
-| `zh-CN` | 简体中文 | ✅ |
-| `ja` | 日本語 | ✅ |
-| `ru` | Русский | ✅ |
-| `tr` | Türkçe | ✅ |
-| `de` | Deutsch | ✅ |
-| `it` | Italiano | ✅ |
-| `pt` | Português | ✅ |
-| `ar` | العربية | ✅ |
-| `hi` | हिन्दी | ✅ |
-| `id` | Bahasa Indonesia | ✅ |
-| `vi` | Tiếng Việt | ✅ |
-| `th` | ไทย | ✅ |
-| `nl` | Nederlands | ✅ |
-| `pl` | Polski | ✅ |
-| `sv` | Svenska | ✅ |
-| `uk` | Українська | ✅ |
-
-The canonical locale registry is [`i18n/languages.json`](i18n/languages.json). Runtime resources are checked by the i18n parity validator before release.
 
 ## 🤖 Supported AI Development Tools
 
@@ -159,56 +130,6 @@ common | ml | llm | vision | colab | all
 
 Every successful install records ownership and hashes in `.codingstandard/installation.json`. See [`docs/development/INSTALLER_LIFECYCLE.md`](docs/development/INSTALLER_LIFECYCLE.md) for manifest and lifecycle behavior.
 
-## 🧭 Repository Structure
-
-```text
-.
-├── core/
-│   └── common/
-├── domains/
-│   ├── ml/
-│   ├── llm/
-│   └── vision/
-├── platform/
-│   └── colab/
-├── examples/
-│   └── colab/
-├── docs/
-│   ├── development/
-│   └── releases/
-├── i18n/
-│   ├── en/
-│   ├── ko/
-│   ├── fr/
-│   ├── es/
-│   ├── zh-CN/
-│   ├── ja/
-│   ├── ru/
-│   ├── tr/
-│   ├── de/
-│   ├── it/
-│   ├── pt/
-│   ├── ar/
-│   ├── hi/
-│   ├── id/
-│   ├── vi/
-│   ├── th/
-│   ├── nl/
-│   ├── pl/
-│   ├── sv/
-│   └── uk/
-├── scripts/
-│   ├── development/
-│   ├── installers/
-│   └── validation/
-├── tests/
-│   └── colab/
-├── .github/
-└── VERSION
-```
-
-Tool-specific entrypoints are adapters; shared ML lifecycle policy lives in `domains/ml/`, LLM/Vision add domain-specific behavior, and `platform/colab/` adds ephemeral-runtime policy.
-
 ## 🧠 Environment, ML, and Colab Policy
 
 Runtime decisions are based on measured capabilities rather than a named machine profile. The shared profiler considers OS, Python/runtime, CPU, RAM, disk, accelerators, VRAM, CUDA/ROCm/MPS/DirectML, precision capability, and Jupyter/Colab state.
@@ -277,4 +198,4 @@ This project is released under the [MIT License](LICENSE).
 
 ## 🔗 Public Distribution
 
-Stable releases are published to [`eaglesjo/codingStandard`](https://github.com/eaglesjo/codingStandard) after validation and promotion from this development repository.
+Stable releases are published to `eaglesjo/codingStandard` after validation and promotion from the development repository.
