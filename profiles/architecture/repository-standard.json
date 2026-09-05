@@ -1,0 +1,35 @@
+{
+  "id": "repository-standard",
+  "profile_version": 1,
+  "project_type": "developer-standard",
+  "layers": {
+    "interface": {"responsibility": "CLI, installer, documentation and integration adapters"},
+    "policy": {"responsibility": "repository-wide coding and delivery rules"},
+    "validation": {"responsibility": "static checks, tests and environment validation"},
+    "domain": {"responsibility": "standards, contracts and reusable engineering rules"},
+    "infrastructure": {"responsibility": "CI runners, platform adapters and external tooling"}
+  },
+  "path_roots": {
+    "interface": ["scripts/installers"],
+    "policy": [],
+    "validation": ["scripts/validation", "tests/validation", "tests/integration"],
+    "domain": ["domains"],
+    "infrastructure": ["platform"]
+  },
+  "dependency_direction": [
+    "interface -> policy",
+    "interface -> domain",
+    "validation -> policy",
+    "validation -> domain",
+    "infrastructure -> domain",
+    "infrastructure -> policy"
+  ],
+  "forbidden_dependencies": [
+    "domain -> interface",
+    "domain -> infrastructure",
+    "policy -> interface",
+    "policy -> infrastructure"
+  ],
+  "boundaries": ["repository", "validation", "installer", "documentation", "ci"],
+  "scalability_profile": "growth-aware"
+}

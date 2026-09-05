@@ -1,0 +1,18 @@
+{
+  "id": "repository-default",
+  "profile_version": 1,
+  "scope": "repository",
+  "rules": {
+    "validation_required": true,
+    "tests_required_for_behavior_changes": true,
+    "platform_paths_must_be_abstracted": true,
+    "secrets_must_not_be_committed": true,
+    "network_access_must_be_explicit": true,
+    "reproducibility_required": true
+  },
+  "inheritance": {
+    "child_scopes_may_add_restrictions": true,
+    "child_scopes_may_not_weaken_parent": true,
+    "conflict_resolution": "stricter-wins"
+  }
+}

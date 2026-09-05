@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-STANDARD_VERSION = "1.13.0"
+STANDARD_VERSION = "1.14.0"
 
 
 @dataclass(frozen=True)
