@@ -2,7 +2,7 @@
 
 > **Language:** [English](../../README.md) · 한국어 · [Français](../fr/README.md) · [Español](../es/README.md) · [简体中文](../zh-CN/README.md) · [日本語](../ja/README.md) · [Русский](../ru/README.md) · [Türkçe](../tr/README.md)
 >
-> **Runtime resource languages:** English, Korean, Simplified Chinese, Japanese, Russian. Français・Español・Türkçe 문서는 먼저 제공되며, runtime 정책 리소스는 번역 및 검증 완료 후 installer 지원에 추가합니다.
+> **Runtime resource languages:** English, Korean, French, Spanish, Simplified Chinese, Japanese, Russian, Turkish, German, Italian, Portuguese, Arabic, Hindi, Indonesian, Vietnamese, Thai, Dutch, Polish, Swedish, Ukrainian. 모든 20개 runtime locale은 동일한 i18n 품질 및 semantic parity 검증을 거칩니다.
 
 `codingStandard`의 한국어 문서와 설치 리소스를 제공합니다.
 
@@ -39,7 +39,7 @@ all    = Common + ML + LLM + Vision + Colab
 
 ## 한국어 리소스 구조
 
-`i18n/ko/`는 영문 저장소 구조를 미러링하는 실제 runtime 번역 리소스 트리입니다. 새 언어의 README가 존재한다는 사실만으로 해당 언어가 installer/runtime resource까지 지원된다는 의미는 아닙니다.
+`i18n/ko/`는 영문 저장소 구조를 미러링하는 실제 runtime 번역 리소스 트리입니다.
 
 ## 주요 문서
 

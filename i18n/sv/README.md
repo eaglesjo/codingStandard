@@ -2,4 +2,4 @@
 
 Välkommen till codingStandard. Den här dokumentationen beskriver projektets utvecklingsstandarder, validering och körningsregler.
 
-Körtidsresurser använder för närvarande engelska som reservspråk. Fullständig svensk körtidslokalisering läggs till efter att kärnresurserna har validerats.
+Svenska är en av 20 runtime locales. Körtidsresurser kontrolleras för fullständighet, semantisk paritet och överensstämmelse mellan runtime och dokumentation; engelska är fortfarande det definierade reservspråket.

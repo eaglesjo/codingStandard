@@ -1,0 +1,36 @@
+{
+  "profile_version": 1,
+  "contract_version": "1.16",
+  "canonical_locale": "en",
+  "required_runtime_locales": [
+    "en",
+    "ko",
+    "fr",
+    "es",
+    "zh-CN",
+    "ja",
+    "ru",
+    "tr",
+    "de",
+    "it",
+    "pt",
+    "ar",
+    "hi",
+    "id",
+    "vi",
+    "th",
+    "nl",
+    "pl",
+    "sv",
+    "uk"
+  ],
+  "quality_levels": {
+    "runtime_minimum": "A",
+    "documentation_minimum": "B"
+  },
+  "gates": [
+    "resource-completeness",
+    "semantic-parity",
+    "runtime-documentation-consistency"
+  ]
+}

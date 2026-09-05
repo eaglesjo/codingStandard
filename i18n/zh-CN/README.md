@@ -4,7 +4,7 @@
 
 > **Language:** [English](../../README.md) · [한국어](../ko/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · 简体中文 · [日本語](../ja/README.md) · [Русский](../ru/README.md) · [Türkçe](../tr/README.md)
 >
-> 本页面是 codingStandard 的简体中文文档入口。运行时 Agent / Skill / Environment 资源目前正式本地化到 English、Korean、Simplified Chinese、Japanese 和 Russian；Français、Español、Türkçe 仍为文档入口，待资源翻译与验证完成后再加入 installer 支持。
+> 本页面是 codingStandard 的简体中文文档入口。简体中文属于 20 个 runtime locale，并接受统一的资源完整性、语义一致性以及 runtime/文档一致性验证。
 
 ## 什么是 AI Engineering Standard？
 
@@ -34,4 +34,4 @@ powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\ins
 
 ## 多语言支持
 
-文档入口提供 English、한국어、Français、Español、简体中文、日本語、Русский、Türkçe。运行时策略资源按实际翻译和验证状态区分：当前支持 English、Korean、Simplified Chinese、Japanese、Russian。
+文档入口提供 20 个 runtime locale。所有 runtime 策略资源都经过相同的资源完整性、语义一致性和 runtime/文档一致性检查。

@@ -4,7 +4,7 @@
 
 **Language:** [English](../../README.md) · [한국어](../ko/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [简体中文](../zh-CN/README.md) · [日本語](../ja/README.md) · [Русский](../ru/README.md) · Türkçe
 
-> Bu sayfa codingStandard belgelerinin Türkçe giriş noktasıdır. Agent / Skill / Environment çalışma zamanı kaynakları, tam çeviri ve doğrulama tamamlandıktan sonra installer desteğine eklenir.
+> Bu sayfa codingStandard belgelerinin Türkçe giriş noktasıdır. Türkçe, 20 runtime locale içinden biridir ve kaynak bütünlüğü, semantik eşlik ve runtime/belge tutarlılığı için aynı doğrulamalardan geçer.
 
 `codingStandard`; yapay zekâ destekli geliştirme, model eğitimi, deneyler, LLM/Vision iş akışları, genel ML/DL yaşam döngüsü ve yapay zekâ kodlama ajanları için yeniden kullanılabilir bir mühendislik standardıdır.
 
@@ -28,4 +28,4 @@ Herkese açık depo; tam standardı, temiz çalışma ortamını, LLM QLoRA ve R
 
 ## Çoklu dil
 
-Belgelendirme girişleri English, 한국어, Français, Español, 简体中文, 日本語, Русский ve Türkçe olarak sunulur. Runtime/installer desteği ayrıdır ve çeviri ile doğrulama eşleşmesine bağlıdır.
+Belgelendirme girişleri ve runtime kaynakları ayrı yönetilir; tüm 20 runtime locale aynı kalite ve semantik eşlik kontrollerine tabidir.

@@ -2,4 +2,4 @@
 
 Bem-vindo ao codingStandard. Esta documentação descreve os padrões de desenvolvimento, a validação e as regras de execução do projeto.
 
-Os recursos de runtime usam atualmente o inglês como fallback. A localização completa para português será adicionada após a validação dos recursos principais.
+Português é um dos 20 runtime locales. Os recursos de runtime são verificados quanto à completude, paridade semântica e consistência entre runtime e documentação; o inglês continua sendo o fallback definido.

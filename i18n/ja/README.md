@@ -4,9 +4,7 @@
 
 > **Language:** [English](../../README.md) · [한국어](../ko/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [简体中文](../zh-CN/README.md) · 日本語 · [Русский](../ru/README.md) · [Türkçe](../tr/README.md)
 >
-> このページは codingStandard の日本語ドキュメント入口です。実行時の Agent / Skill / Environment リソースは現在 English、Korean、Simplified Chinese、Japanese、Russian に正式対応しています。Français、Español、Türkçe は文書入口のみで、リソースの翻訳と検証が完了した後に installer 対応へ追加します。
-
-## AI Engineering Standard とは？
+> このページは codingStandard の日本語ドキュメント入口です。日本語は 20 の runtime locale の一つであり、リソース完全性、セマンティックパリティ、runtime/ドキュメント整合性の同一検証を受けます。
 
 `codingStandard` は、AI 支援開発、モデル学習、実験、LLM/Vision ワークフロー、一般的な ML/DL ワークフロー、AI コーディングエージェント向けの再利用可能なエンジニアリング標準です。
 
@@ -34,4 +32,4 @@ powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\ins
 
 ## 多言語対応
 
-ドキュメント入口は English、한국어、Français、Español、简体中文、日本語、Русский、Türkçe を提供します。実行時ポリシーは、実際に翻訳・検証された言語だけを installer の正式対応として扱います。
+ドキュメント入口と runtime リソースは別に管理されますが、20 の runtime locale は同じ品質およびセマンティックパリティ検証を受けます。

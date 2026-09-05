@@ -33,28 +33,28 @@ Each documentation locale has its own README entrypoint and is tracked in [`lang
 
 ## Runtime resource languages
 
-The installer currently provides validated runtime resources for five locale codes:
+All 20 catalogued locales are currently declared as runtime-resource languages. Non-English locales explicitly fall back to `en` for resources that are not localized at a domain-specific level.
 
-- `en` — English canonical resources
-- `ko` — Korean localized resources
-- `zh-CN` — Simplified Chinese localized common policy resources
-- `ja` — Japanese localized common policy resources
-- `ru` — Russian localized common policy resources
+The runtime contract requires the common policy layer (`AGENT.md`, `SKILL.md`, `ENVIRONMENT.md`) and locale README entrypoint to exist. Runtime promotion is also subject to the v1.16 quality contract.
 
-The remaining documentation locales are intentionally not advertised as runtime-resource languages yet. Domain resources that have not been translated are resolved from the English source tree, and the installer reports fallback mode explicitly.
+## Runtime i18n quality
 
-## Runtime i18n parity validation
+CI validates every locale declared under `runtime_resources` in [`languages.json`](languages.json).
 
-CI validates every locale declared under `runtime_resources` in [`languages.json`](languages.json). Non-English runtime locales must declare an explicit `fallback` to `en`, contain the required `core/common` policy resources, and keep every localized file paired with an English canonical source. The semantic-policy checks cover `AGENT.md`, `SKILL.md`, and `ENVIRONMENT.md` resources when those localized domain files exist, using locale-aware concept alternatives.
+The v1.16 quality contract requires three gates:
 
-Documentation-only locales are intentionally outside runtime parity checks. Promoting a documentation locale to runtime support therefore requires translated core resources, a semantic-concept vocabulary, and CI validation.
+1. **Resource completeness** — required runtime resources exist.
+2. **Semantic parity** — required engineering-policy intents are expressed in the locale.
+3. **Runtime/documentation consistency** — runtime and documentation entries remain aligned.
+
+Every runtime locale must reach quality grade **A**. The detailed quality and semantic contracts are documented in [`I18N_QUALITY.md`](../docs/development/I18N_QUALITY.md) and [`I18N_SEMANTIC_PARITY.md`](../docs/development/I18N_SEMANTIC_PARITY.md).
 
 ## Localization rules
 
 1. English remains the canonical source of truth.
 2. A locale may be listed as a documentation language once its README entrypoint exists.
-3. A locale may be listed as a runtime resource language when it contains validated localized resources for at least the common policy layer.
+3. A locale may be listed as a runtime resource language only when its required common resources pass CI validation.
 4. Missing domain-specific translations must fall back to English rather than copying or inventing untranslated text.
-5. Documentation and runtime support must never be conflated.
+5. Documentation and runtime support must remain explicitly represented in `languages.json`.
 6. New locales must be added to `i18n/languages.json` and validated in CI.
 7. RTL locales such as Arabic must be treated as layout-sensitive when promoted to runtime support.

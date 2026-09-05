@@ -1,201 +1,61 @@
-# AI Engineering Standard
+# codingStandard
 
-<p align="center">
-  <strong>AI Development, Training & Agent Engineering Standards</strong>
-</p>
+**AI Development Standard for ML / LLM / Vision / Colab**
 
-<p align="center">
-  <a href="https://github.com/eaglesjo/codingStandard/releases"><img src="https://img.shields.io/github/v/release/eaglesjo/codingStandard?label=public%20release" alt="Public release"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
-</p>
+> v1.16 focuses on multilingual quality: resource completeness, semantic policy parity, and runtime/documentation consistency across 20 runtime locales.
 
-**Language:** English · [한국어](i18n/ko/README.md) · [Français](i18n/fr/README.md) · [Español](i18n/es/README.md) · [简体中文](i18n/zh-CN/README.md) · [日本語](i18n/ja/README.md) · [Русский](i18n/ru/README.md) · [Türkçe](i18n/tr/README.md) · [Deutsch](i18n/de/README.md) · [Italiano](i18n/it/README.md) · [Português](i18n/pt/README.md) · [العربية](i18n/ar/README.md) · [हिन्दी](i18n/hi/README.md) · [Bahasa Indonesia](i18n/id/README.md) · [Tiếng Việt](i18n/vi/README.md) · [ไทย](i18n/th/README.md) · [Nederlands](i18n/nl/README.md) · [Polski](i18n/pl/README.md) · [Svenska](i18n/sv/README.md) · [Українська](i18n/uk/README.md)
+**English** is the canonical documentation language, and `en` is one of the 20 validated runtime locales.
 
-> **v1.15.0:** Stable public release with validated runtime resources for **20 locales**. Non-English runtime locales use English as the fallback language when a localized resource is unavailable.
->
-> **Repository model:** `codingStandard-private` is the development source of truth. Validated releases are promoted through `codingStandard-dev` to the stable public `codingStandard` repository.
+## 🎯 Goal
 
-## ✨ What is AI Engineering Standard?
+codingStandard is a repository-level engineering standard designed to make AI development **portable, reproducible, hardware-neutral, and validation-driven**.
 
-`codingStandard` is a reusable engineering standard for AI-assisted development, model training, experimentation, LLM/Vision workflows, general ML/DL workflows, and AI coding agents.
+## 🧩 Supported Domains
 
-It provides:
+- **ML** — data, evaluation, experiment, training, distributed training, HPO, inference, MLOps
+- **LLM** — fine-tuning, PEFT, quantization, RAG
+- **Vision** — computer vision workflows and memory validation
+- **Colab** — runtime validation and reproducible notebook workflows
 
-- canonical project instructions with thin per-tool adapters;
-- common ML/DL lifecycle guidance;
-- LLM and Vision domain guidance;
-- task-specific Skills;
-- measured environment and resource detection;
-- Google Colab execution and recovery policy;
-- cross-platform installers;
-- multilingual documentation and runtime resources;
-- validation and installer test suites;
-- reproducible training and experiment guidance.
+## 🌍 Language selector
 
-## 🤖 Supported AI Development Tools
+Runtime resources are validated for 20 locales:
 
-The repository provides project-level adapters, instruction files, Skills, or documented integration paths for a broad set of AI development tools.
-
-- OpenAI Codex
-- Claude Code
-- Gemini CLI
-- GitHub Copilot
-- Cursor
-- Windsurf
-- Cline
-- Continue
-- JetBrains Junie
-- Amazon Q Developer
-- Aider
-
-Support means that the repository contains a documented adapter, instruction file, Skill, or integration path for the tool. Tool capabilities and integration details can differ by client and version.
-
-## 🐍 Supported Development Environments
-
-| Environment / Tool | Support | Use case |
-|---|---|---|
-| Python | ✅ Core | Runtime detection, environment configuration, training, inference, validation, and automation |
-| Jupyter Notebook | ✅ Supported | Interactive experiments, analysis, training, debugging, and reproducible notebook workflows |
-| Google Colab | ✅ Supported | Ephemeral cloud notebook execution, resource-aware experiments, durable checkpoints, and recovery |
-| Visual Studio Code | ✅ Supported | Python development, Jupyter notebooks, debugging, testing, and AI-assisted development |
-
-### Platform support
-
-| Platform | Role |
-|---|---|
-| Linux | Supported platform; the shell installer is designed for Linux-compatible environments |
-| Ubuntu 24.04 LTS | Linux reference environment used by CI validation |
-| macOS | Supported and validated by CI |
-| Windows | Supported and validated with Windows PowerShell and PowerShell 7 |
-| Google Colab | Supported as an ephemeral cloud execution target |
-
-> **Important:** Linux is the supported platform category. **Ubuntu 24.04 LTS is the CI reference environment**, not a restriction that excludes other Linux distributions.
-
-## 🚀 Quick Start
-
-Clone the stable public distribution repository in the project you want to configure:
-
-### Windows / PowerShell
-
-```powershell
-git clone https://github.com/eaglesjo/codingStandard.git
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\install-domains.ps1 -Target .
-```
-
-Explicit language installation:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\install-domains.ps1 -Target . -Language de -Domain all
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\install-domains.ps1 -Target . -Language ko -Domain ml
-powershell -ExecutionPolicy Bypass -File .\codingStandard\scripts\installers\install-domains.ps1 -Target . -Language ja -Domain llm
-```
-
-### Linux / macOS
-
-```bash
-git clone https://github.com/eaglesjo/codingStandard.git
-bash ./codingStandard/scripts/installers/install-domains.sh .
-```
-
-Explicit installation:
-
-```bash
-bash ./codingStandard/scripts/installers/install-domains.sh . de all ask false
-bash ./codingStandard/scripts/installers/install-domains.sh . ko ml overwrite false
-bash ./codingStandard/scripts/installers/install-domains.sh . ja llm overwrite false
-```
-
-Arguments are:
-
-```text
-target language domain conflict-policy dry-run
-```
-
-Available domains:
-
-```text
-common | ml | llm | vision | colab | all
-```
-
-## 📦 Installation Domains
-
-| Domain | Installs |
-|---|---|
-| `common` | Common only |
-| `ml` | Common + general ML/DL lifecycle |
-| `llm` | Common + LLM |
-| `vision` | Common + Vision |
-| `colab` | Common + Google Colab runtime policy |
-| `all` | Common + ML + LLM + Vision + Colab |
-
-Every successful install records ownership and hashes in `.codingstandard/installation.json`. See [`docs/development/INSTALLER_LIFECYCLE.md`](docs/development/INSTALLER_LIFECYCLE.md) for manifest and lifecycle behavior.
-
-## 🧠 Environment, ML, and Colab Policy
-
-Runtime decisions are based on measured capabilities rather than a named machine profile. The shared profiler considers OS, Python/runtime, CPU, RAM, disk, accelerators, VRAM, CUDA/ROCm/MPS/DirectML, precision capability, and Jupyter/Colab state.
-
-For long-running ML work, use conservative runtime settings, Memory Smoke Tests, Early Stopping where meaningful, best Checkpoint, Resume, controlled ablation/experiment design, seed control, evaluation gates, resource tracking, and staged recovery from resource failures.
-
-For Google Colab, `platform/colab/` treats the notebook VM as ephemeral: dependency bootstrap, measured resource resolution, smoke testing, durable checkpointing, artifact persistence, and resume validation are first-class controls.
-
-## 🧩 Agent and Skill Routing
-
-```text
-Agent adapter
-  ↓
-AGENTS.md
-  ↓
-core/common
-  ↓
-ML / LLM / Vision domain
-  ↓
-Colab policy when applicable
-  ↓
-task-specific Skills
-```
-
-Cross-domain rules should be implemented once in `domains/ml/` rather than duplicated in each agent adapter or domain file.
-
-## 🧪 Validation
-
-Run the relevant checks before publishing a release:
-
-```bash
-python scripts/validation/validate.py
-python scripts/validation/check_i18n.py
-python scripts/installers/test_installers.py
-```
-
-The release gate also validates the architecture contract, environment contract, installers, and CPU LLM/Vision memory smoke tests.
-
-### ☁️ Google Colab — one-click validation
-
-Open the notebooks directly from GitHub in Google Colab. No private-repository credentials are required for the public distribution repository.
-
-| Validation | Purpose |
-|---|---|
-| Full codingStandard | Runtime, environment, LLM/Vision smoke tests and repository validation |
-| Clean runtime | Fresh-runtime environment and checkpoint/restore smoke test |
-| LLM QLoRA | 4-bit/NF4 + PEFT/LoRA runtime validation |
-| RAG | Dense embeddings + top-k retrieval + grounded prompt + generation |
+`en` · `ko` · `fr` · `es` · `zh-CN` · `ja` · `ru` · `tr` · `de` · `it` · `pt` · `ar` · `hi` · `id` · `vi` · `th` · `nl` · `pl` · `sv` · `uk`
 
 ## 📚 Documentation
 
-- [Installation Guide](INSTALL.md)
-- [Installer Lifecycle](docs/development/INSTALLER_LIFECYCLE.md)
-- [Korean Installation Guide](i18n/ko/INSTALL.md)
-- [Repository Structure](docs/development/REPOSITORY_STRUCTURE.md)
-- [Public Development Guide](docs/development/DEVELOPMENT_PUBLIC.md)
+- [Installation](INSTALL.md)
+- [Development](docs/development/)
 - [Architecture Profiles](docs/development/ARCHITECTURE_PROFILES.md)
 - [Policy Inheritance](docs/development/POLICY_INHERITANCE.md)
 - [Project Profiles](docs/development/PROJECT_PROFILES.md)
 - [Scalability Architecture](docs/development/SCALABILITY_ARCHITECTURE.md)
-- [Language Registry](i18n/languages.json)
+- [Repository Structure](docs/development/REPOSITORY_STRUCTURE.md)
+- [i18n Quality](docs/development/I18N_QUALITY.md)
+- [i18n Semantic Parity](docs/development/I18N_SEMANTIC_PARITY.md)
+- [i18n Runtime / Documentation Consistency](docs/development/I18N_CONSISTENCY.md)
 
-## 📄 License
+## 🔧 Installation
 
-This project is released under the [MIT License](LICENSE).
+```bash
+./scripts/installers/install-domains.sh
+```
 
-## 🔗 Public Distribution
+Windows:
 
-Stable releases are published to `eaglesjo/codingStandard` after validation and promotion from the development repository.
+```powershell
+./scripts/installers/install-domains.ps1
+```
+
+## 🧪 Validation
+
+The release gate validates architecture, repository structure, environment contracts, installers, i18n resource completeness, semantic parity, runtime/documentation consistency, and CPU smoke tests.
+
+```bash
+python scripts/validation/validate.py
+```
+
+## 📦 Release
+
+The stable public repository is promoted from the validated development repository. v1.16 uses the development repository as the CI gate and the private repository as the source of truth.
